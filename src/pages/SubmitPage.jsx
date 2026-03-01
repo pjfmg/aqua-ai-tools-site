@@ -1,0 +1,220 @@
+import React, { useMemo, useState } from 'react';
+import Hero from '../components/Hero.jsx';
+import Section from '../components/Section.jsx';
+import { useTools } from '../hooks/useTools.js';
+import { normalizeArea, normalizeWebsiteUrl } from '../lib/tools.js';
+
+export default function SubmitPage() {
+  const { tools } = useTools();
+
+  const areaOptions = useMemo(() => {
+    const set = new Set();
+    for (const t of tools) for (const a of normalizeArea(t['Área/Categoria'])) set.add(a);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt'));
+  }, [tools]);
+
+  const [nome, setNome] = useState('');
+  const [site, setSite] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [funcoes, setFuncoes] = useState('');
+  const [preco, setPreco] = useState('');
+  const [area, setArea] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  const siteNormalized = normalizeWebsiteUrl(site);
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setSuccess('');
+    setError('');
+
+    const nomeTrim = nome.trim();
+    if (!nomeTrim) {
+      setError('Indica o nome da ferramenta.');
+      return;
+    }
+    if (!siteNormalized) {
+      setError('Indica um site válido (ex: https://exemplo.com).');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        Nome: nomeTrim,
+        Site: siteNormalized,
+        'Descrição': descricao.trim(),
+        'Funções': funcoes.trim(),
+        'Preço': preco,
+        'Área/Categoria': area ? [area] : [],
+      };
+
+      const res = await fetch('/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `Falha ao submeter (${res.status})`);
+
+      setSuccess('Submetido com sucesso! Obrigado — vamos rever e adicionar à base de dados.');
+      setNome('');
+      setSite('');
+      setDescricao('');
+      setFuncoes('');
+      setPreco('');
+      setArea('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <>
+      <Hero
+        title="Submeter"
+        subtitle="Sugere uma ferramenta para adicionar ao diretório."
+        badge="Revisão manual"
+      />
+
+      <Section title="Formulário" subtitle="Preenche o essencial. Nós tratamos do resto.">
+        <div className="panel">
+          <form className="form" onSubmit={onSubmit}>
+            <div className="form__grid">
+              <div className="field field--span2">
+                <label className="field__label" htmlFor="submit-nome">
+                  Nome *
+                </label>
+                <input
+                  id="submit-nome"
+                  className="input"
+                  placeholder="Ex: Notion AI"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className="field field--span2">
+                <label className="field__label" htmlFor="submit-site">
+                  Site *
+                </label>
+                <input
+                  id="submit-site"
+                  className="input"
+                  placeholder="https://..."
+                  value={site}
+                  onChange={(e) => setSite(e.target.value)}
+                  disabled={submitting}
+                />
+                {site && !siteNormalized ? (
+                  <div className="hint">Sugestão: usa um URL completo (https://...).</div>
+                ) : null}
+              </div>
+
+              <div className="field">
+                <label className="field__label" htmlFor="submit-area">
+                  Categoria
+                </label>
+                <select
+                  id="submit-area"
+                  className="select"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  disabled={submitting}
+                >
+                  <option value="">(opcional)</option>
+                  {areaOptions.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="field__label" htmlFor="submit-preco">
+                  Preço
+                </label>
+                <select
+                  id="submit-preco"
+                  className="select"
+                  value={preco}
+                  onChange={(e) => setPreco(e.target.value)}
+                  disabled={submitting}
+                >
+                  <option value="">(opcional)</option>
+                  <option value="Gratuito">Gratuito</option>
+                  <option value="Freemium">Freemium</option>
+                  <option value="Pago">Pago</option>
+                </select>
+              </div>
+
+              <div className="field field--span2">
+                <label className="field__label" htmlFor="submit-funcoes">
+                  Funções
+                </label>
+                <textarea
+                  id="submit-funcoes"
+                  className="textarea"
+                  rows={3}
+                  placeholder="Principais funcionalidades, casos de uso, etc."
+                  value={funcoes}
+                  onChange={(e) => setFuncoes(e.target.value)}
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className="field field--span2">
+                <label className="field__label" htmlFor="submit-descricao">
+                  Descrição
+                </label>
+                <textarea
+                  id="submit-descricao"
+                  className="textarea"
+                  rows={4}
+                  placeholder="Uma descrição curta e objetiva."
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  disabled={submitting}
+                />
+              </div>
+            </div>
+
+            {error ? <p className="error">{error}</p> : null}
+            {success ? <p className="success">{success}</p> : null}
+
+            <div className="form__actions">
+              <button className="btn btn--primary" type="submit" disabled={submitting}>
+                {submitting ? 'A submeter…' : 'Submeter'}
+              </button>
+              <button
+                className="btn btn--ghost"
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setNome('');
+                  setSite('');
+                  setDescricao('');
+                  setFuncoes('');
+                  setPreco('');
+                  setArea('');
+                  setError('');
+                  setSuccess('');
+                }}
+              >
+                Limpar
+              </button>
+            </div>
+          </form>
+        </div>
+      </Section>
+    </>
+  );
+}

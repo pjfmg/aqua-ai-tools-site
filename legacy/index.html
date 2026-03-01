@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Tools Database (Legacy)</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="src/styles.css">
+  <script src="src/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>AI Tools Database (Legacy)</h1>
+  </header>
+  <p style="text-align:center;color:#666;margin:0 0 16px;">
+    Versão antiga em HTML/JS puro. A app atual está em Vite + React.
+  </p>
+  <div id="filter-bar" style="text-align:center; margin-bottom: 24px;">
+    <label class="sr-only" for="filter-nome">Procurar por nome</label>
+    <input
+      type="text"
+      id="filter-nome"
+      placeholder="Procurar por Nome"
+      class="filter-input"
+      style="width:170px"
+    >
+    <label class="sr-only" for="filter-numero">Procurar por número</label>
+    <input
+      type="text"
+      id="filter-numero"
+      placeholder="Procurar por Número"
+      class="filter-input"
+      style="width:130px"
+    >
+    <label class="sr-only" for="filter-area">Filtrar por área</label>
+    <select id="filter-area" class="filter-select">
+      <option value="">Todas</option>
+    </select>
+    <label class="sr-only" for="filter-funcao">Filtrar por função</label>
+    <select id="filter-funcao" class="filter-select">
+      <option value="">Todas</option>
+    </select>
+    <label class="sr-only" for="filter-preco">Filtrar por preço</label>
+    <select id="filter-preco" class="filter-select">
+      <option value="">Todas</option>
+    </select>
+    <label class="sr-only" for="filter-visitado">Filtrar por visitado</label>
+    <select id="filter-visitado" class="filter-select">
+      <option value="">Visitado?</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+    <label class="sr-only" for="filter-favorito">Filtrar por favorito</label>
+    <select id="filter-favorito" class="filter-select" style="margin-right:16px;">
+      <option value="">Favorito?</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+    <button id="sort-az" class="sort-btn">A-Z</button>
+    <button id="sort-za" class="sort-btn">Z-A</button>
+    <button id="reset-filters" class="sort-btn">Limpar</button>
+  </div>
+  <main id="tools-container" class="grid-container"></main>
+</body>
+</html>

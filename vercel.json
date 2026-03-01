@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/airtable", "destination": "/api/airtable" },
+    { "source": "/submit", "destination": "/api/submit" },
+    { "source": "/rate", "destination": "/api/rate" },
+    { "source": "/ratings", "destination": "/api/ratings" },
+    { "source": "/preview", "destination": "/api/preview" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

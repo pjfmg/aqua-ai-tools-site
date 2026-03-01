@@ -1,0 +1,20 @@
+[
+  {
+    "numero": "001",
+    "logo": "openai.png",
+    "nome": "ChatGPT",
+    "funcoes": "Exemplo de funcionalidades",
+    "area": "IA – Texto",
+    "preco": "Gratuito",
+    "site": "https://chat.openai.com"
+  },
+  {
+    "numero": "002",
+    "logo": "notion.png",
+    "nome": "Notion AI",
+    "funcoes": "Organização e geração de texto com IA",
+    "area": "IA – Texto",
+    "preco": "Pago",
+    "site": "https://www.notion.so"
+  }
+]
