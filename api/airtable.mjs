@@ -50,9 +50,15 @@ export default async function handler(req, res) {
       json = { error: 'Invalid JSON from Airtable', raw: text };
     }
 
+    // Do not cache paginated responses (Airtable `offset` cursors can expire).
+    const hasOffset = Boolean(json && typeof json === 'object' && json.offset);
+
     res.statusCode = upstream.status;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader(
+      'Cache-Control',
+      hasOffset ? 'no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=600',
+    );
     res.end(JSON.stringify(json));
   } catch (err) {
     res.statusCode = 500;

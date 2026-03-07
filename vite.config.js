@@ -9,6 +9,10 @@ export default defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
+      '/img': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
       '/submit': {
         target: 'http://localhost:3001',
         changeOrigin: true,
@@ -22,6 +26,10 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/preview': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/billing': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },

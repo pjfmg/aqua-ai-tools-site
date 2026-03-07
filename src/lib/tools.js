@@ -7,6 +7,87 @@ export function isHttpUrl(value) {
   return /^https?:\/\//i.test(value);
 }
 
+function normalizeImageUrl(value) {
+  if (!value || typeof value !== 'string') return '';
+  const raw = value.trim();
+  if (!raw) return '';
+  // Protocol-relative URLs.
+  const protocolReady = raw.startsWith('//') ? `https:${raw}` : raw;
+  try {
+    const u = new URL(protocolReady);
+    // iOS (especially in WebViews/PWAs) can block plain http (ATS / mixed content policies).
+    if (u.protocol === 'http:') u.protocol = 'https:';
+    if (u.protocol !== 'https:') return '';
+    return u.href;
+  } catch {
+    return '';
+  }
+}
+
+export function proxyImageUrl(value) {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (!raw) return '';
+  if (raw.startsWith('/')) return raw;
+  try {
+    const u = new URL(raw);
+    if (typeof window !== 'undefined' && u.origin === window.location.origin) return u.href;
+  } catch {
+    // ignore
+  }
+  return `/img?u=${encodeURIComponent(raw)}`;
+}
+
+function expandImageUrlVariants(urls) {
+  const out = [];
+  for (const u of Array.isArray(urls) ? urls : []) {
+    if (!u) continue;
+    out.push(u);
+    const proxied = proxyImageUrl(u);
+    if (proxied && proxied !== u) out.push(proxied);
+  }
+  return out.filter(Boolean).filter((v, idx, arr) => arr.indexOf(v) === idx);
+}
+
+async function readUpstreamError(res) {
+  try {
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text);
+      const preferred =
+        json?.error?.message ??
+        json?.error?.type ??
+        json?.message ??
+        json?.error ??
+        (typeof json === 'string' ? json : json);
+      const msg = typeof preferred === 'string' ? preferred : JSON.stringify(preferred);
+      return String(msg || '').slice(0, 400);
+    } catch {
+      return String(text || '').slice(0, 400);
+    }
+  } catch {
+    return '';
+  }
+}
+
+async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE } = {}) {
+  const url = new URL('/airtable', window.location.origin);
+  url.searchParams.set('pageSize', String(pageSize));
+  if (offset) url.searchParams.set('offset', offset);
+  // Extra cache-buster for the first page to avoid any stale cached `offset` cursor (not forwarded to Airtable).
+  if (!offset) url.searchParams.set('_ts', String(Date.now()));
+
+  // iOS Safari/WebViews can be aggressive with caching; a cached Airtable page may include an expired `offset`
+  // cursor and cause 422 LIST_RECORDS_ITERATOR_NOT_AVAILABLE on the next page request.
+  const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, 8000);
+  if (!res.ok) {
+    const details = await readUpstreamError(res);
+    throw new Error(`Proxy /airtable falhou (${res.status})${details ? `: ${details}` : ''}`);
+  }
+  const json = await res.json();
+  if (!json?.records) throw new Error('Resposta inválida do proxy');
+  return { records: json.records, offset: json.offset || null };
+}
+
 export function normalizeWebsiteUrl(value) {
   if (!value || typeof value !== 'string') return '';
   const raw = value.trim();
@@ -65,9 +146,23 @@ export function normalizeArea(value) {
 }
 
 export function getAirtableAttachmentUrl(value) {
-  if (!Array.isArray(value) || value.length === 0) return '';
-  const first = value[0];
-  if (first && typeof first.url === 'string' && isHttpUrl(first.url)) return first.url;
+  if (!value) return '';
+
+  // Airtable attachments are typically arrays; be defensive if a single object is passed.
+  const first = Array.isArray(value) ? value[0] : value;
+  if (!first) return '';
+
+  const thumb =
+    first?.thumbnails?.large?.url ||
+    first?.thumbnails?.full?.url ||
+    first?.thumbnails?.small?.url ||
+    '';
+  const normalizedThumb = normalizeImageUrl(thumb);
+  if (normalizedThumb) return normalizedThumb;
+
+  const normalized = normalizeImageUrl(first?.url || '');
+  if (normalized) return normalized;
+
   return '';
 }
 
@@ -75,15 +170,17 @@ export function pickLogoUrls(tool) {
   const candidates = [];
 
   const fromLogoField =
-    (typeof tool?.Logo === 'string' && isHttpUrl(tool.Logo) && tool.Logo) ||
+    (typeof tool?.Logo === 'string' && normalizeImageUrl(tool.Logo)) ||
     getAirtableAttachmentUrl(tool?.Logo);
   if (fromLogoField) candidates.push(fromLogoField);
 
-  if (typeof tool?.ClearbitLogo === 'string' && isHttpUrl(tool.ClearbitLogo)) {
-    candidates.push(tool.ClearbitLogo);
+  if (typeof tool?.ClearbitLogo === 'string') {
+    const u = normalizeImageUrl(tool.ClearbitLogo);
+    if (u) candidates.push(u);
   }
-  if (typeof tool?.FaviconLogo === 'string' && isHttpUrl(tool.FaviconLogo)) {
-    candidates.push(tool.FaviconLogo);
+  if (typeof tool?.FaviconLogo === 'string') {
+    const u = normalizeImageUrl(tool.FaviconLogo);
+    if (u) candidates.push(u);
   }
 
   const hostname = getHostnameFromWebsiteUrl(tool?.Site);
@@ -92,10 +189,14 @@ export function pickLogoUrls(tool) {
     candidates.push(`https://www.google.com/s2/favicons?sz=128&domain=${hostname}`);
   }
 
-  const unique = candidates.filter((v, idx) => candidates.indexOf(v) === idx);
-  const primary = unique[0] || '/assets/img/placeholder.png';
-  const secondary = unique[1] || '';
-  return { primary, secondary };
+  const unique = candidates.filter(Boolean).filter((v, idx) => candidates.indexOf(v) === idx);
+  // Prefer direct URLs first (works even on static hosting without /img),
+  // but include proxied variants as fallbacks when available.
+  const variants = expandImageUrlVariants(unique);
+  const primary = variants[0] || '/assets/img/placeholder-ai-tools.png';
+  const fallbacks = variants.slice(1, 10);
+  const secondary = fallbacks[0] || '';
+  return { primary, secondary, fallbacks };
 }
 
 export function mapMockToTool(mock) {
@@ -188,61 +289,46 @@ export function pickDailyFeaturedTools(tools, count = 20, dateKey = getLocalDate
   return shuffled.slice(0, Math.max(0, count));
 }
 
-async function fetchAllAirtableRecords() {
-  const all = [];
-  let offset = null;
-
-  async function readUpstreamError(res) {
-    try {
-      const text = await res.text();
-      try {
-        const json = JSON.parse(text);
-        const msg =
-          json?.error ||
-          json?.message ||
-          (typeof json === 'string' ? json : JSON.stringify(json));
-        return String(msg).slice(0, 400);
-      } catch {
-        return String(text || '').slice(0, 400);
-      }
-    } catch {
-      return '';
-    }
-  }
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const url = new URL('/airtable', window.location.origin);
-    url.searchParams.set('pageSize', String(PAGE_SIZE));
-    if (offset) url.searchParams.set('offset', offset);
-
-    const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, 8000);
-    if (!res.ok) {
-      const details = await readUpstreamError(res);
-      throw new Error(`Proxy /airtable falhou (${res.status})${details ? `: ${details}` : ''}`);
-    }
-    const json = await res.json();
-    if (!json?.records) throw new Error('Resposta inválida do proxy');
-
-    for (const rec of json.records) all.push(rec);
-    if (!json.offset) break;
-    offset = json.offset;
-  }
-
-  return all;
-}
-
-export async function loadTools() {
+export async function loadToolsPhased({ onChunk, initialPageSize = 40 } = {}) {
   try {
-    const records = await fetchAllAirtableRecords();
-    return { tools: records.map(extractToolFromRecord), warning: '' };
+    const out = [];
+    let offset = null;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const isFirstPage = !offset && out.length === 0;
+      const pageSize = isFirstPage
+        ? Math.max(10, Math.min(PAGE_SIZE, Number(initialPageSize) || PAGE_SIZE))
+        : PAGE_SIZE;
+      const page = await fetchAirtablePage({ offset, pageSize });
+      const chunk = page.records.map(extractToolFromRecord);
+      out.push(...chunk);
+
+      if (typeof onChunk === 'function') {
+        onChunk(chunk, { done: !page.offset, total: out.length });
+      }
+
+      if (!page.offset) break;
+      offset = page.offset;
+    }
+
+    return { tools: out, warning: '' };
   } catch (err) {
     const res = await fetchWithTimeout('/data/tools.json', { cache: 'no-store' }, 4000);
     const json = await res.json();
     const mapped = (Array.isArray(json) ? json : []).map(mapMockToTool);
+
+    if (typeof onChunk === 'function') {
+      onChunk(mapped, { done: true, total: mapped.length, source: 'mock' });
+    }
+
     return {
       tools: mapped,
       warning: `Aviso: a fonte principal falhou (${err.message}). A mostrar mock local.`,
     };
   }
+}
+
+export async function loadTools() {
+  return await loadToolsPhased();
 }

@@ -83,4 +83,3 @@ export async function onRequest(context) {
     return jsonResponse(500, { error: err.message || 'Proxy error' });
   }
 }
-

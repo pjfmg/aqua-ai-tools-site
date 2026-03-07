@@ -20,6 +20,7 @@ import BlogPage from './pages/BlogPage.jsx';
 import BlogPostPage from './pages/BlogPostPage.jsx';
 import ProPage from './pages/ProPage.jsx';
 import ReviewsPage from './pages/ReviewsPage.jsx';
+import RequirePro from './components/RequirePro.jsx';
 
 export default function App() {
   return (
@@ -36,10 +37,31 @@ export default function App() {
           <Route path="/conta" element={<AccountPage />} />
 
           <Route path="/destaques" element={<ToolsPage title="Destaques" mode="destaques" />} />
-          <Route path="/visitadas" element={<ToolsPage title="Visitadas" mode="visitadas" />} />
-          <Route path="/favoritas" element={<ToolsPage title="Favoritas" mode="favoritas" />} />
+          <Route
+            path="/visitadas"
+            element={
+              <RequirePro title="Visitadas">
+                <ToolsPage title="Visitadas" mode="visitadas" />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/favoritas"
+            element={
+              <RequirePro title="Favoritas">
+                <ToolsPage title="Favoritas" mode="favoritas" />
+              </RequirePro>
+            }
+          />
 
-          <Route path="/reviews" element={<ReviewsPage />} />
+          <Route
+            path="/reviews"
+            element={
+              <RequirePro title="Reviews">
+                <ReviewsPage />
+              </RequirePro>
+            }
+          />
           <Route path="/sugestoes" element={<SuggestionsPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />

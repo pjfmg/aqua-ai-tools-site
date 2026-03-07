@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed, safeTablePath, withCors } from './_utils.js';
+import { jsonResponse, methodNotAllowed, normalizeEnvValue, safeTablePath, withCors } from './_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -6,9 +6,9 @@ export async function onRequest(context) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: withCors() });
   if (request.method !== 'GET') return methodNotAllowed('GET,OPTIONS');
 
-  const airtablePat = env.AIRTABLE_PAT;
-  const baseId = env.AIRTABLE_BASE_ID;
-  const tableId = env.AIRTABLE_TABLE_ID;
+  const airtablePat = normalizeEnvValue(env.AIRTABLE_PAT, 'pat');
+  const baseId = normalizeEnvValue(env.AIRTABLE_BASE_ID, 'base');
+  const tableId = normalizeEnvValue(env.AIRTABLE_TABLE_ID, 'table');
 
   if (!airtablePat || !baseId || !tableId) {
     return jsonResponse(500, {
@@ -35,12 +35,20 @@ export async function onRequest(context) {
     json = { error: 'Invalid JSON from Airtable', raw: text };
   }
 
+  // Important: Airtable pagination uses an `offset` cursor that can expire.
+  // If we cache responses that include `offset`, clients may receive a stale cursor
+  // and the next page request can fail with 422 (e.g. LIST_RECORDS_ITERATOR_NOT_AVAILABLE).
+  const hasOffset = Boolean(json && typeof json === 'object' && json.offset);
+  const cacheControl = hasOffset
+    ? 'no-store'
+    : // Safe to cache only when everything fits in one page (no pagination cursor).
+      'public, max-age=0, s-maxage=600, stale-while-revalidate=86400';
+
   return new Response(JSON.stringify(json), {
     status: upstream.status,
     headers: withCors({
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store',
+      'Cache-Control': cacheControl,
     }),
   });
 }
-

@@ -100,6 +100,110 @@ function safeTablePath(tableId) {
   }
 }
 
+function getSiteUrl(req) {
+  const configured = String(process.env.PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
+  if (configured) return configured.replace(/\/+$/, '');
+  const proto = String(req.headers['x-forwarded-proto'] || 'http').trim() || 'http';
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || `localhost:${port}`).trim();
+  return `${proto}://${host}`.replace(/\/+$/, '');
+}
+
+async function stripeRequest(pathname, body) {
+  const secretKey = String(process.env.STRIPE_SECRET_KEY || '').trim();
+  if (!secretKey) throw new Error('Missing STRIPE_SECRET_KEY');
+
+  const upstream = await fetch(`https://api.stripe.com${pathname}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(body),
+  });
+
+  const text = await upstream.text();
+  const json = text ? JSON.parse(text) : {};
+  if (!upstream.ok) throw new Error(json?.error?.message || 'Stripe request failed');
+  return json;
+}
+
+async function stripeGet(pathname) {
+  const secretKey = String(process.env.STRIPE_SECRET_KEY || '').trim();
+  if (!secretKey) throw new Error('Missing STRIPE_SECRET_KEY');
+
+  const upstream = await fetch(`https://api.stripe.com${pathname}`, {
+    headers: { Authorization: `Bearer ${secretKey}` },
+  });
+
+  const text = await upstream.text();
+  const json = text ? JSON.parse(text) : {};
+  if (!upstream.ok) throw new Error(json?.error?.message || 'Stripe request failed');
+  return json;
+}
+
+function toSubscriptionPayload(session) {
+  const subscription = session?.subscription;
+  return {
+    plan: 'pro',
+    status: String(subscription?.status || session?.payment_status || '').toLowerCase(),
+    customerId: String(session?.customer || '').trim(),
+    customerEmail: String(session?.customer_details?.email || '').trim().toLowerCase(),
+    checkoutSessionId: String(session?.id || '').trim(),
+    currentPeriodEnd: subscription?.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : '',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function upsertBillingRecord(subscription) {
+  const billingTableId = String(process.env.AIRTABLE_BILLING_TABLE_ID || '').trim();
+  const billingBaseId = String(process.env.AIRTABLE_BILLING_BASE_ID || baseId || '').trim();
+  if (!airtablePat || !billingBaseId || !billingTableId || !subscription?.customerEmail) return false;
+
+  const fields = {
+    Key: subscription.customerEmail,
+    UserEmail: subscription.customerEmail,
+    Plan: subscription.plan,
+    Status: subscription.status,
+    CustomerId: subscription.customerId,
+    CheckoutSessionId: subscription.checkoutSessionId,
+    CurrentPeriodEnd: subscription.currentPeriodEnd || '',
+    UpdatedAt: subscription.updatedAt,
+  };
+
+  const upstream = await fetch(`https://api.airtable.com/v0/${billingBaseId}/${safeTablePath(billingTableId)}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${airtablePat}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      performUpsert: { fieldsToMergeOn: ['Key'] },
+      records: [{ fields }],
+    }),
+  });
+
+  const text = await upstream.text();
+  const json = text ? JSON.parse(text) : {};
+  if (!upstream.ok) throw new Error(json?.error?.message || 'Failed to write billing record to Airtable');
+  return true;
+}
+
+function escapeFormulaValue(value) {
+  return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function pickLatestSubscription(stripeSubscriptions) {
+  const items = Array.isArray(stripeSubscriptions?.data) ? stripeSubscriptions.data : [];
+  if (!items.length) return null;
+  const sorted = [...items].sort((a, b) => Number(b?.created || 0) - Number(a?.created || 0));
+  return (
+    sorted.find((item) => ['active', 'trialing', 'past_due', 'canceled', 'unpaid'].includes(String(item?.status || ''))) ||
+    sorted[0]
+  );
+}
+
 async function handleSubmit(req, res) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, withCors());
@@ -435,6 +539,220 @@ async function handlePreview(req, res) {
   }
 }
 
+async function handleBillingCheckout(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, withCors());
+    res.end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'Method Not Allowed' }, withCors());
+    return;
+  }
+
+  const priceId = String(process.env.STRIPE_PRICE_ID_PRO || '').trim();
+  if (!priceId) {
+    sendJson(res, 500, { error: 'Missing STRIPE_PRICE_ID_PRO' }, withCors());
+    return;
+  }
+
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    sendJson(res, err.code === 'INVALID_JSON' ? 400 : 500, { error: err.message }, withCors());
+    return;
+  }
+
+  const email = String(body?.email || '').trim().toLowerCase();
+  if (!email) {
+    sendJson(res, 400, { error: 'Email é obrigatório' }, withCors());
+    return;
+  }
+
+  try {
+    const siteUrl = getSiteUrl(req);
+    const session = await stripeRequest('/v1/checkout/sessions', {
+      mode: 'subscription',
+      success_url: `${siteUrl}/conta?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/pro?checkout=cancelled`,
+      customer_email: email,
+      'line_items[0][price]': priceId,
+      'line_items[0][quantity]': '1',
+      allow_promotion_codes: 'true',
+      'metadata[user_email]': email,
+    });
+    sendJson(res, 200, { id: session.id, url: session.url }, withCors());
+  } catch (err) {
+    sendJson(res, 500, { error: err.message || 'Billing checkout failed' }, withCors());
+  }
+}
+
+async function handleBillingSessionStatus(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, withCors());
+    res.end();
+    return;
+  }
+  if (req.method !== 'GET') {
+    sendJson(res, 405, { error: 'Method Not Allowed' }, withCors());
+    return;
+  }
+
+  try {
+    const url = new URL(req.url || '/', `http://${req.headers.host}`);
+    const sessionId = String(url.searchParams.get('session_id') || '').trim();
+    if (!sessionId) {
+      sendJson(res, 400, { error: 'session_id é obrigatório' }, withCors());
+      return;
+    }
+
+    const session = await stripeGet(
+      `/v1/checkout/sessions/${encodeURIComponent(sessionId)}?expand[]=subscription`,
+    );
+    const subscription = toSubscriptionPayload(session);
+    if (subscription.customerEmail) await upsertBillingRecord(subscription);
+    sendJson(
+      res,
+      200,
+      {
+        ok: true,
+        subscription,
+        sessionStatus: String(session?.status || '').toLowerCase(),
+      },
+      withCors(),
+    );
+  } catch (err) {
+    sendJson(res, 500, { error: err.message || 'Billing status failed' }, withCors());
+  }
+}
+
+async function handleBillingSubscription(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, withCors());
+    res.end();
+    return;
+  }
+  if (req.method !== 'GET') {
+    sendJson(res, 405, { error: 'Method Not Allowed' }, withCors());
+    return;
+  }
+
+  const billingTableId = String(process.env.AIRTABLE_BILLING_TABLE_ID || '').trim();
+  const billingBaseId = String(process.env.AIRTABLE_BILLING_BASE_ID || baseId || '').trim();
+  if (!airtablePat || !billingBaseId || !billingTableId) {
+    sendJson(
+      res,
+      500,
+      { error: 'Missing AIRTABLE_PAT, AIRTABLE_BASE_ID (or AIRTABLE_BILLING_BASE_ID) or AIRTABLE_BILLING_TABLE_ID' },
+      withCors(),
+    );
+    return;
+  }
+
+  try {
+    const url = new URL(req.url || '/', `http://${req.headers.host}`);
+    const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+    if (!email) {
+      sendJson(res, 400, { error: 'email é obrigatório' }, withCors());
+      return;
+    }
+
+    const airtableUrl = new URL(`https://api.airtable.com/v0/${billingBaseId}/${safeTablePath(billingTableId)}`);
+    airtableUrl.searchParams.set('maxRecords', '1');
+    airtableUrl.searchParams.set('sort[0][field]', 'UpdatedAt');
+    airtableUrl.searchParams.set('sort[0][direction]', 'desc');
+    airtableUrl.searchParams.set('filterByFormula', `{Key}='${escapeFormulaValue(email)}'`);
+
+    const upstream = await fetch(airtableUrl, {
+      headers: { Authorization: `Bearer ${airtablePat}` },
+    });
+
+    const text = await upstream.text();
+    const json = text ? JSON.parse(text) : {};
+    if (!upstream.ok) {
+      sendJson(res, upstream.status, { error: json?.error?.message || 'Airtable request failed' }, withCors());
+      return;
+    }
+
+    const record = Array.isArray(json?.records) ? json.records[0] : null;
+    const fields = record?.fields || {};
+    let subscription = record
+      ? {
+          plan: String(fields.Plan || '').trim().toLowerCase(),
+          status: String(fields.Status || '').trim().toLowerCase(),
+          customerId: String(fields.CustomerId || '').trim(),
+          customerEmail: String(fields.UserEmail || fields.Key || '').trim().toLowerCase(),
+          checkoutSessionId: String(fields.CheckoutSessionId || '').trim(),
+          currentPeriodEnd: String(fields.CurrentPeriodEnd || '').trim(),
+          updatedAt: String(fields.UpdatedAt || '').trim(),
+        }
+      : null;
+
+    if (subscription?.customerId) {
+      const stripeSubscriptions = await stripeGet(
+        `/v1/subscriptions?customer=${encodeURIComponent(subscription.customerId)}&status=all&limit=10`,
+      );
+      const latest = pickLatestSubscription(stripeSubscriptions);
+      if (latest) {
+        subscription = {
+          ...subscription,
+          plan: 'pro',
+          status: String(latest.status || subscription.status || '').trim().toLowerCase(),
+          currentPeriodEnd: latest.current_period_end ? new Date(latest.current_period_end * 1000).toISOString() : '',
+          updatedAt: new Date().toISOString(),
+        };
+        await upsertBillingRecord(subscription);
+      }
+    }
+
+    sendJson(
+      res,
+      200,
+      { ok: true, subscription },
+      withCors(),
+    );
+  } catch (err) {
+    sendJson(res, 500, { error: err.message || 'Billing subscription failed' }, withCors());
+  }
+}
+
+async function handleBillingPortal(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, withCors());
+    res.end();
+    return;
+  }
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'Method Not Allowed' }, withCors());
+    return;
+  }
+
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    sendJson(res, err.code === 'INVALID_JSON' ? 400 : 500, { error: err.message }, withCors());
+    return;
+  }
+
+  const customerId = String(body?.customerId || '').trim();
+  if (!customerId) {
+    sendJson(res, 400, { error: 'customerId é obrigatório' }, withCors());
+    return;
+  }
+
+  try {
+    const portal = await stripeRequest('/v1/billing_portal/sessions', {
+      customer: customerId,
+      return_url: `${getSiteUrl(req)}/conta`,
+    });
+    sendJson(res, 200, { url: portal.url }, withCors());
+  } catch (err) {
+    sendJson(res, 500, { error: err.message || 'Billing portal failed' }, withCors());
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
@@ -457,6 +775,26 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/preview') {
       await handlePreview(req, res);
+      return;
+    }
+
+    if (pathname === '/billing/checkout') {
+      await handleBillingCheckout(req, res);
+      return;
+    }
+
+    if (pathname === '/billing/session-status') {
+      await handleBillingSessionStatus(req, res);
+      return;
+    }
+
+    if (pathname === '/billing/portal') {
+      await handleBillingPortal(req, res);
+      return;
+    }
+
+    if (pathname === '/billing/subscription') {
+      await handleBillingSubscription(req, res);
       return;
     }
 

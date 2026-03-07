@@ -7,7 +7,7 @@ import { normalizeArea } from '../lib/tools.js';
 import { useTools } from '../hooks/useTools.js';
 
 export default function HomePage() {
-  const { tools, loading, error, warning } = useTools();
+  const { tools, loading, loadingMore, error, warning } = useTools();
 
   const categoryCounts = useMemo(() => {
     const counts = new Map();
@@ -41,6 +41,7 @@ export default function HomePage() {
 
       {warning ? <p className="note">{warning}</p> : null}
       {loading ? <p className="no-results">A carregar…</p> : null}
+      {loadingMore && !loading ? <p className="note">A carregar mais ferramentas…</p> : null}
       {error ? <p className="error">{error}</p> : null}
 
       <Section

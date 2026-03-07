@@ -4,7 +4,7 @@ export function getPreviewCandidates(site, { width = 1200 } = {}) {
 
   // Provider order:
   // 1) Same-origin `/preview` (server fetch + CDN cache; can use PageSpeed screenshot, fall back to mShots)
-  // 2) Direct mShots (no key) as last resort
+  // 2) Direct mShots as last resort (helps if `/preview` isn't available on the current host)
   return [
     `/preview?url=${encodeURIComponent(url)}&w=${Math.max(200, Math.round(width))}`,
     `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=${Math.max(200, Math.round(width))}`,

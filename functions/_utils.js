@@ -7,6 +7,41 @@ export function withCors(headers = {}) {
   };
 }
 
+function stripWrappingQuotes(value) {
+  const s = String(value ?? '').trim();
+  if (!s) return '';
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) return s.slice(1, -1).trim();
+  return s;
+}
+
+export function normalizeEnvValue(value, kind = 'generic') {
+  const cleaned = stripWrappingQuotes(value);
+  if (!cleaned) return '';
+
+  // Common copy/paste mistakes:
+  // - trailing punctuation from docs sentences (e.g. "app... .")
+  // - pasting full path segments like "app.../tbl.../viw..."
+  // - surrounding quotes
+  const withoutTrailingPunct = cleaned.replace(/[)\],.;:]+$/g, '').trim();
+
+  if (kind === 'base') {
+    const m = withoutTrailingPunct.match(/app[a-zA-Z0-9]{10,}/);
+    return (m?.[0] || withoutTrailingPunct).trim();
+  }
+  if (kind === 'table' || kind === 'view') {
+    const prefix = kind === 'table' ? 'tbl' : 'viw';
+    const re = new RegExp(`${prefix}[a-zA-Z0-9]{10,}`);
+    const m = withoutTrailingPunct.match(re);
+    return (m?.[0] || withoutTrailingPunct).trim();
+  }
+  if (kind === 'pat') {
+    const m = withoutTrailingPunct.match(/pat[a-zA-Z0-9._-]{10,}/);
+    return (m?.[0] || withoutTrailingPunct).trim();
+  }
+
+  return withoutTrailingPunct.trim();
+}
+
 export function jsonResponse(status, body, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -62,4 +97,3 @@ export function base64ToUint8Array(b64) {
   for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }
-

@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { fetchBillingSubscription } from '../lib/billing.js';
+import { hasProAccess, normalizeSubscription } from '../lib/subscription.js';
 
 const STORAGE_KEY = 'aqua_auth_user_v1';
 
@@ -12,6 +14,7 @@ function readStoredUser() {
     return {
       name: typeof parsed.name === 'string' ? parsed.name : '',
       email: parsed.email.trim(),
+      subscription: normalizeSubscription(parsed.subscription),
     };
   } catch {
     return null;
@@ -38,26 +41,71 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [billingLoaded, setBillingLoaded] = useState(false);
 
   useEffect(() => {
     setUser(readStoredUser());
+    setBillingLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    let ignore = false;
+    setBillingLoaded(false);
+
+    fetchBillingSubscription(user.email)
+      .then((result) => {
+        if (ignore || !result) return;
+        const nextSubscription = normalizeSubscription(result.subscription);
+        setUser((prev) => {
+          if (!prev || prev.email !== user.email) return prev;
+          const next = { ...prev, subscription: nextSubscription };
+          writeStoredUser(next);
+          return next;
+        });
+      })
+      .catch(() => {
+        // keep the locally persisted subscription if billing sync fails
+      })
+      .finally(() => {
+        if (!ignore) setBillingLoaded(true);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [user?.email]);
 
   const value = useMemo(() => {
     return {
       user,
       isAuthed: Boolean(user),
+      billingLoaded,
+      hasProAccess: hasProAccess(user),
       signIn: ({ name, email }) => {
-        const next = { name: (name || '').trim(), email: (email || '').trim().toLowerCase() };
+        const current = readStoredUser();
+        const nextEmail = (email || '').trim().toLowerCase();
+        const keepSubscription =
+          current?.email && current.email === nextEmail ? normalizeSubscription(current.subscription) : null;
+        const next = { name: (name || '').trim(), email: nextEmail, subscription: keepSubscription };
         writeStoredUser(next);
         setUser(next);
+      },
+      setSubscription: (subscription) => {
+        setUser((prev) => {
+          if (!prev) return prev;
+          const next = { ...prev, subscription: normalizeSubscription(subscription) };
+          writeStoredUser(next);
+          return next;
+        });
       },
       signOut: () => {
         clearStoredUser();
         setUser(null);
       },
     };
-  }, [user]);
+  }, [billingLoaded, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

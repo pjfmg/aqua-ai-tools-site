@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { getInitials, useAuth } from '../auth/auth.jsx';
 
 function Item({ to, children }) {
@@ -20,7 +20,37 @@ function PillItem({ to, children }) {
 
 export default function TopNav() {
   const navigate = useNavigate();
-  const { isAuthed, user, signOut } = useAuth();
+  const location = useLocation();
+  const { isAuthed, hasProAccess, user, signOut } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const primaryLinks = useMemo(
+    () => [
+      { to: '/', label: 'Home' },
+      { to: '/pro', label: 'Pro' },
+      { to: '/ferramentas', label: 'Ferramentas' },
+      { to: '/destaques', label: 'Destaques' },
+    ],
+    [],
+  );
+
+  const extraLinks = useMemo(
+    () => [
+      { to: '/surpreende-me', label: 'Surpreende-me' },
+      { to: '/blog', label: 'Blog' },
+      { to: '/visitadas', label: 'Visitadas' },
+      { to: '/favoritas', label: 'Favoritas' },
+      { to: '/reviews', label: 'Reviews' },
+      { to: '/submeter', label: 'Submeter' },
+      { to: '/sugestoes', label: 'Sugestões' },
+    ],
+    [],
+  );
+
+  useEffect(() => {
+    // Close the mobile menu on navigation.
+    setMoreOpen(false);
+  }, [location.pathname]);
 
   return (
     <nav className="topnav" aria-label="Menu principal">
@@ -36,7 +66,10 @@ export default function TopNav() {
             <>
               <NavLink to="/conta" className="topnav__profile" title={user?.email || 'Conta'}>
                 <span className="topnav__avatar">{getInitials(user?.name || user?.email)}</span>
-                <span className="topnav__profileText">{user?.name || 'Conta'}</span>
+                <span className="topnav__profileText">
+                  {user?.name || 'Conta'}
+                  <span className={`topnav__plan ${hasProAccess ? 'is-pro' : ''}`}>{hasProAccess ? 'Pro' : 'Starter'}</span>
+                </span>
               </NavLink>
               <button
                 className="topnav__signout"
@@ -64,20 +97,53 @@ export default function TopNav() {
 
         <div className="pillNav" aria-label="Atalhos">
           <div className="pillNav__scroll">
-            <PillItem to="/">Home</PillItem>
-            <PillItem to="/pro">Pro</PillItem>
-            <PillItem to="/ferramentas">Ferramentas</PillItem>
-            <PillItem to="/destaques">Destaques</PillItem>
-            <PillItem to="/surpreende-me">Surpreende-me</PillItem>
-            <PillItem to="/blog">Blog</PillItem>
-            <PillItem to="/visitadas">Visitadas</PillItem>
-            <PillItem to="/favoritas">Favoritas</PillItem>
-            <PillItem to="/reviews">Reviews</PillItem>
-            <PillItem to="/submeter">Submeter</PillItem>
-            <PillItem to="/sugestoes">Sugestões</PillItem>
+            {primaryLinks.map((l) => (
+              <PillItem key={l.to} to={l.to}>
+                {l.label}
+              </PillItem>
+            ))}
+
+            <button
+              className="pillNav__item pillNav__moreBtn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded={moreOpen ? 'true' : 'false'}
+              onClick={() => setMoreOpen((v) => !v)}
+            >
+              Mais
+            </button>
+
+            <span className="pillNav__extra">
+              {extraLinks.map((l) => (
+                <PillItem key={l.to} to={l.to}>
+                  {l.label}
+                </PillItem>
+              ))}
+            </span>
           </div>
         </div>
       </div>
+
+      {moreOpen ? (
+        <div
+          className="pillNav__overlay"
+          role="dialog"
+          aria-label="Mais opções"
+          aria-modal="true"
+          onClick={() => setMoreOpen(false)}
+        >
+          <div className="pillNav__sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="pillNav__sheetTitle">Menu</div>
+            <div className="pillNav__sheetLinks">
+              {extraLinks.map((l) => (
+                <NavLink key={l.to} to={l.to} className="pillNav__sheetLink">
+                  {l.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }

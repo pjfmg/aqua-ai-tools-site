@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed, safeTablePath, withCors } from './_utils.js';
+import { jsonResponse, methodNotAllowed, normalizeEnvValue, safeTablePath, withCors } from './_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -6,14 +6,14 @@ export async function onRequest(context) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: withCors() });
   if (request.method !== 'POST') return methodNotAllowed('POST,OPTIONS');
 
-  const airtablePat = env.AIRTABLE_PAT;
-  const baseId = env.AIRTABLE_BASE_ID;
-  const ratingsTableId = env.AIRTABLE_RATINGS_TABLE_ID;
+  const airtablePat = normalizeEnvValue(env.AIRTABLE_PAT, 'pat');
+  const baseId = normalizeEnvValue(env.AIRTABLE_RATINGS_BASE_ID || env.AIRTABLE_BASE_ID, 'base');
+  const ratingsTableId = normalizeEnvValue(env.AIRTABLE_RATINGS_TABLE_ID, 'table');
 
   if (!airtablePat || !baseId || !ratingsTableId) {
     return jsonResponse(500, {
       error: 'Missing server env vars',
-      required: ['AIRTABLE_PAT', 'AIRTABLE_BASE_ID', 'AIRTABLE_RATINGS_TABLE_ID'],
+      required: ['AIRTABLE_PAT', 'AIRTABLE_BASE_ID (or AIRTABLE_RATINGS_BASE_ID)', 'AIRTABLE_RATINGS_TABLE_ID'],
     });
   }
 
@@ -70,4 +70,3 @@ export async function onRequest(context) {
 
   return jsonResponse(200, { ok: true, result: json });
 }
-

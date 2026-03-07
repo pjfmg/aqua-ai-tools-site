@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed, safeTablePath, withCors } from './_utils.js';
+import { jsonResponse, methodNotAllowed, normalizeEnvValue, safeTablePath, withCors } from './_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -6,9 +6,9 @@ export async function onRequest(context) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: withCors() });
   if (request.method !== 'POST') return methodNotAllowed('POST,OPTIONS');
 
-  const airtablePat = env.AIRTABLE_PAT;
-  const baseId = env.AIRTABLE_BASE_ID;
-  const tableId = env.AIRTABLE_SUBMIT_TABLE_ID || env.AIRTABLE_TABLE_ID;
+  const airtablePat = normalizeEnvValue(env.AIRTABLE_PAT, 'pat');
+  const baseId = normalizeEnvValue(env.AIRTABLE_BASE_ID, 'base');
+  const tableId = normalizeEnvValue(env.AIRTABLE_SUBMIT_TABLE_ID || env.AIRTABLE_TABLE_ID, 'table');
 
   if (!airtablePat || !baseId || !tableId) {
     return jsonResponse(500, {
@@ -62,4 +62,3 @@ export async function onRequest(context) {
 
   return jsonResponse(200, { ok: true, result: json });
 }
-

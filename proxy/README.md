@@ -10,6 +10,11 @@ Create a `.env` file (example in the repo root `.env.example`):
 - `AIRTABLE_BASE_ID`
 - `AIRTABLE_TABLE_ID` (table id or table name)
 - `AIRTABLE_RATINGS_TABLE_ID` (table id or table name, for 1–5 star ratings)
+- `STRIPE_SECRET_KEY` (for checkout + billing portal)
+- `STRIPE_PRICE_ID_PRO` (subscription price id)
+- `PUBLIC_SITE_URL` (recommended; example `http://localhost:5173`)
+- `AIRTABLE_BILLING_TABLE_ID` (subscription records)
+- `AIRTABLE_BILLING_BASE_ID` (optional; falls back to `AIRTABLE_BASE_ID`)
 
 ## Run
 
@@ -28,3 +33,5 @@ node proxy/server.mjs
 
 Depois arranca o frontend (Vite). O `vite.config.js` faz proxy de `/airtable` para `http://localhost:3001`.
 O preview de sites usa `GET /preview` (também via proxy).
+O billing local usa `/billing/checkout`, `/billing/session-status`, `/billing/subscription` e `/billing/portal`.
+O estado de subscrição é lido/escrito em `AIRTABLE_BILLING_TABLE_ID`.

@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed, safeTablePath, withCors } from './_utils.js';
+import { jsonResponse, methodNotAllowed, normalizeEnvValue, safeTablePath, withCors } from './_utils.js';
 
 const PAGE_SIZE = 100;
 
@@ -7,8 +7,15 @@ async function readUpstreamError(res) {
     const text = await res.text();
     try {
       const json = JSON.parse(text);
-      const msg = json?.error || json?.message || (typeof json === 'string' ? json : JSON.stringify(json));
-      return String(msg).slice(0, 400);
+      const err = json?.error ?? json?.errors ?? json?.message ?? json;
+      if (typeof err === 'string') return err.slice(0, 400);
+      if (err && typeof err === 'object') {
+        const type = err.type || err.error || err.code;
+        const message = err.message || err.errorMessage || err.reason;
+        if (type || message) return `${type ? `${type}: ` : ''}${message || ''}`.slice(0, 400);
+        return JSON.stringify(err).slice(0, 400);
+      }
+      return String(err || '').slice(0, 400);
     } catch {
       return String(text || '').slice(0, 400);
     }
@@ -30,7 +37,9 @@ async function fetchAllRatings({ airtablePat, baseId, ratingsTableId }) {
     const res = await fetch(airtableUrl, { headers: { Authorization: `Bearer ${airtablePat}` } });
     if (!res.ok) {
       const details = await readUpstreamError(res);
-      throw new Error(`Airtable request failed (${res.status})${details ? `: ${details}` : ''}`);
+      throw new Error(
+        `Airtable request failed (${res.status})${details ? `: ${details}` : ''} (base=${baseId} table=${ratingsTableId})`,
+      );
     }
     const json = await res.json().catch(() => ({}));
     if (!json?.records) throw new Error('Resposta inválida do Airtable (ratings)');
@@ -53,14 +62,14 @@ export async function onRequest(context) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: withCors() });
   if (request.method !== 'GET') return methodNotAllowed('GET,OPTIONS');
 
-  const airtablePat = env.AIRTABLE_PAT;
-  const baseId = env.AIRTABLE_BASE_ID;
-  const ratingsTableId = env.AIRTABLE_RATINGS_TABLE_ID;
+  const airtablePat = normalizeEnvValue(env.AIRTABLE_PAT, 'pat');
+  const baseId = normalizeEnvValue(env.AIRTABLE_RATINGS_BASE_ID || env.AIRTABLE_BASE_ID, 'base');
+  const ratingsTableId = normalizeEnvValue(env.AIRTABLE_RATINGS_TABLE_ID, 'table');
 
   if (!airtablePat || !baseId || !ratingsTableId) {
     return jsonResponse(500, {
       error: 'Missing server env vars',
-      required: ['AIRTABLE_PAT', 'AIRTABLE_BASE_ID', 'AIRTABLE_RATINGS_TABLE_ID'],
+      required: ['AIRTABLE_PAT', 'AIRTABLE_BASE_ID (or AIRTABLE_RATINGS_BASE_ID)', 'AIRTABLE_RATINGS_TABLE_ID'],
     });
   }
 
@@ -100,4 +109,3 @@ export async function onRequest(context) {
     return jsonResponse(500, { error: err.message || 'Proxy error' });
   }
 }
-

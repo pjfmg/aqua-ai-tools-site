@@ -25,7 +25,7 @@ function clamp(n, min, max) {
 }
 
 export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoFocusSearch = false }) {
-  const { tools, loading, error, warning } = useTools();
+  const { tools, loading, loadingMore, error, warning } = useTools();
 
   const [filterNome, setFilterNome] = useState('');
   const [filterNumero, setFilterNumero] = useState('');
@@ -340,12 +340,12 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       >
         <div className="filters">
           <div className="filters__row">
-            <div className="field">
+            <div className="field field--numero">
               <label className="field__label" htmlFor="filter-numero">
                 Número
               </label>
               <input
-                className="input"
+                className="input input--numero"
                 type="text"
                 id="filter-numero"
                 placeholder="Número"
@@ -448,6 +448,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
 
       {warning ? <p className="note">{warning}</p> : null}
       {loading ? <p className="no-results">A carregar…</p> : null}
+      {loadingMore && !loading ? <p className="note">A carregar mais ferramentas…</p> : null}
       {error ? <p className="error">{error}</p> : null}
 
       <main id="tools-container" className="grid-container grid-container--modern">
@@ -534,7 +535,17 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                     src={hoverPreloadSrc}
                     alt=""
                     aria-hidden="true"
-                    style={{ display: 'none' }}
+                    // Safari can skip fetching images with `display: none`, so keep it in the render tree
+                    // but invisible/offscreen.
+                    style={{
+                      position: 'absolute',
+                      width: 1,
+                      height: 1,
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      left: -9999,
+                      top: -9999,
+                    }}
                     onLoad={() => {
                       if (hoverPreloadSrc !== hoverPreviewSrcRef.current) return;
                       setHoverDisplayedSrc(hoverPreloadSrc);

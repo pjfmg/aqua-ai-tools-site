@@ -12,8 +12,25 @@ import { useRatings } from '../ratings/RatingsContext.jsx';
 import { useMyRatings } from '../ratings/MyRatingsContext.jsx';
 import { submitMyRating } from '../lib/ratings.js';
 
+function shouldOpenExternalInNewTab() {
+  if (typeof window === 'undefined') return true;
+  const nav = window.navigator;
+
+  const ua = String(nav?.userAgent || '');
+  const isIOSDevice =
+    /iPad|iPhone|iPod/i.test(ua) ||
+    // iPadOS can present as Macintosh with touch.
+    (/\bMacintosh\b/i.test(ua) && typeof document !== 'undefined' && 'ontouchend' in document);
+
+  // On iOS (including in-app browsers like Notes/Instagram), `target="_blank"` is frequently ignored
+  // or blocked, making links feel "dead". Prefer same-tab navigation there.
+  if (isIOSDevice) return false;
+
+  return true;
+}
+
 export default function ToolCard({ tool }) {
-  const { isAuthed, user } = useAuth();
+  const { isAuthed, hasProAccess, user } = useAuth();
   const { ratings } = useRatings();
   const { ratingsByToolKey, setRatingLocal } = useMyRatings();
 
@@ -23,16 +40,17 @@ export default function ToolCard({ tool }) {
   const desc = descricao || funcoes;
   const areas = normalizeArea(tool['Área/Categoria']);
   const site = normalizeWebsiteUrl(tool['Site']);
+  const openInNewTab = shouldOpenExternalInNewTab();
 
   const toolKey = getToolKey(tool);
   const summary = toolKey ? ratings?.[toolKey] : null;
   const avg = summary && typeof summary.avg === 'number' ? summary.avg : null;
   const count = summary && typeof summary.count === 'number' ? summary.count : null;
-  const myRating = isAuthed && toolKey ? Number(ratingsByToolKey?.[toolKey] || 0) : 0;
+  const myRating = isAuthed && hasProAccess && toolKey ? Number(ratingsByToolKey?.[toolKey] || 0) : 0;
   const isFav = String(tool?.Favorito || '') === 'Sim';
 
   async function onSetRating(v) {
-    if (!isAuthed) return;
+    if (!isAuthed || !hasProAccess) return;
     if (!toolKey) return;
     if (!setRatingLocal({ toolKey, rating: v })) return;
     await submitMyRating({ email: user?.email, tool, rating: v });
@@ -46,25 +64,49 @@ export default function ToolCard({ tool }) {
             className="toolCard__logo"
             src={logoUrls.primary}
             data-fallback={logoUrls.secondary}
+            data-fallbacks={
+              Array.isArray(logoUrls.fallbacks) && logoUrls.fallbacks.length
+                ? JSON.stringify(logoUrls.fallbacks)
+                : ''
+            }
             alt={`Logo de ${tool['Nome'] || 'ferramenta'}`}
             loading="lazy"
+            referrerPolicy="no-referrer"
             onError={(e) => {
               const img = e.currentTarget;
+
+              const listRaw = img.dataset.fallbacks;
+              if (listRaw) {
+                try {
+                  const list = JSON.parse(listRaw);
+                  const next = Array.isArray(list) ? list.shift() : '';
+                  if (next) {
+                    img.dataset.fallbacks = JSON.stringify(list);
+                    img.src = next;
+                    return;
+                  }
+                } catch {
+                  // ignore malformed dataset
+                }
+                img.dataset.fallbacks = '';
+              }
+
               const fallback = img.dataset.fallback;
               if (fallback) {
                 img.dataset.fallback = '';
                 img.src = fallback;
                 return;
               }
+
               img.onerror = null;
-              img.src = '/assets/img/placeholder.png';
+              img.src = '/assets/img/placeholder-ai-tools.png';
             }}
           />
         </div>
         <div className="toolCard__meta">
           <div className="toolCard__titleRow">
             <h3 className="toolCard__title">{tool['Nome'] || ''}</h3>
-            {isAuthed ? (
+            {isAuthed && hasProAccess ? (
               <button
                 className={`favBtn ${isFav ? 'is-on' : ''}`}
                 type="button"
@@ -82,7 +124,7 @@ export default function ToolCard({ tool }) {
               <span className="badge badge--muted">#{String(tool['Número'])}</span>
             ) : null}
 
-            {isAuthed ? (
+            {isAuthed && hasProAccess ? (
               <div className="ratingRow" aria-label="Avaliações">
                 <div className="ratingRow__line">
                   <span className="ratingRow__label">A tua avaliação</span>
@@ -112,6 +154,8 @@ export default function ToolCard({ tool }) {
                 </div>
               </div>
             ) : null}
+
+            {isAuthed && !hasProAccess ? <span className="badge badge--muted">Pro: favoritas e reviews</span> : null}
           </div>
         </div>
       </div>
@@ -127,9 +171,16 @@ export default function ToolCard({ tool }) {
           <a
             className="btn btn--primary btn--block"
             href={site}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => markVisited(tool)}
+            target={openInNewTab ? '_blank' : undefined}
+            rel={openInNewTab ? 'noopener noreferrer' : undefined}
+            onClick={() => {
+              // Never let local list bookkeeping interfere with navigation.
+              try {
+                if (hasProAccess) markVisited(tool);
+              } catch {
+                // ignore
+              }
+            }}
           >
             Visitar a ferramenta ↗
           </a>

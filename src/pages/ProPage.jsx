@@ -1,136 +1,189 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
+import { useAuth } from '../auth/auth.jsx';
+import { createCheckoutSession } from '../lib/billing.js';
+import { PRO_FEATURES, STARTER_FEATURES, SUBSCRIPTION_PLAN } from '../lib/subscription.js';
 
-function PriceCard({ title, price, subtitle, bullets, ctaLabel, ctaTo, highlight = false }) {
+function SubscribeButton() {
+  const location = useLocation();
+  const { isAuthed, hasProAccess, user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function onSubscribe() {
+    if (!isAuthed) return;
+    setLoading(true);
+    setError('');
+    try {
+      const session = await createCheckoutSession({ email: user?.email });
+      if (!session?.url) throw new Error('Checkout sem URL de redirecionamento');
+      window.location.href = session.url;
+    } catch (err) {
+      setError(err.message || 'Não foi possível iniciar a subscrição');
+      setLoading(false);
+    }
+  }
+
+  if (!isAuthed) {
+    return (
+      <Link className="btn btn--primary" to="/signup" state={{ from: location.pathname }}>
+        Criar conta para subscrever
+      </Link>
+    );
+  }
+
+  if (hasProAccess) {
+    return (
+      <Link className="btn btn--primary" to="/conta">
+        Gerir subscrição
+      </Link>
+    );
+  }
+
+  return (
+    <>
+      <button className="btn btn--primary" type="button" onClick={onSubscribe} disabled={loading}>
+        {loading ? 'A abrir checkout…' : 'Subscrever Pro'}
+      </button>
+      {error ? <p className="note" style={{ marginTop: 10 }}>{error}</p> : null}
+    </>
+  );
+}
+
+function ComparisonRow({ label, starter, pro }) {
+  return (
+    <div className="planCompare__row">
+      <div className="planCompare__feature">{label}</div>
+      <div className="planCompare__value">{starter}</div>
+      <div className="planCompare__value planCompare__value--pro">{pro}</div>
+    </div>
+  );
+}
+
+function PriceCard({ title, price, subtitle, bullets, footer, highlight = false, children }) {
   return (
     <div className={`priceCard ${highlight ? 'priceCard--highlight' : ''}`}>
       <div className="priceCard__title">{title}</div>
       <div className="priceCard__price">{price}</div>
       {subtitle ? <div className="priceCard__subtitle">{subtitle}</div> : null}
       <ul className="priceCard__list">
-        {bullets.map((b) => (
-          <li key={b}>{b}</li>
+        {bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
         ))}
       </ul>
-      <Link className={`btn btn--block ${highlight ? 'btn--primary' : 'btn--ghost'}`} to={ctaTo}>
-        {ctaLabel} →
-      </Link>
+      {children}
+      {footer ? <div className="priceCard__footer">{footer}</div> : null}
     </div>
   );
 }
 
 export default function ProPage() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const cancelled = params.get('checkout') === 'cancelled';
+
   return (
     <>
       <Hero
         title="Pro"
-        subtitle="Planos e opções para destacar ferramentas, obter apoio e acelerar integrações."
-        badge="Em evolução"
+        subtitle="A subscrição desbloqueia funcionalidades pessoais do diretório e centraliza o teu histórico."
+        badge="Starter vs Pro"
         right={
           <div className="hero__search">
-            <Link className="btn btn--primary" to="/contacto">
-              Falar connosco →
-            </Link>
-            <Link className="btn btn--ghost" to="/submeter">
-              Submeter
+            <SubscribeButton />
+            <Link className="btn btn--ghost" to="/contacto">
+              Falar connosco
             </Link>
           </div>
         }
       />
 
-      <Section title="Planos" subtitle="Escolhe o nível certo para o teu objetivo.">
+      {cancelled ? (
+        <Section title="Checkout cancelado" subtitle="O pagamento não foi concluído.">
+          <div className="panel">
+            <p className="note" style={{ margin: 0 }}>
+              Podes voltar a tentar a subscrição quando quiseres.
+            </p>
+          </div>
+        </Section>
+      ) : null}
+
+      <Section title="Planos" subtitle="O Starter continua grátis; o Pro adiciona funcionalidades pessoais.">
         <div className="pricingGrid">
           <PriceCard
             title="Starter"
             price="€0"
-            subtitle="Para começar"
-            bullets={[
-              'Acesso ao diretório',
-              'Pesquisa e filtros',
-              'Destaques diários',
-              'Submissão de ferramentas',
-            ]}
-            ctaLabel="Explorar"
-            ctaTo="/ferramentas"
-          />
+            subtitle="Sem subscrição"
+            bullets={STARTER_FEATURES}
+            footer="Ideal para descobrir ferramentas e submeter novas entradas."
+          >
+            <Link className="btn btn--ghost btn--block" to="/ferramentas">
+              Continuar grátis
+            </Link>
+          </PriceCard>
+
+          <PriceCard
+            title={SUBSCRIPTION_PLAN.name}
+            price={SUBSCRIPTION_PLAN.priceLabel}
+            subtitle="Cobrança mensal recorrente"
+            bullets={PRO_FEATURES}
+            footer="Checkout seguro via Stripe. Podes gerir a cobrança a partir da conta."
+            highlight
+          >
+            <SubscribeButton />
+          </PriceCard>
+
           <PriceCard
             title="Creator"
             price="€249/mês"
-            subtitle="Para quem quer visibilidade (ou €690 pagamento único / 30 dias)"
+            subtitle="Para quem quer visibilidade e apoio editorial"
             bullets={[
               'Destaque no diretório',
               'Apoio na descrição e categorias',
-              'Revisão de landing page (rápida)',
+              'Revisão rápida da landing page',
               'Relatório básico de presença',
             ]}
-            ctaLabel="Pedir info"
-            ctaTo="/contacto"
-            highlight
-          />
+            footer="Serviço orientado a promoção e posicionamento da tua ferramenta."
+          >
+            <Link className="btn btn--ghost btn--block" to="/contacto">
+              Pedir info
+            </Link>
+          </PriceCard>
+
           <PriceCard
             title="Business"
-            price="Desde €1.490/mês"
-            subtitle="Para equipas (mín. 2 meses) ou €2.900 kickstart (pagamento único)"
+            price="Sob consulta"
+            subtitle="Implementação, formação e integrações"
             bullets={[
               'Shortlist por caso de uso',
               'Integrações e automações',
-              'Formação e playbooks',
-              'Governance e boas práticas',
+              'Workshops e playbooks',
+              'Governance e adoção',
             ]}
-            ctaLabel="Consultoria"
-            ctaTo="/consultoria"
-          />
-        </div>
-        <p className="note" style={{ marginTop: 14 }}>
-          Preços indicados + IVA.
-        </p>
-      </Section>
-
-      <Section title="O que inclui" subtitle="Benefícios típicos do Pro.">
-        <div className="categoryGrid">
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Destaque</h3>
-              <p>Colocação em áreas de maior visibilidade e recomendações.</p>
-            </div>
-          </div>
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Melhor descrição</h3>
-              <p>Texto mais claro, consistente e orientado a conversão.</p>
-            </div>
-          </div>
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Integração</h3>
-              <p>Ajuda prática para ligar ferramentas ao teu stack e processos.</p>
-            </div>
-          </div>
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Acompanhamento</h3>
-              <p>Orientação, recomendações e melhoria contínua.</p>
-            </div>
-          </div>
+            footer="Serviço separado da subscrição Pro."
+          >
+            <Link className="btn btn--ghost btn--block" to="/consultoria">
+              Falar sobre Business
+            </Link>
+          </PriceCard>
         </div>
       </Section>
 
-      <Section title="Próximo passo" subtitle="Conta-nos o objetivo e sugerimos o melhor caminho.">
-        <div className="cta">
-          <div className="cta__text">
-            <div className="cta__title">Queres destacar a tua ferramenta?</div>
-            <div className="cta__subtitle">Envia o link e o contexto. Respondemos com proposta e próximos passos.</div>
+      <Section title="O que fica bloqueado" subtitle="As áreas abaixo passam a exigir uma subscrição ativa.">
+        <div className="planCompare">
+          <div className="planCompare__row planCompare__row--head">
+            <div className="planCompare__feature">Funcionalidade</div>
+            <div className="planCompare__value">Starter</div>
+            <div className="planCompare__value planCompare__value--pro">Pro</div>
           </div>
-          <div className="cta__actions">
-            <Link className="btn btn--primary" to="/contacto">
-              Contactar →
-            </Link>
-            <Link className="btn btn--ghost" to="/sobre">
-              Sobre
-            </Link>
-          </div>
+          <ComparisonRow label="Favoritas" starter="-" pro="Incluído" />
+          <ComparisonRow label="Histórico de visitadas" starter="-" pro="Incluído" />
+          <ComparisonRow label="Avaliação pessoal por estrela" starter="-" pro="Incluído" />
+          <ComparisonRow label="Página Reviews" starter="-" pro="Incluído" />
+          <ComparisonRow label="Pesquisa, filtros e destaques" starter="Incluído" pro="Incluído" />
+          <ComparisonRow label="Submissão de ferramentas" starter="Incluído" pro="Incluído" />
         </div>
       </Section>
     </>
