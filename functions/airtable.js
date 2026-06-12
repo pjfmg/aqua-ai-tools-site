@@ -49,7 +49,9 @@ export async function onRequest(context) {
   // If we cache responses that include `offset`, clients may receive a stale cursor
   // and the next page request can fail with 422 (e.g. LIST_RECORDS_ITERATOR_NOT_AVAILABLE).
   const hasOffset = Boolean(json && typeof json === 'object' && json.offset);
-  const cacheControl = hasOffset
+  const cacheControl = !upstream.ok
+    ? 'no-store'
+    : hasOffset
     ? 'no-store'
     : // Safe to cache only when everything fits in one page (no pagination cursor).
       'public, max-age=0, s-maxage=600, stale-while-revalidate=86400';
