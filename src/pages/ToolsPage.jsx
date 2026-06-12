@@ -116,8 +116,10 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       setServerFilters({
         q: filterNome.trim(),
         number: filterNumero.trim(),
-        area: filterArea,
-        price: filterPreco,
+        // Category and price fields are optional in Airtable and can differ between bases.
+        // Keep them client-side so missing Airtable fields do not break the whole listing.
+        area: '',
+        price: '',
       });
     }, 300);
 

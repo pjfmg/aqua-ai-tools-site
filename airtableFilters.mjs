@@ -34,23 +34,26 @@ export function buildAirtableDirectoryFormula({ status = 'published', q = '', nu
   if (query) {
     const safeQuery = escapeFormulaString(query);
     parts.push(
-      `OR(SEARCH('${safeQuery}',LOWER({Nome}&'')),SEARCH('${safeQuery}',LOWER({Site}&'')),SEARCH('${safeQuery}',LOWER({Descrição}&'')),SEARCH('${safeQuery}',LOWER({Funções}&'')))`,
+      `OR(SEARCH('${safeQuery}',LOWER({Name}&'')),SEARCH('${safeQuery}',LOWER({URL}&'')),SEARCH('${safeQuery}',LOWER({Domain}&'')),SEARCH('${safeQuery}',LOWER({Description EN}&'')),SEARCH('${safeQuery}',LOWER({Description PT}&'')),SEARCH('${safeQuery}',LOWER({Funções}&'')))`,
     );
   }
 
   const normalizedNumber = String(number || '').trim();
   if (normalizedNumber) {
-    parts.push(`{Número}&''='${escapeFormulaString(normalizedNumber)}'`);
+    parts.push(`{Number}&''='${escapeFormulaString(normalizedNumber)}'`);
   }
 
   const normalizedArea = String(area || '').trim().toLowerCase();
   if (normalizedArea) {
-    parts.push(`SEARCH('${escapeFormulaString(normalizedArea)}',LOWER(ARRAYJOIN({Área/Categoria},',')))`);
+    const safeArea = escapeFormulaString(normalizedArea);
+    parts.push(
+      `OR(SEARCH('${safeArea}',LOWER(ARRAYJOIN({Categoria sugerida (IA) PT},','))),SEARCH('${safeArea}',LOWER(ARRAYJOIN({Categoria sugerida (IA) EN},','))))`,
+    );
   }
 
   const normalizedPrice = String(price || '').trim().toLowerCase();
   if (normalizedPrice) {
-    parts.push(`LOWER({Preço}&'')='${escapeFormulaString(normalizedPrice)}'`);
+    parts.push(`LOWER({Pricing Model}&'')='${escapeFormulaString(normalizedPrice)}'`);
   }
 
   if (parts.length === 0) return '';
