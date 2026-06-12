@@ -1,29 +1,20 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-
-function Item({ to, children }) {
-  return (
-    <NavLink to={to} className={({ isActive }) => `footer__link ${isActive ? 'is-active' : ''}`}>
-      {children}
-    </NavLink>
-  );
-}
+import { Link } from 'react-router-dom';
+import { useLanguage } from '../i18n.jsx';
 
 export default function Footer() {
+  const { isEn, path } = useLanguage();
+
   return (
-    <footer className="footer" aria-label="Rodapé">
-      <div className="footer__inner">
-        <Item to="/sobre">Sobre</Item>
-        <span className="footer__sep">|</span>
-        <Item to="/contacto">Contacto</Item>
-        <span className="footer__sep">|</span>
-        <Item to="/consultoria">Consultoria</Item>
-        <span className="footer__sep">|</span>
-        <Item to="/privacidade">Privacidade</Item>
-        <span className="footer__sep">|</span>
-        <Item to="/termos">Termos</Item>
-      </div>
-      <div className="footer__meta">AQUA AI Tools / AQUATICUS / 2026</div>
+    <footer className="footer">
+      <nav className="footer__links" aria-label={isEn ? 'Footer navigation' : 'Navegação de rodapé'}>
+        <Link to={path('/sobre')}>{isEn ? 'About' : 'Sobre'}</Link>
+        <Link to={path('/contacto')}>{isEn ? 'Contact' : 'Contacto'}</Link>
+        <Link to={path('/consultoria')}>{isEn ? 'Consulting' : 'Consultoria'}</Link>
+        <Link to={path('/privacidade')}>{isEn ? 'Privacy' : 'Privacidade'}</Link>
+        <Link to={path('/termos')}>{isEn ? 'Terms' : 'Termos'}</Link>
+      </nav>
+      <strong>AQUA AI Tools / AQUATICUS / 2026</strong>
     </footer>
   );
 }

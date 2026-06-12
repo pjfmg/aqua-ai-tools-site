@@ -4,18 +4,31 @@ import Hero from '../components/Hero.jsx';
 import {
   getHostnameFromWebsiteUrl,
   getLocalDateKey,
-  normalizeArea,
-  normalizeWebsiteUrl,
+  getToolAreas,
+  getToolName,
+  getToolNumber,
+  getToolPrice,
+  getToolSite,
   pickDailyFeaturedTools,
   pickLogoUrls,
 } from '../lib/tools.js';
 import { getPreviewCandidates, getPreviewUrl } from '../lib/sitePreview.js';
 import { useTools } from '../hooks/useTools.js';
+import { useLanguage } from '../i18n.jsx';
 
 function buildAreaOptions(tools) {
   const set = new Set();
   for (const t of tools) {
-    for (const a of normalizeArea(t['Área/Categoria'])) set.add(a);
+    for (const a of getToolAreas(t)) set.add(a);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt'));
+}
+
+function buildPriceOptions(tools) {
+  const set = new Set();
+  for (const t of tools) {
+    const price = getToolPrice(t);
+    if (price) set.add(price);
   }
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt'));
 }
@@ -25,18 +38,24 @@ function clamp(n, min, max) {
 }
 
 export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoFocusSearch = false }) {
-  const { tools, loading, loadingMore, error, warning } = useTools();
-
+  const { isEn } = useLanguage();
   const [filterNome, setFilterNome] = useState('');
   const [filterNumero, setFilterNumero] = useState('');
   const [filterArea, setFilterArea] = useState('');
   const [filterPreco, setFilterPreco] = useState('');
   const [filterVisitado, setFilterVisitado] = useState('');
   const [filterFavorito, setFilterFavorito] = useState('');
+  const [recordStatus, setRecordStatus] = useState('eligible');
   const [sortDir, setSortDir] = useState(mode === 'destaques' ? 'RAND' : 'AZ'); // 'AZ' | 'ZA' | 'RAND'
   const [visibleCount, setVisibleCount] = useState(50);
+  const [serverFilters, setServerFilters] = useState({ q: '', number: '', area: '', price: '' });
+  const { tools, loading, loadingMore, error, warning, refresh } = useTools({
+    recordStatus,
+    filters: serverFilters,
+  });
 
   const areaOptions = useMemo(() => buildAreaOptions(tools), [tools]);
+  const priceOptions = useMemo(() => buildPriceOptions(tools), [tools]);
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
 
@@ -53,13 +72,13 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       if (mode === 'favoritas' && String(t['Favorito'] || '') !== 'Sim') return false;
       if (mode === 'visitadas' && String(t['Visitado'] || '') !== 'Sim') return false;
 
-      if (nome && !String(t['Nome'] || '').toLowerCase().includes(nome)) return false;
-      if (numero && String(t['Número'] || '').trim() !== numero) return false;
+      if (nome && !getToolName(t).toLowerCase().includes(nome)) return false;
+      if (numero && getToolNumber(t) !== numero) return false;
       if (filterArea) {
-        const areas = normalizeArea(t['Área/Categoria']);
+        const areas = getToolAreas(t);
         if (!areas.includes(filterArea)) return false;
       }
-      if (filterPreco && String(t['Preço'] || '').trim() !== filterPreco) return false;
+      if (filterPreco && getToolPrice(t) !== filterPreco) return false;
       if (filterVisitado && String(t['Visitado'] || '') !== filterVisitado) return false;
       if (filterFavorito && String(t['Favorito'] || '') !== filterFavorito) return false;
       return true;
@@ -67,8 +86,8 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
 
     if (sortDir !== 'RAND') {
       out = out.sort((a, b) => {
-        const av = String(a['Nome'] || '');
-        const bv = String(b['Nome'] || '');
+        const av = getToolName(a);
+        const bv = getToolName(b);
         return sortDir === 'AZ' ? av.localeCompare(bv, 'pt') : bv.localeCompare(av, 'pt');
       });
     }
@@ -88,7 +107,20 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
 
   useEffect(() => {
     setVisibleCount(50);
-  }, [mode, filterNome, filterNumero, filterArea, filterPreco, filterVisitado, filterFavorito, sortDir]);
+  }, [mode, filterNome, filterNumero, filterArea, filterPreco, filterVisitado, filterFavorito, recordStatus, sortDir]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setServerFilters({
+        q: filterNome.trim(),
+        number: filterNumero.trim(),
+        area: filterArea,
+        price: filterPreco,
+      });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [filterNome, filterNumero, filterArea, filterPreco]);
 
   useEffect(() => {
     if (mode !== 'destaques') return;
@@ -195,7 +227,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     return () => clearHoverTimers();
   }, []);
 
-  const hoverSite = useMemo(() => normalizeWebsiteUrl(hoveredTool?.Site || ''), [hoveredTool]);
+  const hoverSite = useMemo(() => getToolSite(hoveredTool), [hoveredTool]);
   const hoverHostname = useMemo(() => getHostnameFromWebsiteUrl(hoverSite), [hoverSite]);
   const hoverLogo = useMemo(() => (hoveredTool ? pickLogoUrls(hoveredTool).primary : ''), [hoveredTool]);
   const hoverPreviewSrc = useMemo(() => {
@@ -317,20 +349,36 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
         title={title}
         subtitle={
           mode === 'favoritas'
-            ? 'A tua lista de favoritas.'
+            ? isEn
+              ? 'Your favorite tools.'
+              : 'A tua lista de favoritas.'
             : mode === 'visitadas'
-              ? 'Ferramentas que já visitaste.'
+              ? isEn
+                ? 'Tools you have already visited.'
+                : 'Ferramentas que já visitaste.'
               : mode === 'destaques'
-                ? `Seleção diária aleatória (atualiza em ${dateKey}).`
-              : 'Explora e filtra a base de dados.'
+                ? isEn
+                  ? `Daily randomized selection (updates on ${dateKey}).`
+                  : `Seleção diária aleatória (atualiza em ${dateKey}).`
+              : isEn
+                ? 'Explore and filter the database.'
+                : 'Explora e filtra a base de dados.'
         }
-        badge={mode === 'destaques' ? `${Math.min(10, baseTools.length)} destaques` : `${filtered.length} resultados`}
+        badge={
+          mode === 'destaques'
+            ? isEn
+              ? `${Math.min(10, baseTools.length)} featured`
+              : `${Math.min(10, baseTools.length)} destaques`
+            : isEn
+              ? `${filtered.length} results`
+              : `${filtered.length} resultados`
+        }
         right={
           <div className="hero__miniSearch">
             <input
               className="input input--hero"
               type="text"
-              placeholder="Pesquisar…"
+              placeholder={isEn ? 'Search…' : 'Pesquisar…'}
               value={filterNome}
               autoFocus={autoFocusSearch}
               onChange={(e) => setFilterNome(e.target.value)}
@@ -342,21 +390,37 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
           <div className="filters__row">
             <div className="field field--numero">
               <label className="field__label" htmlFor="filter-numero">
-                Número
+                {isEn ? 'Number' : 'Número'}
               </label>
               <input
                 className="input input--numero"
                 type="text"
                 id="filter-numero"
-                placeholder="Número"
+                placeholder={isEn ? 'Number' : 'Número'}
                 value={filterNumero}
                 onChange={(e) => setFilterNumero(e.target.value)}
               />
             </div>
 
             <div className="field">
+              <label className="field__label" htmlFor="filter-record-status">
+                {isEn ? 'Records' : 'Registos'}
+              </label>
+              <select
+                id="filter-record-status"
+                className="select"
+                value={recordStatus}
+                onChange={(e) => setRecordStatus(e.target.value)}
+              >
+                <option value="published">{isEn ? 'Published' : 'Publicadas'}</option>
+                <option value="eligible">{isEn ? 'Eligible' : 'Elegíveis'}</option>
+                <option value="all">{isEn ? 'All' : 'Todos'}</option>
+              </select>
+            </div>
+
+            <div className="field">
               <label className="field__label" htmlFor="filter-area">
-                Categoria
+                {isEn ? 'Category' : 'Categoria'}
               </label>
               <select
                 id="filter-area"
@@ -364,7 +428,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 value={filterArea}
                 onChange={(e) => setFilterArea(e.target.value)}
               >
-                <option value="">Todas</option>
+                <option value="">{isEn ? 'All' : 'Todas'}</option>
                 {areaOptions.map((v) => (
                   <option key={v} value={v}>
                     {v}
@@ -375,7 +439,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
 
             <div className="field">
               <label className="field__label" htmlFor="filter-preco">
-                Preço
+                {isEn ? 'Price' : 'Preço'}
               </label>
               <select
                 id="filter-preco"
@@ -383,16 +447,18 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 value={filterPreco}
                 onChange={(e) => setFilterPreco(e.target.value)}
               >
-                <option value="">Todos</option>
-                <option value="Gratuito">Gratuito</option>
-                <option value="Freemium">Freemium</option>
-                <option value="Pago">Pago</option>
+                <option value="">{isEn ? 'All' : 'Todos'}</option>
+                {priceOptions.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="field">
               <label className="field__label" htmlFor="filter-visitado">
-                Visitado
+                {isEn ? 'Visited' : 'Visitado'}
               </label>
               <select
                 id="filter-visitado"
@@ -400,7 +466,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 value={filterVisitado}
                 onChange={(e) => setFilterVisitado(e.target.value)}
               >
-                <option value="">Todos</option>
+                <option value="">{isEn ? 'All' : 'Todos'}</option>
                 <option value="Sim">Sim</option>
                 <option value="Não">Não</option>
               </select>
@@ -408,7 +474,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
 
             <div className="field">
               <label className="field__label" htmlFor="filter-favorito">
-                Favorito
+                {isEn ? 'Favorite' : 'Favorito'}
               </label>
               <select
                 id="filter-favorito"
@@ -416,7 +482,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 value={filterFavorito}
                 onChange={(e) => setFilterFavorito(e.target.value)}
               >
-                <option value="">Todos</option>
+                <option value="">{isEn ? 'All' : 'Todos'}</option>
                 <option value="Sim">Sim</option>
                 <option value="Não">Não</option>
               </select>
@@ -429,7 +495,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                   onClick={() => setSortDir('RAND')}
                   type="button"
                 >
-                  Aleatório
+                  {isEn ? 'Random' : 'Aleatório'}
                 </button>
               ) : null}
               <button className={`btn btn--sm ${sortDir === 'AZ' ? 'btn--primary' : 'btn--ghost'}`} onClick={() => setSortDir('AZ')}>
@@ -439,7 +505,10 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 Z-A
               </button>
               <button className="btn btn--sm btn--ghost" onClick={reset}>
-                Limpar
+                {isEn ? 'Clear' : 'Limpar'}
+              </button>
+              <button className="btn btn--sm btn--ghost" type="button" onClick={refresh} disabled={loadingMore}>
+                {isEn ? 'Refresh data' : 'Atualizar dados'}
               </button>
             </div>
           </div>
@@ -447,24 +516,28 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       </Hero>
 
       {warning ? <p className="note">{warning}</p> : null}
-      {loading ? <p className="no-results">A carregar…</p> : null}
-      {loadingMore && !loading ? <p className="note">A carregar mais ferramentas…</p> : null}
+      {loading ? <p className="no-results">{isEn ? 'Loading…' : 'A carregar…'}</p> : null}
+      {loadingMore && !loading ? <p className="note">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p> : null}
       {error ? <p className="error">{error}</p> : null}
 
       <main id="tools-container" className="grid-container grid-container--modern">
         {!loading && visible.length === 0 ? (
           mode === 'favoritas' ? (
-            <p className="no-results">Ainda não tens favoritas. Clica no ♥ numa ferramenta para a guardar.</p>
+            <p className="no-results">
+              {isEn ? 'You do not have favorites yet. Click ♥ on a tool to save it.' : 'Ainda não tens favoritas. Clica no ♥ numa ferramenta para a guardar.'}
+            </p>
           ) : mode === 'visitadas' ? (
-            <p className="no-results">Ainda não tens ferramentas visitadas. Clica em “Visitar a ferramenta ↗” para marcar.</p>
+            <p className="no-results">
+              {isEn ? 'You do not have visited tools yet. Open a tool to mark it as visited.' : 'Ainda não tens ferramentas visitadas. Clica em “Visitar a ferramenta ↗” para marcar.'}
+            </p>
           ) : (
-            <p className="no-results">Nenhuma ferramenta encontrada.</p>
+            <p className="no-results">{isEn ? 'No tools found.' : 'Nenhuma ferramenta encontrada.'}</p>
           )
         ) : null}
 
         {visible.map((t, idx) => (
           <div
-            key={`${t['Nome'] || 'tool'}-${t['Número'] || idx}`}
+            key={`${getToolName(t) || 'tool'}-${getToolNumber(t) || idx}`}
             className="toolHoverWrap"
             onPointerEnter={(e) => openHoverPreview(t, e.currentTarget)}
             onPointerLeave={scheduleCloseHoverPreview}
@@ -492,7 +565,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
           onPointerLeave={scheduleCloseHoverPreview}
         >
           <div className="hoverPreview__head">
-            <div className="hoverPreview__title">{String(hoveredTool?.Nome || '')}</div>
+            <div className="hoverPreview__title">{getToolName(hoveredTool)}</div>
             <div className="hoverPreview__meta">{hoverHostname || 'Sem site'}</div>
           </div>
           <a
@@ -558,7 +631,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 ) : null}
                 {hoverLoading ? (
                   <div className={`previewLoading ${hoverDisplayedSrc ? 'previewLoading--badge' : ''}`}>
-                    A carregar preview…
+                    {isEn ? 'Loading preview…' : 'A carregar preview…'}
                   </div>
                 ) : null}
               </>
@@ -567,7 +640,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 {hoverLogo ? (
                   <img className="hoverPreview__fallbackImg" src={hoverLogo} alt="" aria-hidden="true" />
                 ) : (
-                  <span className="hoverPreview__fallbackText">Sem preview</span>
+                  <span className="hoverPreview__fallbackText">{isEn ? 'No preview' : 'Sem preview'}</span>
                 )}
               </div>
             )}
@@ -576,7 +649,9 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       ) : null}
 
       {!loading && visibleCount >= filtered.length && filtered.length > 0 ? (
-        <div style={{ textAlign: 'center', color: '#888', padding: '16px 0' }}>Fim da lista.</div>
+        <div style={{ textAlign: 'center', color: '#888', padding: '16px 0' }}>
+          {isEn ? 'End of list.' : 'Fim da lista.'}
+        </div>
       ) : null}
     </>
   );

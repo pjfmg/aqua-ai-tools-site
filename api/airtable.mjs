@@ -1,3 +1,5 @@
+import { buildAirtableDirectoryFormula, normalizeAirtableStatus } from '../airtableFilters.mjs';
+
 export default async function handler(req, res) {
   try {
     if (req.method !== 'GET') {
@@ -26,6 +28,14 @@ export default async function handler(req, res) {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pageSize = url.searchParams.get('pageSize');
     const offset = url.searchParams.get('offset');
+    const status = normalizeAirtableStatus(url.searchParams.get('status'));
+    const filterByFormula = buildAirtableDirectoryFormula({
+      status,
+      q: url.searchParams.get('q'),
+      number: url.searchParams.get('number'),
+      area: url.searchParams.get('area'),
+      price: url.searchParams.get('price'),
+    });
 
     const tablePath = (() => {
       try {
@@ -37,6 +47,7 @@ export default async function handler(req, res) {
     const airtableUrl = new URL(`https://api.airtable.com/v0/${baseId}/${tablePath}`);
     if (pageSize) airtableUrl.searchParams.set('pageSize', pageSize);
     if (offset) airtableUrl.searchParams.set('offset', offset);
+    if (filterByFormula) airtableUrl.searchParams.set('filterByFormula', filterByFormula);
 
     const upstream = await fetch(airtableUrl, {
       headers: { Authorization: `Bearer ${airtablePat}` },

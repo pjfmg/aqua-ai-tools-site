@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 92" role="img" aria-label="AQUA">
+  <defs>
+    <linearGradient id="aquaIconGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050914"/>
+      <stop offset="0.7" stop-color="#071225"/>
+      <stop offset="1" stop-color="#082340"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#00d8ff" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#7d2cff" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <path
+    filter="url(#shadow)"
+    fill="url(#aquaIconGlow)"
+    d="M12 70c0-9 7-16 16-16h25c17 0 25-11 32-28C92 9 103 2 120 2h27c7 0 10 9 4 13-11 8-19 19-19 32 0 17 11 29 29 31 8 1 14 7 14 15H127c-27 0-48-17-56-42-10 26-29 42-58 42H12V70Z"
+  />
+</svg>

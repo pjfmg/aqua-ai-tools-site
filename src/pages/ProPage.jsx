@@ -5,9 +5,11 @@ import Section from '../components/Section.jsx';
 import { useAuth } from '../auth/auth.jsx';
 import { createCheckoutSession } from '../lib/billing.js';
 import { PRO_FEATURES, STARTER_FEATURES, SUBSCRIPTION_PLAN } from '../lib/subscription.js';
+import { useLanguage } from '../i18n.jsx';
 
 function SubscribeButton() {
   const location = useLocation();
+  const { path, isEn } = useLanguage();
   const { isAuthed, hasProAccess, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,16 +30,16 @@ function SubscribeButton() {
 
   if (!isAuthed) {
     return (
-      <Link className="btn btn--primary" to="/signup" state={{ from: location.pathname }}>
-        Criar conta para subscrever
+      <Link className="btn btn--primary" to={path('/signup')} state={{ from: location.pathname }}>
+        {isEn ? 'Create account to subscribe' : 'Criar conta para subscrever'}
       </Link>
     );
   }
 
   if (hasProAccess) {
     return (
-      <Link className="btn btn--primary" to="/conta">
-        Gerir subscrição
+      <Link className="btn btn--primary" to={path('/conta')}>
+        {isEn ? 'Manage subscription' : 'Gerir subscrição'}
       </Link>
     );
   }
@@ -45,7 +47,7 @@ function SubscribeButton() {
   return (
     <>
       <button className="btn btn--primary" type="button" onClick={onSubscribe} disabled={loading}>
-        {loading ? 'A abrir checkout…' : 'Subscrever Pro'}
+        {loading ? (isEn ? 'Opening checkout…' : 'A abrir checkout…') : (isEn ? 'Subscribe to Pro' : 'Subscrever Pro')}
       </button>
       {error ? <p className="note" style={{ marginTop: 10 }}>{error}</p> : null}
     </>
@@ -80,6 +82,7 @@ function PriceCard({ title, price, subtitle, bullets, footer, highlight = false,
 }
 
 export default function ProPage() {
+  const { path, isEn } = useLanguage();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const cancelled = params.get('checkout') === 'cancelled';
@@ -88,48 +91,55 @@ export default function ProPage() {
     <>
       <Hero
         title="Pro"
-        subtitle="A subscrição desbloqueia funcionalidades pessoais do diretório e centraliza o teu histórico."
+        subtitle={
+          isEn
+            ? 'The subscription unlocks personal directory features and centralizes your history.'
+            : 'A subscrição desbloqueia funcionalidades pessoais do diretório e centraliza o teu histórico.'
+        }
         badge="Starter vs Pro"
         right={
           <div className="hero__search">
             <SubscribeButton />
-            <Link className="btn btn--ghost" to="/contacto">
-              Falar connosco
+            <Link className="btn btn--ghost" to={path('/contacto')}>
+              {isEn ? 'Contact us' : 'Falar connosco'}
             </Link>
           </div>
         }
       />
 
       {cancelled ? (
-        <Section title="Checkout cancelado" subtitle="O pagamento não foi concluído.">
+        <Section title={isEn ? 'Checkout cancelled' : 'Checkout cancelado'} subtitle={isEn ? 'The payment was not completed.' : 'O pagamento não foi concluído.'}>
           <div className="panel">
             <p className="note" style={{ margin: 0 }}>
-              Podes voltar a tentar a subscrição quando quiseres.
+              {isEn ? 'You can try subscribing again whenever you want.' : 'Podes voltar a tentar a subscrição quando quiseres.'}
             </p>
           </div>
         </Section>
       ) : null}
 
-      <Section title="Planos" subtitle="O Starter continua grátis; o Pro adiciona funcionalidades pessoais.">
+      <Section
+        title={isEn ? 'Plans' : 'Planos'}
+        subtitle={isEn ? 'Starter remains free; Pro adds personal features.' : 'O Starter continua grátis; o Pro adiciona funcionalidades pessoais.'}
+      >
         <div className="pricingGrid">
           <PriceCard
             title="Starter"
             price="€0"
-            subtitle="Sem subscrição"
-            bullets={STARTER_FEATURES}
-            footer="Ideal para descobrir ferramentas e submeter novas entradas."
+            subtitle={isEn ? 'No subscription' : 'Sem subscrição'}
+            bullets={isEn ? ['Browse and search the directory', 'Filter by category, price and name', 'See daily picks', 'Submit new tools'] : STARTER_FEATURES}
+            footer={isEn ? 'Best for discovering tools and submitting new entries.' : 'Ideal para descobrir ferramentas e submeter novas entradas.'}
           >
-            <Link className="btn btn--ghost btn--block" to="/ferramentas">
-              Continuar grátis
+            <Link className="btn btn--ghost btn--block" to={path('/ferramentas')}>
+              {isEn ? 'Continue free' : 'Continuar grátis'}
             </Link>
           </PriceCard>
 
           <PriceCard
             title={SUBSCRIPTION_PLAN.name}
             price={SUBSCRIPTION_PLAN.priceLabel}
-            subtitle="Cobrança mensal recorrente"
-            bullets={PRO_FEATURES}
-            footer="Checkout seguro via Stripe. Podes gerir a cobrança a partir da conta."
+            subtitle={isEn ? 'Monthly recurring billing' : 'Cobrança mensal recorrente'}
+            bullets={isEn ? ['Save favorites', 'Visited tools history', 'Personal tool ratings', 'Access to Reviews'] : PRO_FEATURES}
+            footer={isEn ? 'Secure checkout via Stripe. Billing can be managed from your account.' : 'Checkout seguro via Stripe. Podes gerir a cobrança a partir da conta.'}
             highlight
           >
             <SubscribeButton />
@@ -138,52 +148,55 @@ export default function ProPage() {
           <PriceCard
             title="Creator"
             price="€249/mês"
-            subtitle="Para quem quer visibilidade e apoio editorial"
+            subtitle={isEn ? 'For teams that want visibility and editorial support' : 'Para quem quer visibilidade e apoio editorial'}
             bullets={[
-              'Destaque no diretório',
-              'Apoio na descrição e categorias',
-              'Revisão rápida da landing page',
-              'Relatório básico de presença',
+              isEn ? 'Directory highlight' : 'Destaque no diretório',
+              isEn ? 'Support with description and categories' : 'Apoio na descrição e categorias',
+              isEn ? 'Quick landing page review' : 'Revisão rápida da landing page',
+              isEn ? 'Basic presence report' : 'Relatório básico de presença',
             ]}
-            footer="Serviço orientado a promoção e posicionamento da tua ferramenta."
+            footer={isEn ? 'A service focused on promotion and positioning for your tool.' : 'Serviço orientado a promoção e posicionamento da tua ferramenta.'}
           >
-            <Link className="btn btn--ghost btn--block" to="/contacto">
-              Pedir info
+            <Link className="btn btn--ghost btn--block" to={path('/contacto')}>
+              {isEn ? 'Request info' : 'Pedir info'}
             </Link>
           </PriceCard>
 
           <PriceCard
             title="Business"
-            price="Sob consulta"
-            subtitle="Implementação, formação e integrações"
+            price={isEn ? 'Custom' : 'Sob consulta'}
+            subtitle={isEn ? 'Implementation, training and integrations' : 'Implementação, formação e integrações'}
             bullets={[
-              'Shortlist por caso de uso',
-              'Integrações e automações',
-              'Workshops e playbooks',
-              'Governance e adoção',
+              isEn ? 'Shortlist by use case' : 'Shortlist por caso de uso',
+              isEn ? 'Integrations and automations' : 'Integrações e automações',
+              isEn ? 'Workshops and playbooks' : 'Workshops e playbooks',
+              isEn ? 'Governance and adoption' : 'Governance e adoção',
             ]}
-            footer="Serviço separado da subscrição Pro."
+            footer={isEn ? 'A separate service from the Pro subscription.' : 'Serviço separado da subscrição Pro.'}
           >
-            <Link className="btn btn--ghost btn--block" to="/consultoria">
-              Falar sobre Business
+            <Link className="btn btn--ghost btn--block" to={path('/consultoria')}>
+              {isEn ? 'Discuss Business' : 'Falar sobre Business'}
             </Link>
           </PriceCard>
         </div>
       </Section>
 
-      <Section title="O que fica bloqueado" subtitle="As áreas abaixo passam a exigir uma subscrição ativa.">
+      <Section
+        title={isEn ? 'What becomes unlocked' : 'O que fica bloqueado'}
+        subtitle={isEn ? 'The areas below require an active subscription.' : 'As áreas abaixo passam a exigir uma subscrição ativa.'}
+      >
         <div className="planCompare">
           <div className="planCompare__row planCompare__row--head">
-            <div className="planCompare__feature">Funcionalidade</div>
+            <div className="planCompare__feature">{isEn ? 'Feature' : 'Funcionalidade'}</div>
             <div className="planCompare__value">Starter</div>
             <div className="planCompare__value planCompare__value--pro">Pro</div>
           </div>
-          <ComparisonRow label="Favoritas" starter="-" pro="Incluído" />
-          <ComparisonRow label="Histórico de visitadas" starter="-" pro="Incluído" />
-          <ComparisonRow label="Avaliação pessoal por estrela" starter="-" pro="Incluído" />
-          <ComparisonRow label="Página Reviews" starter="-" pro="Incluído" />
-          <ComparisonRow label="Pesquisa, filtros e destaques" starter="Incluído" pro="Incluído" />
-          <ComparisonRow label="Submissão de ferramentas" starter="Incluído" pro="Incluído" />
+          <ComparisonRow label={isEn ? 'Favorites' : 'Favoritas'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Visited history' : 'Histórico de visitadas'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Personal star ratings' : 'Avaliação pessoal por estrela'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label="Reviews" starter="-" pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Search, filters and featured picks' : 'Pesquisa, filtros e destaques'} starter={isEn ? 'Included' : 'Incluído'} pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Tool submissions' : 'Submissão de ferramentas'} starter={isEn ? 'Included' : 'Incluído'} pro={isEn ? 'Included' : 'Incluído'} />
         </div>
       </Section>
     </>

@@ -1,9 +1,11 @@
 import React from 'react';
 import {
-  normalizeArea,
-  normalizeDescricao,
   normalizeFuncoes,
-  normalizeWebsiteUrl,
+  getToolDescription,
+  getLocalizedToolAreas,
+  getToolName,
+  getToolNumber,
+  getToolSite,
   pickLogoUrls,
 } from '../lib/tools.js';
 import { getToolKey, markVisited, toggleFavorite } from '../lib/userLists.js';
@@ -11,6 +13,7 @@ import { useAuth } from '../auth/auth.jsx';
 import { useRatings } from '../ratings/RatingsContext.jsx';
 import { useMyRatings } from '../ratings/MyRatingsContext.jsx';
 import { submitMyRating } from '../lib/ratings.js';
+import { useLanguage } from '../i18n.jsx';
 
 function shouldOpenExternalInNewTab() {
   if (typeof window === 'undefined') return true;
@@ -30,16 +33,19 @@ function shouldOpenExternalInNewTab() {
 }
 
 export default function ToolCard({ tool }) {
+  const { isEn } = useLanguage();
   const { isAuthed, hasProAccess, user } = useAuth();
   const { ratings } = useRatings();
   const { ratingsByToolKey, setRatingLocal } = useMyRatings();
 
   const logoUrls = pickLogoUrls(tool);
-  const descricao = normalizeDescricao(tool['Descrição']);
+  const nome = getToolName(tool);
+  const numero = getToolNumber(tool);
+  const descricao = getToolDescription(tool, isEn ? 'en' : 'pt');
   const funcoes = normalizeFuncoes(tool['Funções']);
   const desc = descricao || funcoes;
-  const areas = normalizeArea(tool['Área/Categoria']);
-  const site = normalizeWebsiteUrl(tool['Site']);
+  const areas = getLocalizedToolAreas(tool, isEn ? 'en' : 'pt');
+  const site = getToolSite(tool);
   const openInNewTab = shouldOpenExternalInNewTab();
 
   const toolKey = getToolKey(tool);
@@ -69,7 +75,7 @@ export default function ToolCard({ tool }) {
                 ? JSON.stringify(logoUrls.fallbacks)
                 : ''
             }
-            alt={`Logo de ${tool['Nome'] || 'ferramenta'}`}
+            alt={isEn ? `Logo for ${nome || 'tool'}` : `Logo de ${nome || 'ferramenta'}`}
             loading="lazy"
             referrerPolicy="no-referrer"
             onError={(e) => {
@@ -105,13 +111,13 @@ export default function ToolCard({ tool }) {
         </div>
         <div className="toolCard__meta">
           <div className="toolCard__titleRow">
-            <h3 className="toolCard__title">{tool['Nome'] || ''}</h3>
+            <h3 className="toolCard__title">{nome}</h3>
             {isAuthed && hasProAccess ? (
               <button
                 className={`favBtn ${isFav ? 'is-on' : ''}`}
                 type="button"
-                title={isFav ? 'Remover de favoritas' : 'Adicionar a favoritas'}
-                aria-label={isFav ? 'Remover de favoritas' : 'Adicionar a favoritas'}
+                title={isFav ? (isEn ? 'Remove from favorites' : 'Remover de favoritas') : (isEn ? 'Add to favorites' : 'Adicionar a favoritas')}
+                aria-label={isFav ? (isEn ? 'Remove from favorites' : 'Remover de favoritas') : (isEn ? 'Add to favorites' : 'Adicionar a favoritas')}
                 onClick={() => toggleFavorite(tool)}
               >
                 ♥
@@ -119,22 +125,22 @@ export default function ToolCard({ tool }) {
             ) : null}
           </div>
           <div className="toolCard__badges">
-            {areas.length ? <span className="badge">{areas[0]}</span> : <span className="badge">Sem categoria</span>}
-            {typeof tool['Número'] !== 'undefined' && tool['Número'] !== '' ? (
-              <span className="badge badge--muted">#{String(tool['Número'])}</span>
+            {areas.length ? <span className="badge">{areas[0]}</span> : <span className="badge">{isEn ? 'Uncategorized' : 'Sem categoria'}</span>}
+            {numero ? (
+              <span className="badge badge--muted">#{numero}</span>
             ) : null}
 
             {isAuthed && hasProAccess ? (
-              <div className="ratingRow" aria-label="Avaliações">
+              <div className="ratingRow" aria-label={isEn ? 'Ratings' : 'Avaliações'}>
                 <div className="ratingRow__line">
-                  <span className="ratingRow__label">A tua avaliação</span>
-                  <span className="stars" role="radiogroup" aria-label="A tua avaliação (1 a 5)">
+                  <span className="ratingRow__label">{isEn ? 'Your rating' : 'A tua avaliação'}</span>
+                  <span className="stars" role="radiogroup" aria-label={isEn ? 'Your rating (1 to 5)' : 'A tua avaliação (1 a 5)'}>
                     {[1, 2, 3, 4, 5].map((v) => (
                       <button
                         key={v}
                         type="button"
                         className={`starBtn ${myRating >= v ? 'is-on' : ''}`}
-                        aria-label={`${v} estrela${v === 1 ? '' : 's'}`}
+                        aria-label={isEn ? `${v} star${v === 1 ? '' : 's'}` : `${v} estrela${v === 1 ? '' : 's'}`}
                         aria-checked={myRating === v}
                         role="radio"
                         onClick={() => onSetRating(v)}
@@ -146,7 +152,7 @@ export default function ToolCard({ tool }) {
                 </div>
 
                 <div className="ratingRow__line">
-                  <span className="ratingRow__label">Avaliação geral</span>
+                  <span className="ratingRow__label">{isEn ? 'Overall rating' : 'Avaliação geral'}</span>
                   <span className="ratingRow__value">
                     {avg != null ? `${avg.toFixed(1)}/5` : '—'}
                     {count != null ? <span className="ratingRow__count">({count})</span> : null}
@@ -155,7 +161,7 @@ export default function ToolCard({ tool }) {
               </div>
             ) : null}
 
-            {isAuthed && !hasProAccess ? <span className="badge badge--muted">Pro: favoritas e reviews</span> : null}
+            {isAuthed && !hasProAccess ? <span className="badge badge--muted">{isEn ? 'Pro: favorites and reviews' : 'Pro: favoritas e reviews'}</span> : null}
           </div>
         </div>
       </div>
@@ -163,7 +169,7 @@ export default function ToolCard({ tool }) {
       {desc ? (
         <p className="toolCard__desc">{desc}</p>
       ) : (
-        <p className="toolCard__desc toolCard__desc--muted">Sem descrição.</p>
+        <p className="toolCard__desc toolCard__desc--muted">{isEn ? 'No description.' : 'Sem descrição.'}</p>
       )}
 
       <div className="toolCard__bottom">
@@ -182,11 +188,11 @@ export default function ToolCard({ tool }) {
               }
             }}
           >
-            Visitar a ferramenta ↗
+            {isEn ? 'Visit tool ↗' : 'Visitar a ferramenta ↗'}
           </a>
         ) : (
           <button className="btn btn--ghost btn--block" type="button" disabled>
-            Sem link
+            {isEn ? 'No link' : 'Sem link'}
           </button>
         )}
       </div>

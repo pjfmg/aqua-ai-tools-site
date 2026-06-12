@@ -1,6 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { buildAirtableDirectoryFormula, normalizeAirtableStatus } from '../airtableFilters.mjs';
 
 async function fetchWithTimeout(url, init = {}, timeoutMs = 8000) {
   const controller = new AbortController();
@@ -40,13 +41,14 @@ function loadDotEnvIfPresent() {
 loadDotEnvIfPresent();
 
 const port = Number(process.env.PORT || 3001);
-const airtablePat = process.env.AIRTABLE_PAT;
+const airtablePat = process.env.AIRTABLE_PAT || process.env.AIRTABLE_TOKEN;
 const baseId = process.env.AIRTABLE_BASE_ID;
 const tableId = process.env.AIRTABLE_TABLE_ID;
+const ratingsValueField = String(process.env.AIRTABLE_RATINGS_VALUE_FIELD || 'Ratings').trim();
 
 if (!airtablePat || !baseId || !tableId) {
   console.error(
-    'Missing env vars. Required: AIRTABLE_PAT, AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID',
+    'Missing env vars. Required: AIRTABLE_PAT (or AIRTABLE_TOKEN), AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID',
   );
   process.exit(1);
 }
@@ -331,7 +333,7 @@ async function handleRate(req, res) {
     `https://api.airtable.com/v0/${baseId}/${safeTablePath(ratingsTableId)}`,
   );
 
-  const fields = { Key: key, ToolKey: toolKey, UserEmail: userEmail, Rating: Math.round(rating) };
+  const fields = { Key: key, ToolKey: toolKey, UserEmail: userEmail, [ratingsValueField]: Math.round(rating) };
   if (toolId) fields.ToolId = toolId;
   if (toolName) fields.ToolName = toolName;
 
@@ -429,7 +431,17 @@ async function handleRatings(req, res) {
     const toolKey = keyFromFields || keyFromKey;
     if (!toolKey) continue;
 
-    const rating = Number(f.Rating ?? f['Rating'] ?? f.Avaliação ?? f['Avaliação'] ?? f.Avaliacao ?? f['Avaliacao']);
+    const rating = Number(
+      f[ratingsValueField] ??
+        f.Ratings ??
+        f['Ratings'] ??
+        f.Rating ??
+        f['Rating'] ??
+        f.Avaliação ??
+        f['Avaliação'] ??
+        f.Avaliacao ??
+        f['Avaliacao'],
+    );
     if (!Number.isFinite(rating)) continue;
 
     const v = acc.get(toolKey) || { sum: 0, count: 0 };
@@ -813,8 +825,17 @@ const server = http.createServer(async (req, res) => {
     // Pass-through only the query params the frontend expects/uses.
     const pageSize = url.searchParams.get('pageSize');
     const offset = url.searchParams.get('offset');
+    const status = normalizeAirtableStatus(url.searchParams.get('status'));
+    const filterByFormula = buildAirtableDirectoryFormula({
+      status,
+      q: url.searchParams.get('q'),
+      number: url.searchParams.get('number'),
+      area: url.searchParams.get('area'),
+      price: url.searchParams.get('price'),
+    });
     if (pageSize) airtableUrl.searchParams.set('pageSize', pageSize);
     if (offset) airtableUrl.searchParams.set('offset', offset);
+    if (filterByFormula) airtableUrl.searchParams.set('filterByFormula', filterByFormula);
 
     const upstream = await fetch(airtableUrl, {
       headers: { Authorization: `Bearer ${airtablePat}` },
@@ -845,6 +866,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Airtable proxy listening on http://localhost:${port}/airtable`);
+server.listen(port, '127.0.0.1', () => {
+  console.log(`Airtable proxy listening on http://127.0.0.1:${port}/airtable`);
 });

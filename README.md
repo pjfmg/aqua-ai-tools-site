@@ -30,6 +30,14 @@ npm install
 npm run dev
 ```
 
+`npm run dev` arranca o frontend Vite e o proxy local ao mesmo tempo.
+Se precisares de correr só um deles:
+
+```bash
+npm run dev:proxy
+npm run dev:vite
+```
+
 O Vite faz proxy de `/airtable` para `http://localhost:3001` (ver `vite.config.js`).
 O formulário de submissão usa `POST /submit` (também via proxy local).
 Os previews de sites usam `GET /preview` (também via proxy local).
@@ -42,6 +50,7 @@ O checkout Pro usa `POST /billing/checkout`, `GET /billing/session-status`, `GET
 - (Opcional) `AIRTABLE_RATINGS_TABLE_ID` para gravar e computar avaliações (1–5 estrelas)
 - Para subscrição Pro: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID_PRO`, `PUBLIC_SITE_URL` e `AIRTABLE_BILLING_TABLE_ID`
 - (Opcional) `AIRTABLE_BILLING_BASE_ID` se as subscrições viverem noutra base
+- (Opcional) `VITE_ADSENSE_CLIENT` e `VITE_ADSENSE_SLOT` para trocar publisher/slot sem editar código
 - O `vercel.json` faz rewrite de `/airtable` para `/api/airtable`
   e de `/submit` para `/api/submit` (e também `/rate`, `/ratings`, `/preview` e `/billing/*`)
 
@@ -67,6 +76,61 @@ Este projeto pode correr em **Cloudflare Pages** com **Pages Functions** para ma
 - `PUBLIC_SITE_URL`
 - `AIRTABLE_BILLING_TABLE_ID`
 - (Opcional) `AIRTABLE_BILLING_BASE_ID`
+- (Opcional) `VITE_ADSENSE_CLIENT`
+- (Opcional) `VITE_ADSENSE_SLOT`
+
+## Dados do diretório
+
+O endpoint `/airtable` aceita `status`:
+
+- `published` (default): `Published` ativo e exclui duplicados/inoperacionais
+- `eligible`: exclui duplicados/inoperacionais, sem exigir `Published`
+- `all`: devolve todos os registos acessíveis pela view/tabela configurada
+
+A UI em `/ferramentas` permite alternar estes modos. O modo público por defeito continua a ser `published`.
+
+Também aceita filtros server-side:
+
+- `q`: pesquisa em `Nome`, `Site`, `Descrição` e `Funções`
+- `number`: corresponde exatamente a `Número`
+- `area`: pesquisa em `Área/Categoria`
+- `price`: corresponde exatamente a `Preço`
+
+Na UI estes filtros são enviados ao servidor com debounce, enquanto `Visitado` e `Favorito` continuam no cliente por serem listas pessoais.
+
+Campos usados para controlo operacional:
+
+- `Published`
+- `Duplicated`
+- `Site Status`
+- `Operational Status`
+
+Para evitar discrepâncias entre Airtable e site, mantém estes campos normalizados.
+
+## Versão em inglês
+
+O site suporta rotas em inglês com o prefixo `/en`, incluindo:
+
+- `/en`
+- `/en/tools`
+- `/en/submit`
+- `/en/pro`
+- `/en/blog`
+- `/en/about`
+- `/en/contact`
+- `/en/privacy`
+- `/en/terms`
+
+O seletor de idioma no topo alterna entre português e inglês e tenta manter o utilizador na página equivalente.
+
+## Testes mínimos
+
+```bash
+npm run test:smoke
+npm run build
+```
+
+Os smoke tests validam fórmulas Airtable, AdSense e `ads.txt`.
 
 ### Tabela de billing no Airtable
 

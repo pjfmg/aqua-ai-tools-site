@@ -1,6 +1,28 @@
 import { fetchWithTimeout } from './http.js';
 
 const PAGE_SIZE = 100;
+const FIRST_PAGE_SIZE = 20;
+const FETCH_TIMEOUT_MS = 20000;
+let localSnapshotPromise = null;
+
+export function normalizeRecordStatus(value) {
+  const mode = String(value || 'eligible').trim().toLowerCase();
+  return ['published', 'eligible', 'all'].includes(mode) ? mode : 'eligible';
+}
+
+export function normalizeToolFilters(filters = {}) {
+  return {
+    q: String(filters.q || '').trim(),
+    number: String(filters.number || '').trim(),
+    area: String(filters.area || '').trim(),
+    price: String(filters.price || '').trim(),
+  };
+}
+
+function hasToolFilters(filters) {
+  const normalized = normalizeToolFilters(filters);
+  return Boolean(normalized.q || normalized.number || normalized.area || normalized.price);
+}
 
 export function isHttpUrl(value) {
   if (!value || typeof value !== 'string') return false;
@@ -69,16 +91,22 @@ async function readUpstreamError(res) {
   }
 }
 
-async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE } = {}) {
+async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'eligible', filters = {} } = {}) {
   const url = new URL('/airtable', window.location.origin);
+  const normalizedFilters = normalizeToolFilters(filters);
   url.searchParams.set('pageSize', String(pageSize));
+  url.searchParams.set('status', normalizeRecordStatus(recordStatus));
+  if (normalizedFilters.q) url.searchParams.set('q', normalizedFilters.q);
+  if (normalizedFilters.number) url.searchParams.set('number', normalizedFilters.number);
+  if (normalizedFilters.area) url.searchParams.set('area', normalizedFilters.area);
+  if (normalizedFilters.price) url.searchParams.set('price', normalizedFilters.price);
   if (offset) url.searchParams.set('offset', offset);
   // Extra cache-buster for the first page to avoid any stale cached `offset` cursor (not forwarded to Airtable).
   if (!offset) url.searchParams.set('_ts', String(Date.now()));
 
   // iOS Safari/WebViews can be aggressive with caching; a cached Airtable page may include an expired `offset`
   // cursor and cause 422 LIST_RECORDS_ITERATOR_NOT_AVAILABLE on the next page request.
-  const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, 8000);
+  const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, FETCH_TIMEOUT_MS);
   if (!res.ok) {
     const details = await readUpstreamError(res);
     throw new Error(`Proxy /airtable falhou (${res.status})${details ? `: ${details}` : ''}`);
@@ -86,6 +114,16 @@ async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE } = {}) {
   const json = await res.json();
   if (!json?.records) throw new Error('Resposta inválida do proxy');
   return { records: json.records, offset: json.offset || null };
+}
+
+function isAuthFailureMessage(message) {
+  const text = String(message || '').toLowerCase();
+  return (
+    text.includes('invalid authentication token') ||
+    text.includes('authentication token') ||
+    text.includes('proxy /airtable falhou (401)') ||
+    text.includes('proxy /airtable falhou (403)')
+  );
 }
 
 export function normalizeWebsiteUrl(value) {
@@ -118,6 +156,7 @@ export function getHostnameFromWebsiteUrl(value) {
 export function normalizeFuncoes(value) {
   if (!value) return '';
   if (typeof value === 'string') return value;
+  if (typeof value?.name === 'string') return value.name;
   if (typeof value?.value === 'string') return value.value;
   if (value?.value === null) return '';
   try {
@@ -130,6 +169,7 @@ export function normalizeFuncoes(value) {
 export function normalizeDescricao(value) {
   if (!value) return '';
   if (typeof value === 'string') return value;
+  if (typeof value?.name === 'string') return value.name;
   if (typeof value?.value === 'string') return value.value;
   if (value?.value === null) return '';
   try {
@@ -139,10 +179,214 @@ export function normalizeDescricao(value) {
   }
 }
 
+function normalizeTextValue(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value).trim();
+  if (typeof value?.name === 'string') return value.name.trim();
+  if (typeof value?.value === 'string') return value.value.trim();
+  if (typeof value?.label === 'string') return value.label.trim();
+  return '';
+}
+
 export function normalizeArea(value) {
   if (!value) return [];
-  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (!item) return '';
+        if (typeof item === 'string') return item;
+        if (typeof item?.name === 'string') return item.name;
+        if (typeof item?.value === 'string') return item.value;
+        return String(item);
+      })
+      .filter(Boolean);
+  }
+  if (typeof value?.name === 'string') return [value.name];
+  if (typeof value?.value === 'string') return [value.value];
   return [String(value)];
+}
+
+export function getToolName(tool) {
+  return String(tool?.['Nome'] ?? tool?.Nome ?? tool?.['Name'] ?? tool?.Name ?? '').trim();
+}
+
+export function getToolNumber(tool) {
+  const value = tool?.['Número'] ?? tool?.Numero ?? tool?.['Number'] ?? tool?.Number ?? '';
+  return String(value ?? '').trim();
+}
+
+export function getToolSite(tool) {
+  return normalizeWebsiteUrl(tool?.['Site'] ?? tool?.Site ?? tool?.['Final URL'] ?? tool?.['URL'] ?? tool?.URL ?? '');
+}
+
+const CATEGORY_PT = new Map([
+  ['automation', 'Automação'],
+  ['business', 'Negócios'],
+  ['chatbots', 'Chatbots'],
+  ['comparison', 'Comparação'],
+  ['design', 'Design'],
+  ['directory', 'Diretório'],
+  ['education', 'Educação'],
+  ['evaluation', 'Avaliação'],
+  ['finance', 'Finanças'],
+  ['guides', 'Guias'],
+  ['image', 'Imagem'],
+  ['machine learning', 'Machine Learning'],
+  ['marketing', 'Marketing'],
+  ['productivity', 'Produtividade'],
+  ['prompts', 'Prompts'],
+  ['security', 'Segurança'],
+  ['social media', 'Redes sociais'],
+  ['text', 'Texto'],
+  ['video', 'Vídeo'],
+  ['writing assistant', 'Assistente de escrita'],
+]);
+
+const DESCRIPTION_PT_EXACT = new Map([
+  ['use a temporary email for 10 minutes.', 'Usa um email temporário durante 10 minutos.'],
+  [
+    'free online form builder creates registration forms, order forms, application forms, surveys and more, all fully integrated with your digital tools.',
+    'Criador de formulários online gratuito para criar registos, encomendas, candidaturas, inquéritos e muito mais, totalmente integrado com as tuas ferramentas digitais.',
+  ],
+  [
+    'transforms text prompts into unique and customizable images for various applications.',
+    'Transforma prompts de texto em imagens únicas e personalizáveis para várias aplicações.',
+  ],
+  [
+    'ai-driven strategy crafting in minutes for entrepreneurs on the go.',
+    'Criação de estratégias com IA em minutos para empreendedores em movimento.',
+  ],
+  [
+    'complete the test be yourself and answer honestly to find out your personality type.',
+    'Faz o teste, sê tu próprio e responde com honestidade para descobrir o teu tipo de personalidade.',
+  ],
+]);
+
+const DESCRIPTION_PT_REPLACEMENTS = [
+  [/\bAI-powered\b/gi, 'com IA'],
+  [/\bAI-driven\b/gi, 'orientado por IA'],
+  [/\bAI\b/g, 'IA'],
+  [/\bFree online\b/gi, 'Online gratuito'],
+  [/\bform builder\b/gi, 'criador de formulários'],
+  [/\btemporary email\b/gi, 'email temporário'],
+  [/\bfor entrepreneurs\b/gi, 'para empreendedores'],
+  [/\bin minutes\b/gi, 'em minutos'],
+  [/\bon the go\b/gi, 'em movimento'],
+  [/\btext prompts\b/gi, 'prompts de texto'],
+  [/\bunique and customizable images\b/gi, 'imagens únicas e personalizáveis'],
+  [/\bvarious applications\b/gi, 'várias aplicações'],
+  [/\bComplete The Test\b/g, 'Faz o teste'],
+  [/\banswer honestly\b/gi, 'responde com honestidade'],
+  [/\bpersonality type\b/gi, 'tipo de personalidade'],
+  [/\bNo description\b/gi, 'Sem descrição'],
+];
+
+function isLikelyEnglish(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return /\b(the|and|with|for|from|your|you|into|online|minutes|business|creates|complete|answer)\b/.test(lower);
+}
+
+function translateDescriptionToPt(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+
+  const exact = DESCRIPTION_PT_EXACT.get(text.toLowerCase());
+  if (exact) return exact;
+
+  if (!isLikelyEnglish(text)) return text;
+
+  let translated = text;
+  for (const [pattern, replacement] of DESCRIPTION_PT_REPLACEMENTS) {
+    translated = translated.replace(pattern, replacement);
+  }
+
+  return isLikelyEnglish(translated) ? '' : translated;
+}
+
+export function localizeCategory(value, lang = 'pt') {
+  const text = String(value || '').trim();
+  if (!text || lang === 'en') return text;
+  return CATEGORY_PT.get(text.toLowerCase()) || text;
+}
+
+export function getToolDescription(tool, lang = 'pt') {
+  const pt = normalizeDescricao(
+    tool?.['Descrição PT'] ??
+      tool?.['Description PT'] ??
+      tool?.['Descrição'] ??
+      tool?.Descricao ??
+      '',
+  );
+  const en = normalizeDescricao(
+    tool?.['Description EN'] ??
+      tool?.['Short Description'] ??
+      tool?.['Description'] ??
+      '',
+  );
+  const fallback = normalizeDescricao(tool?.['Descrição'] ?? tool?.Descricao ?? '');
+
+  if (lang === 'en') return en || pt || fallback;
+
+  if (pt && !isLikelyEnglish(pt)) return pt;
+
+  const translated = translateDescriptionToPt(pt || en || fallback);
+  if (translated) return translated;
+
+  const category = getLocalizedToolAreas(tool, 'pt')[0];
+  return category
+    ? `Ferramenta digital na categoria ${category}, pensada para apoiar tarefas e fluxos de trabalho.`
+    : 'Ferramenta digital para apoiar tarefas, produtividade e fluxos de trabalho.';
+}
+
+export function getToolPrice(tool) {
+  return String(tool?.['Preço'] ?? tool?.Preco ?? tool?.['Pricing Model'] ?? '').trim();
+}
+
+export function getToolAreas(tool) {
+  const values = [
+    ...normalizeArea(tool?.['Área/Categoria'] ?? ''),
+    ...normalizeArea(tool?.Categoria ?? ''),
+    ...normalizeArea(tool?.['Category'] ?? ''),
+    ...normalizeArea(tool?.['Subcategory'] ?? ''),
+    ...normalizeArea(tool?.['Categoria sugerida (IA)'] ?? ''),
+  ].filter((value, idx, arr) => value && arr.indexOf(value) === idx);
+
+  return values;
+}
+
+export function getLocalizedToolAreas(tool, lang = 'pt') {
+  return getToolAreas(tool).map((area) => localizeCategory(area, lang));
+}
+
+function normalizeCheckbox(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  const text = normalizeTextValue(value).toLowerCase();
+  return text === 'true' || text === '1' || text === 'yes' || text === 'sim' || text === 'checked';
+}
+
+function isPublishedRecord(fields) {
+  return normalizeCheckbox(fields?.Published);
+}
+
+function isDuplicateRecord(fields) {
+  const duplicated = normalizeTextValue(fields?.Duplicated).toLowerCase();
+  return duplicated === 'duplicado' || duplicated === 'duplicate' || duplicated === 'true' || duplicated === 'sim';
+}
+
+function isInoperationalRecord(fields) {
+  const siteStatus = normalizeTextValue(fields?.['Site Status']).toLowerCase();
+  const operationalStatus = normalizeTextValue(fields?.['Operational Status']).toLowerCase();
+  return (
+    siteStatus === 'inoperacional' ||
+    siteStatus === 'não operacional' ||
+    siteStatus === 'nao operacional' ||
+    operationalStatus === 'não operacional' ||
+    operationalStatus === 'nao operacional'
+  );
 }
 
 export function getAirtableAttachmentUrl(value) {
@@ -183,7 +427,7 @@ export function pickLogoUrls(tool) {
     if (u) candidates.push(u);
   }
 
-  const hostname = getHostnameFromWebsiteUrl(tool?.Site);
+  const hostname = getHostnameFromWebsiteUrl(getToolSite(tool));
   if (hostname) {
     candidates.push(`https://logo.clearbit.com/${hostname}`);
     candidates.push(`https://www.google.com/s2/favicons?sz=128&domain=${hostname}`);
@@ -215,19 +459,58 @@ export function mapMockToTool(mock) {
   };
 }
 
+export async function loadLocalToolsSnapshot() {
+  if (!localSnapshotPromise) {
+    localSnapshotPromise = fetchWithTimeout('/data/tools.json', { cache: 'force-cache' }, 2500)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Snapshot local indisponivel (${res.status})`);
+        const json = await res.json();
+        return (Array.isArray(json) ? json : []).map(mapMockToTool);
+      })
+      .catch(() => []);
+  }
+
+  return await localSnapshotPromise;
+}
+
 export function extractToolFromRecord(record) {
   const fields = record?.fields || {};
-  const categoryRaw =
-    fields['Área/Categoria'] ??
-    fields['Categoria'] ??
-    fields['Área'] ??
-    fields['Area/Categoria'] ??
-    fields['Area'] ??
-    null;
-  const category = normalizeArea(categoryRaw);
+  const category = [
+    ...normalizeArea(
+      fields['Área/Categoria'] ??
+        fields['Categoria'] ??
+        fields['Área'] ??
+        fields['Area/Categoria'] ??
+        fields['Area'] ??
+        fields['Category'] ??
+        fields['Categoria sugerida (IA)'] ??
+        null,
+    ),
+    ...normalizeArea(fields['Subcategory'] ?? null),
+  ].filter((value, idx, arr) => value && arr.indexOf(value) === idx);
+
+  const site =
+    fields['Final URL'] ??
+    fields['URL'] ??
+    fields['Site'] ??
+    '';
+
+  const descricao =
+    fields['Description PT'] ??
+    fields['Descrição'] ??
+    fields['Description EN'] ??
+    fields['Short Description'] ??
+    '';
+
   return {
     id: record?.id || fields?.id || fields?.ID || fields?.Id || '',
     ...fields,
+    Nome: fields['Nome'] ?? fields['Name'] ?? '',
+    Número: fields['Número'] ?? fields['Number'] ?? '',
+    Site: site,
+    Logo: fields['Logo'] ?? fields['LogoFinal'] ?? '',
+    Preço: fields['Preço'] ?? fields['Pricing Model'] ?? '',
+    'Descrição': descricao,
     // Normalize category so UI can always read tool['Área/Categoria'].
     'Área/Categoria': category,
     // Also expose as Categoria for components/features that expect this name.
@@ -236,6 +519,7 @@ export function extractToolFromRecord(record) {
       fields['Funções'] && typeof fields['Funções'] === 'object'
         ? fields['Funções']
         : { value: fields['Funções'] || '' },
+    Published: isPublishedRecord(fields),
   };
 }
 
@@ -289,34 +573,92 @@ export function pickDailyFeaturedTools(tools, count = 20, dateKey = getLocalDate
   return shuffled.slice(0, Math.max(0, count));
 }
 
-export async function loadToolsPhased({ onChunk, initialPageSize = 40 } = {}) {
+export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordStatus = 'eligible', filters = {} } = {}) {
   try {
+    const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
+    const normalizedFilters = normalizeToolFilters(filters);
     const out = [];
+    const publishedOut = [];
+    const allRecordsOut = [];
     let offset = null;
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const isFirstPage = !offset && out.length === 0;
       const pageSize = isFirstPage
-        ? Math.max(10, Math.min(PAGE_SIZE, Number(initialPageSize) || PAGE_SIZE))
+        ? Math.max(10, Math.min(FIRST_PAGE_SIZE, Number(initialPageSize) || FIRST_PAGE_SIZE))
         : PAGE_SIZE;
-      const page = await fetchAirtablePage({ offset, pageSize });
-      const chunk = page.records.map(extractToolFromRecord);
-      out.push(...chunk);
+      const page = await fetchAirtablePage({
+        offset,
+        pageSize,
+        recordStatus: normalizedRecordStatus,
+        filters: normalizedFilters,
+      });
+      const sourceRecords =
+        normalizedRecordStatus === 'all'
+          ? page.records
+          : page.records.filter((record) => !isDuplicateRecord(record?.fields) && !isInoperationalRecord(record?.fields));
+      const chunkAll = sourceRecords.map(extractToolFromRecord);
+      const chunkPublished = sourceRecords
+        .filter((record) => isPublishedRecord(record?.fields))
+        .map(extractToolFromRecord);
+      out.push(...chunkAll);
+      publishedOut.push(...chunkPublished);
+      allRecordsOut.push(...page.records.map(extractToolFromRecord));
 
       if (typeof onChunk === 'function') {
-        onChunk(chunk, { done: !page.offset, total: out.length });
+        onChunk(chunkAll, { done: !page.offset, total: out.length });
       }
 
       if (!page.offset) break;
       offset = page.offset;
     }
 
-    return { tools: out, warning: '' };
+    if (normalizedRecordStatus === 'all' && out.length > 0) {
+      return { tools: out, warning: '', source: 'airtable' };
+    }
+
+    if (normalizedRecordStatus === 'eligible' && out.length > 0) {
+      return { tools: out, warning: '', source: 'airtable' };
+    }
+
+    if (publishedOut.length > 0) {
+      return { tools: publishedOut, warning: '', source: 'airtable' };
+    }
+
+    if (out.length > 0) {
+      return {
+        tools: out,
+        warning: hasToolFilters(normalizedFilters)
+          ? 'Aviso: nenhum registo publicado correspondeu aos filtros no servidor. A mostrar registos elegíveis recebidos.'
+          : 'Aviso: nenhum registo com Published ativo foi detetado. A mostrar todos os registos elegíveis recebidos.',
+        source: 'airtable',
+      };
+    }
+
+    if (normalizedRecordStatus === 'published') {
+      const fallback = await loadToolsPhased({
+        onChunk,
+        initialPageSize,
+        recordStatus: 'eligible',
+        filters: normalizedFilters,
+      });
+
+      return {
+        ...fallback,
+        warning: fallback.tools?.length
+          ? 'Aviso: nenhum registo com Published ativo foi detetado no Airtable. A mostrar registos elegíveis.'
+          : fallback.warning,
+      };
+    }
+
+    return {
+      tools: allRecordsOut,
+      warning: 'Aviso: filtros automáticos removeram todos os registos. A mostrar todos os registos recebidos.',
+      source: 'airtable',
+    };
   } catch (err) {
-    const res = await fetchWithTimeout('/data/tools.json', { cache: 'no-store' }, 4000);
-    const json = await res.json();
-    const mapped = (Array.isArray(json) ? json : []).map(mapMockToTool);
+    const mapped = await loadLocalToolsSnapshot();
 
     if (typeof onChunk === 'function') {
       onChunk(mapped, { done: true, total: mapped.length, source: 'mock' });
@@ -324,7 +666,10 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40 } = {}) {
 
     return {
       tools: mapped,
-      warning: `Aviso: a fonte principal falhou (${err.message}). A mostrar mock local.`,
+      warning: isAuthFailureMessage(err?.message)
+        ? ''
+        : `Aviso: a fonte principal falhou (${err.message}). A mostrar mock local.`,
+      source: 'mock',
     };
   }
 }

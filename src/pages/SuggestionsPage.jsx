@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
+import { useLanguage } from '../i18n.jsx';
 
-function buildSuggestionText({ kind, toolName, toolUrl, email, message }) {
+function buildSuggestionText({ isEn, kind, toolName, toolUrl, email, message }) {
   const lines = [
-    `Tipo: ${kind || ''}`.trim(),
-    toolName ? `Ferramenta: ${toolName}` : '',
+    `${isEn ? 'Type' : 'Tipo'}: ${kind || ''}`.trim(),
+    toolName ? `${isEn ? 'Tool' : 'Ferramenta'}: ${toolName}` : '',
     toolUrl ? `URL: ${toolUrl}` : '',
-    email ? `Contacto: ${email}` : '',
+    email ? `${isEn ? 'Contact' : 'Contacto'}: ${email}` : '',
     '',
     (message || '').trim(),
   ].filter(Boolean);
@@ -16,7 +17,8 @@ function buildSuggestionText({ kind, toolName, toolUrl, email, message }) {
 }
 
 export default function SuggestionsPage() {
-  const [kind, setKind] = useState('Sugestão');
+  const { path, isEn } = useLanguage();
+  const [kind, setKind] = useState(isEn ? 'Suggestion' : 'Sugestão');
   const [toolName, setToolName] = useState('');
   const [toolUrl, setToolUrl] = useState('');
   const [email, setEmail] = useState('');
@@ -24,74 +26,95 @@ export default function SuggestionsPage() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
+  const options = isEn
+    ? ['Suggestion', 'Correction', 'Feature', 'New category']
+    : ['Sugestão', 'Correção', 'Feature', 'Nova categoria'];
+
   const composed = useMemo(
     () =>
       buildSuggestionText({
+        isEn,
         kind: kind.trim(),
         toolName: toolName.trim(),
         toolUrl: toolUrl.trim(),
         email: email.trim(),
         message: message.trim(),
       }),
-    [kind, toolName, toolUrl, email, message],
+    [email, isEn, kind, message, toolName, toolUrl],
   );
 
   async function copyToClipboard() {
     setError('');
     setStatus('');
     if (!message.trim()) {
-      setError('Escreve a sugestão primeiro.');
+      setError(isEn ? 'Write the suggestion first.' : 'Escreve a sugestão primeiro.');
       return;
     }
     try {
       await navigator.clipboard.writeText(composed);
-      setStatus('Sugestão copiada. Cola-a no Contacto/DM que preferires.');
+      setStatus(
+        isEn
+          ? 'Suggestion copied. Paste it into the contact channel you prefer.'
+          : 'Sugestão copiada. Cola-a no Contacto/DM que preferires.',
+      );
     } catch {
-      setError('Não foi possível copiar automaticamente. Seleciona o texto e copia manualmente.');
+      setError(
+        isEn
+          ? 'Could not copy automatically. Select the text and copy it manually.'
+          : 'Não foi possível copiar automaticamente. Seleciona o texto e copia manualmente.',
+      );
     }
   }
 
   return (
     <>
       <Hero
-        title="Sugestões"
-        subtitle="Ajuda-nos a melhorar o diretório: ideias, correções e pedidos."
+        title={isEn ? 'Suggestions' : 'Sugestões'}
+        subtitle={
+          isEn
+            ? 'Help us improve the directory with ideas, corrections and requests.'
+            : 'Ajuda-nos a melhorar o diretório: ideias, correções e pedidos.'
+        }
         badge="Feedback"
         right={
           <div className="hero__search">
-            <Link className="btn btn--primary" to="/contacto">
-              Contactar →
+            <Link className="btn btn--primary" to={path('/contacto')}>
+              {isEn ? 'Contact →' : 'Contactar →'}
             </Link>
-            <Link className="btn btn--ghost" to="/submeter">
-              Submeter ferramenta
+            <Link className="btn btn--ghost" to={path('/submeter')}>
+              {isEn ? 'Submit tool' : 'Submeter ferramenta'}
             </Link>
           </div>
         }
       />
 
-      <Section title="Enviar sugestão" subtitle="Preenche e copia a mensagem para enviares.">
+      <Section
+        title={isEn ? 'Send a suggestion' : 'Enviar sugestão'}
+        subtitle={isEn ? 'Fill in and copy the message to send it.' : 'Preenche e copia a mensagem para enviares.'}
+      >
         <div className="panel">
           <div className="form__grid">
             <div className="field">
               <label className="field__label" htmlFor="sug-kind">
-                Tipo
+                {isEn ? 'Type' : 'Tipo'}
               </label>
               <select id="sug-kind" className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
-                <option value="Sugestão">Sugestão</option>
-                <option value="Correção">Correção</option>
-                <option value="Feature">Feature</option>
-                <option value="Nova categoria">Nova categoria</option>
+                {options.map((option) => (
+                  <option value={option} key={option}>
+                    {option}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="field">
               <label className="field__label" htmlFor="sug-email">
-                Email (opcional)
+                {isEn ? 'Email (optional)' : 'Email (opcional)'}
               </label>
               <input
                 id="sug-email"
                 className="input"
-                placeholder="o.teu@email.com"
+                placeholder={isEn ? 'you@example.com' : 'o.teu@email.com'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -99,12 +122,12 @@ export default function SuggestionsPage() {
 
             <div className="field">
               <label className="field__label" htmlFor="sug-tool">
-                Ferramenta (opcional)
+                {isEn ? 'Tool (optional)' : 'Ferramenta (opcional)'}
               </label>
               <input
                 id="sug-tool"
                 className="input"
-                placeholder="Nome da ferramenta"
+                placeholder={isEn ? 'Tool name' : 'Nome da ferramenta'}
                 value={toolName}
                 onChange={(e) => setToolName(e.target.value)}
               />
@@ -112,7 +135,7 @@ export default function SuggestionsPage() {
 
             <div className="field">
               <label className="field__label" htmlFor="sug-url">
-                URL (opcional)
+                URL {isEn ? '(optional)' : '(opcional)'}
               </label>
               <input
                 id="sug-url"
@@ -125,13 +148,13 @@ export default function SuggestionsPage() {
 
             <div className="field field--span2">
               <label className="field__label" htmlFor="sug-message">
-                Sugestão *
+                {isEn ? 'Suggestion *' : 'Sugestão *'}
               </label>
               <textarea
                 id="sug-message"
                 className="textarea"
                 rows={6}
-                placeholder="Escreve aqui o que gostarias de ver melhorado…"
+                placeholder={isEn ? 'Write what you would like to improve…' : 'Escreve aqui o que gostarias de ver melhorado…'}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -143,13 +166,13 @@ export default function SuggestionsPage() {
 
           <div className="form__actions">
             <button className="btn btn--primary" type="button" onClick={copyToClipboard}>
-              Copiar sugestão →
+              {isEn ? 'Copy suggestion →' : 'Copiar sugestão →'}
             </button>
             <button
               className="btn btn--ghost"
               type="button"
               onClick={() => {
-                setKind('Sugestão');
+                setKind(isEn ? 'Suggestion' : 'Sugestão');
                 setToolName('');
                 setToolUrl('');
                 setEmail('');
@@ -158,12 +181,12 @@ export default function SuggestionsPage() {
                 setStatus('');
               }}
             >
-              Limpar
+              {isEn ? 'Clear' : 'Limpar'}
             </button>
           </div>
 
           <div className="contactPreview">
-            <div className="contactPreview__title">Pré‑visualização</div>
+            <div className="contactPreview__title">{isEn ? 'Preview' : 'Pré-visualização'}</div>
             <pre className="contactPreview__box">{composed}</pre>
           </div>
         </div>
@@ -171,4 +194,3 @@ export default function SuggestionsPage() {
     </>
   );
 }
-

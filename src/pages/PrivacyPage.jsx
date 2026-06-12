@@ -1,72 +1,71 @@
 import React from 'react';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
-
-const LAST_UPDATED = '28 de fevereiro de 2026';
+import { useLanguage } from '../i18n.jsx';
 
 export default function PrivacyPage() {
+  const { isEn } = useLanguage();
+
   return (
     <>
       <Hero
-        title="Privacidade"
-        subtitle="Resumo de como tratamos dados neste site."
-        badge={`Atualizado: ${LAST_UPDATED}`}
+        title={isEn ? 'Privacy' : 'Privacidade'}
+        subtitle={
+          isEn
+            ? 'How AQUA AI Tools handles data used to operate the directory.'
+            : 'Como o AQUA AI Tools trata dados usados para operar o diretorio.'
+        }
+        badge={isEn ? 'Privacy policy' : 'Politica de privacidade'}
       />
 
-      <Section title="Resumo" subtitle="Versão simples e transparente (não substitui aconselhamento jurídico).">
+      <Section title={isEn ? 'What we collect' : 'O que recolhemos'} align="left">
         <div className="page">
           <div className="page__body">
             <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 8 }}>
-              <li>Não pedimos password nem dados sensíveis para criar conta (perfil local no browser).</li>
-              <li>Ao submeter uma ferramenta, enviamos os dados para a nossa base (Airtable) para revisão.</li>
-              <li>Usamos pedidos ao endpoint do servidor para carregar dados (sem expor chaves no browser).</li>
+              <li>
+                {isEn
+                  ? 'Tool submissions may include name, website, description, category and contact details if provided.'
+                  : 'Submissoes de ferramentas podem incluir nome, site, descricao, categoria e dados de contacto se forem fornecidos.'}
+              </li>
+              <li>
+                {isEn
+                  ? 'Account data is currently stored locally in the browser, while subscription status can be checked through billing endpoints.'
+                  : 'Dados de conta sao atualmente guardados localmente no browser, enquanto o estado da subscricao pode ser verificado por endpoints de billing.'}
+              </li>
+              <li>
+                {isEn
+                  ? 'Analytics, ads and infrastructure providers may process technical data such as page views, device data and IP addresses.'
+                  : 'Fornecedores de analytics, anuncios e infraestrutura podem processar dados tecnicos como visualizacoes, dados do dispositivo e endereco IP.'}
+              </li>
             </ul>
           </div>
         </div>
       </Section>
 
-      <Section title="Dados que recolhemos" subtitle="O mínimo necessário para a experiência do site.">
-        <div className="grid-container">
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Perfil local</h3>
-              <p>
-                Se usares SignUp/SignIn, guardamos apenas <strong>nome</strong> e <strong>email</strong> no teu browser
-                (localStorage). Isto não é uma conta “server-side” e pode ser apagado limpando dados do site no
-                navegador.
-              </p>
-            </div>
-          </div>
-          <div className="page">
-            <div className="page__body">
-              <h3 style={{ marginTop: 0 }}>Submissões</h3>
-              <p>
-                No formulário <strong>Submeter</strong>, recolhemos os campos introduzidos (ex: Nome, Site, Categoria,
-                Descrição) para revisão e possível publicação no diretório.
-              </p>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Partilha e fornecedores" subtitle="Onde os dados podem ser processados.">
+      <Section title={isEn ? 'How we use data' : 'Como usamos os dados'} align="left">
         <div className="page">
           <div className="page__body">
             <p>
-              Os dados de ferramentas e submissões podem ser armazenados e processados em serviços de terceiros usados
-              para operar o produto (por exemplo, Airtable). Tentamos limitar o acesso e manter apenas o necessário para
-              o funcionamento do diretório.
+              {isEn
+                ? 'We use data to operate the directory, review submissions, provide billing features, improve the product and keep the service secure.'
+                : 'Usamos dados para operar o diretorio, rever submissoes, fornecer funcionalidades de faturacao, melhorar o produto e manter o servico seguro.'}
+            </p>
+            <p>
+              {isEn
+                ? 'We do not sell submitted personal data. Some third-party services are required to run the product, including Airtable, Stripe, hosting, analytics and advertising providers.'
+                : 'Nao vendemos dados pessoais submetidos. Alguns servicos terceiros sao necessarios para operar o produto, incluindo Airtable, Stripe, alojamento, analytics e publicidade.'}
             </p>
           </div>
         </div>
       </Section>
 
-      <Section title="Direitos e contacto" subtitle="Como pedir alterações ou remoção.">
+      <Section title={isEn ? 'Contact' : 'Contacto'} align="left">
         <div className="page">
           <div className="page__body">
             <p>
-              Se quiseres atualizar ou remover informação associada a uma ferramenta ou submissão, contacta-nos através
-              da página <strong>Contacto</strong>.
+              {isEn
+                ? 'For privacy questions or data requests, contact us at geral@aquaticus.pt.'
+                : 'Para questoes de privacidade ou pedidos sobre dados, contacta-nos em geral@aquaticus.pt.'}
             </p>
           </div>
         </div>
@@ -74,4 +73,3 @@ export default function PrivacyPage() {
     </>
   );
 }
-

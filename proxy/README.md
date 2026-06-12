@@ -33,5 +33,7 @@ node proxy/server.mjs
 
 Depois arranca o frontend (Vite). O `vite.config.js` faz proxy de `/airtable` para `http://localhost:3001`.
 O preview de sites usa `GET /preview` (também via proxy).
+
+Mais simples: usa `npm run dev` na raiz do projeto, que arranca Vite + proxy juntos.
 O billing local usa `/billing/checkout`, `/billing/session-status`, `/billing/subscription` e `/billing/portal`.
 O estado de subscrição é lido/escrito em `AIRTABLE_BILLING_TABLE_ID`.

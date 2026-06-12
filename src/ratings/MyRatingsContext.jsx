@@ -1,93 +1,58 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../auth/auth.jsx';
 
-function storageKeyForUser(email) {
-  const safe = String(email || '').trim().toLowerCase();
-  return `aqua_tool_ratings_v1:${safe || 'anon'}`;
-}
+const STORAGE_KEY = 'aqua_my_ratings_v1';
+const MyRatingsContext = createContext(null);
 
-function safeParseObject(raw) {
+function readRatings() {
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
 }
 
-function readRatings(email) {
-  if (typeof window === 'undefined') return {};
+function writeRatings(ratings) {
   try {
-    const key = storageKeyForUser(email);
-    return safeParseObject(window.localStorage.getItem(key));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ratings));
   } catch {
-    return {};
+    // ignore unavailable storage
   }
 }
-
-function writeRatings(email, obj) {
-  if (typeof window === 'undefined') return;
-  try {
-    const key = storageKeyForUser(email);
-    window.localStorage.setItem(key, JSON.stringify(obj || {}));
-  } catch {
-    // ignore (storage may be unavailable)
-  }
-}
-
-const MyRatingsContext = createContext({
-  ratingsByToolKey: {},
-  setRatingLocal: () => false,
-});
 
 export function MyRatingsProvider({ children }) {
-  const { user } = useAuth();
-  const email = user?.email || '';
-
   const [ratingsByToolKey, setRatingsByToolKey] = useState({});
 
   useEffect(() => {
-    setRatingsByToolKey(readRatings(email));
-  }, [email]);
+    setRatingsByToolKey(readRatings());
+  }, []);
 
-  useEffect(() => {
-    function refresh() {
-      setRatingsByToolKey(readRatings(email));
-    }
+  function setRatingLocal({ toolKey, rating }) {
+    const key = String(toolKey || '').trim();
+    const value = Number(rating);
+    if (!key || !Number.isFinite(value) || value < 1 || value > 5) return false;
 
-    function onStorage(e) {
-      if (!e?.key) return;
-      if (e.key === storageKeyForUser(email)) refresh();
-    }
+    setRatingsByToolKey((current) => {
+      const next = { ...current, [key]: value };
+      writeRatings(next);
+      return next;
+    });
+    return true;
+  }
 
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('aqua_my_rating_changed', refresh);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('aqua_my_rating_changed', refresh);
-    };
-  }, [email]);
-
-  const value = useMemo(() => {
-    return {
+  const value = useMemo(
+    () => ({
       ratingsByToolKey,
-      setRatingLocal: ({ toolKey, rating }) => {
-        const r = Number(rating);
-        if (!toolKey) return false;
-        if (!Number.isFinite(r) || r < 1 || r > 5) return false;
-        const next = { ...(ratingsByToolKey || {}) };
-        next[String(toolKey)] = Math.round(r);
-        setRatingsByToolKey(next);
-        writeRatings(email, next);
-        window.dispatchEvent(new CustomEvent('aqua_my_rating_changed', { detail: { toolKey } }));
-        return true;
-      },
-    };
-  }, [ratingsByToolKey, email]);
+      setRatingLocal,
+    }),
+    [ratingsByToolKey],
+  );
 
   return <MyRatingsContext.Provider value={value}>{children}</MyRatingsContext.Provider>;
 }
 
 export function useMyRatings() {
-  return useContext(MyRatingsContext);
+  const ctx = useContext(MyRatingsContext);
+  if (!ctx) throw new Error('useMyRatings must be used within <MyRatingsProvider>');
+  return ctx;
 }

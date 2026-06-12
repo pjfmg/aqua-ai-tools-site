@@ -1,42 +1,47 @@
-export function mergeAbortSignals(primary, secondary) {
-  if (!primary) return secondary || undefined;
-  if (!secondary) return primary;
-
+export async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   const controller = new AbortController();
-
-  function forward(signal) {
-    if (!signal) return;
-    if (signal.aborted) {
-      controller.abort(signal.reason);
-      return;
-    }
-    signal.addEventListener(
-      'abort',
-      () => {
-        controller.abort(signal.reason);
-      },
-      { once: true },
-    );
-  }
-
-  forward(primary);
-  forward(secondary);
-  return controller.signal;
-}
-
-export async function fetchWithTimeout(input, init = {}, timeoutMs = 8000) {
-  if (!timeoutMs || timeoutMs <= 0) return fetch(input, init);
-
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    timeoutController.abort(new Error('Timeout'));
-  }, timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const signal = mergeAbortSignals(init?.signal, timeoutController.signal);
-    return await fetch(input, { ...init, signal });
+    return await fetch(url, {
+      ...options,
+      signal: options.signal || controller.signal,
+    });
   } finally {
-    clearTimeout(timeoutId);
+    clearTimeout(timeout);
   }
 }
 
+export async function requestJson(url, options = {}) {
+  const response = await fetchWithTimeout(url, {
+    ...options,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+export function getJson(url, options = {}) {
+  return requestJson(url, { ...options, method: options.method || 'GET' });
+}
+
+export function postJson(url, body, options = {}) {
+  return requestJson(url, {
+    ...options,
+    method: options.method || 'POST',
+    body: JSON.stringify(body || {}),
+  });
+}
+
+export default requestJson;

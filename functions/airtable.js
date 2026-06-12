@@ -1,4 +1,5 @@
 import { jsonResponse, methodNotAllowed, normalizeEnvValue, safeTablePath, withCors } from './_utils.js';
+import { buildAirtableDirectoryFormula, normalizeAirtableStatus } from '../airtableFilters.mjs';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -20,10 +21,19 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const pageSize = url.searchParams.get('pageSize');
   const offset = url.searchParams.get('offset');
+  const status = normalizeAirtableStatus(url.searchParams.get('status'));
+  const filterByFormula = buildAirtableDirectoryFormula({
+    status,
+    q: url.searchParams.get('q'),
+    number: url.searchParams.get('number'),
+    area: url.searchParams.get('area'),
+    price: url.searchParams.get('price'),
+  });
 
   const airtableUrl = new URL(`https://api.airtable.com/v0/${baseId}/${safeTablePath(tableId)}`);
   if (pageSize) airtableUrl.searchParams.set('pageSize', pageSize);
   if (offset) airtableUrl.searchParams.set('offset', offset);
+  if (filterByFormula) airtableUrl.searchParams.set('filterByFormula', filterByFormula);
 
   const upstream = await fetch(airtableUrl, { headers: { Authorization: `Bearer ${airtablePat}` } });
   const text = await upstream.text();

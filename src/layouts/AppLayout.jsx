@@ -1,19 +1,21 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import TopNav from '../components/TopNav.jsx';
+import AdStrip from '../components/AdStrip.jsx';
 import Footer from '../components/Footer.jsx';
-import AppErrorBoundary from '../components/AppErrorBoundary.jsx';
+import TopNav from '../components/TopNav.jsx';
+import { LanguageProvider } from '../i18n.jsx';
 
 export default function AppLayout() {
   return (
-    <>
-      <TopNav />
-      <div className="app-container">
-        <AppErrorBoundary>
+    <LanguageProvider>
+      <div className="appShell">
+        <TopNav />
+        <main className="appMain">
           <Outlet />
-        </AppErrorBoundary>
+        </main>
+        <AdStrip />
+        <Footer />
       </div>
-      <Footer />
-    </>
+    </LanguageProvider>
   );
 }

@@ -5,17 +5,26 @@ import Section from '../components/Section.jsx';
 import { getInitials, useAuth } from '../auth/auth.jsx';
 import { createBillingPortalSession, fetchCheckoutSessionStatus } from '../lib/billing.js';
 import { getSubscriptionLabel, hasProAccess as userHasProAccess, PRO_FEATURES } from '../lib/subscription.js';
+import { useLanguage } from '../i18n.jsx';
 
-function formatDate(value) {
+const PRO_FEATURES_EN = {
+  'Guardar favoritas': 'Save favorites',
+  'Histórico de ferramentas visitadas': 'Visited tools history',
+  'Avaliação pessoal de ferramentas': 'Personal tool ratings',
+  'Acesso à página Reviews': 'Access to the Reviews page',
+};
+
+function formatDate(value, locale = 'pt-PT') {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { path, isEn } = useLanguage();
   const { user, isAuthed, setSubscription, signOut } = useAuth();
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState('');
@@ -34,23 +43,23 @@ export default function AccountPage() {
     let ignore = false;
     setBillingLoading(true);
     setBillingError('');
-    setBillingNotice('A confirmar subscrição…');
+    setBillingNotice(isEn ? 'Confirming subscription…' : 'A confirmar subscrição…');
 
     fetchCheckoutSessionStatus(sessionId)
       .then((result) => {
         if (ignore) return;
         const paidEmail = String(result?.subscription?.customerEmail || '').trim().toLowerCase();
         if (paidEmail && paidEmail !== String(user?.email || '').trim().toLowerCase()) {
-          throw new Error('A subscrição devolvida não corresponde ao utilizador atual');
+          throw new Error(isEn ? 'The returned subscription does not match the current user' : 'A subscrição devolvida não corresponde ao utilizador atual');
         }
         if (result?.subscription) setSubscription(result.subscription);
-        setBillingNotice('Subscrição Pro ativa.');
-        navigate('/conta', { replace: true });
+        setBillingNotice(isEn ? 'Pro subscription active.' : 'Subscrição Pro ativa.');
+        navigate(path('/conta'), { replace: true });
       })
       .catch((err) => {
         if (ignore) return;
         processedSessionIdRef.current = '';
-        setBillingError(err.message || 'Não foi possível confirmar o pagamento');
+        setBillingError(err.message || (isEn ? 'Could not confirm the payment' : 'Não foi possível confirmar o pagamento'));
       })
       .finally(() => {
         if (ignore) return;
@@ -68,10 +77,10 @@ export default function AccountPage() {
     setBillingError('');
     try {
       const result = await createBillingPortalSession({ customerId: user.subscription.customerId });
-      if (!result?.url) throw new Error('Portal sem URL');
+      if (!result?.url) throw new Error(isEn ? 'Portal returned no URL' : 'Portal sem URL');
       window.location.href = result.url;
     } catch (err) {
-      setBillingError(err.message || 'Não foi possível abrir a faturação');
+      setBillingError(err.message || (isEn ? 'Could not open billing' : 'Não foi possível abrir a faturação'));
       setBillingLoading(false);
     }
   }
@@ -79,15 +88,15 @@ export default function AccountPage() {
   if (!isAuthed) {
     return (
       <>
-        <Hero title="Conta" subtitle="Precisas de entrar para ver esta página." badge="Acesso restrito" />
-        <Section title="Entrar" subtitle="Cria uma conta (local) ou entra com email.">
+        <Hero title={isEn ? 'Account' : 'Conta'} subtitle={isEn ? 'You need to sign in to see this page.' : 'Precisas de entrar para ver esta página.'} badge={isEn ? 'Restricted access' : 'Acesso restrito'} />
+        <Section title={isEn ? 'Sign in' : 'Entrar'} subtitle={isEn ? 'Create a local account or sign in with email.' : 'Cria uma conta (local) ou entra com email.'}>
           <div className="panel">
             <div className="form__actions" style={{ justifyContent: 'center' }}>
-              <Link className="btn btn--primary" to="/signup">
-                Criar conta
+              <Link className="btn btn--primary" to={path('/signup')}>
+                {isEn ? 'Create account' : 'Criar conta'}
               </Link>
-              <Link className="btn btn--ghost" to="/signin">
-                Entrar
+              <Link className="btn btn--ghost" to={path('/signin')}>
+                {isEn ? 'Sign in' : 'Entrar'}
               </Link>
             </div>
           </div>
@@ -102,8 +111,8 @@ export default function AccountPage() {
   return (
     <>
       <Hero
-        title="Conta"
-        subtitle="Perfil, subscrição e atalhos."
+        title={isEn ? 'Account' : 'Conta'}
+        subtitle={isEn ? 'Profile, subscription and shortcuts.' : 'Perfil, subscrição e atalhos.'}
         badge={user?.email || ''}
         right={
           <button
@@ -111,45 +120,45 @@ export default function AccountPage() {
             type="button"
             onClick={() => {
               signOut();
-              navigate('/', { replace: true });
+              navigate(path('/'), { replace: true });
             }}
           >
-            Sign out
+            {isEn ? 'Sign out' : 'Sair'}
           </button>
         }
       />
 
-      <Section title="Perfil" subtitle="A conta continua guardada localmente, mas a subscrição é validada no checkout.">
+      <Section title={isEn ? 'Profile' : 'Perfil'} subtitle={isEn ? 'The account is still stored locally, but the subscription is validated through checkout.' : 'A conta continua guardada localmente, mas a subscrição é validada no checkout.'}>
         <div className="accountGrid">
           <div className="accountCard">
             <div className="accountAvatar">{getInitials(user?.name || user?.email)}</div>
-            <div className="accountName">{user?.name || 'Sem nome'}</div>
+            <div className="accountName">{user?.name || (isEn ? 'No name' : 'Sem nome')}</div>
             <div className="accountEmail">{user?.email}</div>
-            <div className={`accountPlan ${proActive ? 'is-pro' : ''}`}>{getSubscriptionLabel(user)}</div>
+            <div className={`accountPlan ${proActive ? 'is-pro' : ''}`}>{proActive ? (isEn ? 'Pro active' : getSubscriptionLabel(user)) : 'Starter'}</div>
           </div>
 
           <div className="accountCard">
-            <div className="accountCard__title">Subscrição</div>
+            <div className="accountCard__title">{isEn ? 'Subscription' : 'Subscrição'}</div>
             <div className="accountMeta">
               <div>
-                <strong>Estado:</strong> {subscription?.status || 'sem subscrição'}
+                <strong>{isEn ? 'Status' : 'Estado'}:</strong> {subscription?.status || (isEn ? 'no subscription' : 'sem subscrição')}
               </div>
               <div>
-                <strong>Renovação:</strong> {formatDate(subscription?.currentPeriodEnd)}
+                <strong>{isEn ? 'Renewal' : 'Renovação'}:</strong> {formatDate(subscription?.currentPeriodEnd, isEn ? 'en-US' : 'pt-PT')}
               </div>
             </div>
             <div className="form__actions" style={{ justifyContent: 'flex-start' }}>
               {proActive ? (
                 <button className="btn btn--primary" type="button" onClick={onOpenPortal} disabled={billingLoading}>
-                  {billingLoading ? 'A abrir…' : 'Gerir faturação'}
+                  {billingLoading ? (isEn ? 'Opening…' : 'A abrir…') : (isEn ? 'Manage billing' : 'Gerir faturação')}
                 </button>
               ) : (
-                <Link className="btn btn--primary" to="/pro">
-                  Ativar Pro
+                <Link className="btn btn--primary" to={path('/pro')}>
+                  {isEn ? 'Activate Pro' : 'Ativar Pro'}
                 </Link>
               )}
-              <Link className="btn btn--ghost" to="/pro">
-                Ver planos
+              <Link className="btn btn--ghost" to={path('/pro')}>
+                {isEn ? 'View plans' : 'Ver planos'}
               </Link>
             </div>
             {billingNotice ? <p className="note" style={{ marginTop: 10 }}>{billingNotice}</p> : null}
@@ -158,28 +167,28 @@ export default function AccountPage() {
         </div>
       </Section>
 
-      <Section title="Funcionalidades" subtitle="O que fica disponível com a subscrição Pro.">
+      <Section title={isEn ? 'Features' : 'Funcionalidades'} subtitle={isEn ? 'What becomes available with Pro.' : 'O que fica disponível com a subscrição Pro.'}>
         <div className="featureList">
           {PRO_FEATURES.map((feature) => (
             <div key={feature} className={`featureItem ${proActive ? 'is-unlocked' : ''}`}>
-              {feature}
+              {isEn ? PRO_FEATURES_EN[feature] || feature : feature}
             </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Atalhos" subtitle="Navegação rápida para as áreas principais da tua conta.">
+      <Section title={isEn ? 'Shortcuts' : 'Atalhos'} subtitle={isEn ? 'Quick navigation to the main account areas.' : 'Navegação rápida para as áreas principais da tua conta.'}>
         <div className="accountLinks">
-          <Link className="btn btn--primary btn--block" to="/submeter">
-            Submeter AI Tool
+          <Link className="btn btn--primary btn--block" to={path('/submeter')}>
+            {isEn ? 'Submit AI tool' : 'Submeter AI Tool'}
           </Link>
-          <Link className="btn btn--ghost btn--block" to={proActive ? '/favoritas' : '/pro'}>
-            {proActive ? 'Favoritas' : 'Favoritas (Pro)'}
+          <Link className="btn btn--ghost btn--block" to={proActive ? path('/favoritas') : path('/pro')}>
+            {proActive ? (isEn ? 'Favorites' : 'Favoritas') : (isEn ? 'Favorites (Pro)' : 'Favoritas (Pro)')}
           </Link>
-          <Link className="btn btn--ghost btn--block" to={proActive ? '/visitadas' : '/pro'}>
-            {proActive ? 'Visitadas' : 'Visitadas (Pro)'}
+          <Link className="btn btn--ghost btn--block" to={proActive ? path('/visitadas') : path('/pro')}>
+            {proActive ? (isEn ? 'Visited' : 'Visitadas') : (isEn ? 'Visited (Pro)' : 'Visitadas (Pro)')}
           </Link>
-          <Link className="btn btn--ghost btn--block" to={proActive ? '/reviews' : '/pro'}>
+          <Link className="btn btn--ghost btn--block" to={proActive ? path('/reviews') : path('/pro')}>
             {proActive ? 'Reviews' : 'Reviews (Pro)'}
           </Link>
         </div>

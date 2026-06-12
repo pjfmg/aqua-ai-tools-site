@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { useAuth } from '../auth/auth.jsx';
+import { useLanguage } from '../i18n.jsx';
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -10,6 +11,7 @@ function isValidEmail(email) {
 
 export default function SignInPage() {
   const navigate = useNavigate();
+  const { path, isEn } = useLanguage();
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -21,25 +23,29 @@ export default function SignInPage() {
     setError('');
     const emailTrim = email.trim().toLowerCase();
     if (!isValidEmail(emailTrim)) {
-      setError('Indica um email válido.');
+      setError(isEn ? 'Enter a valid email.' : 'Indica um email válido.');
       return;
     }
     signIn({ name: name.trim(), email: emailTrim });
-    navigate('/conta', { replace: true });
+    navigate(path('/conta'), { replace: true });
   }
 
   return (
     <>
-      <Hero title="Entrar" subtitle="Acede ao teu perfil." badge="Beta (local)" />
+      <Hero
+        title={isEn ? 'Sign in' : 'Entrar'}
+        subtitle={isEn ? 'Access your profile.' : 'Acede ao teu perfil.'}
+        badge={isEn ? 'Beta (local)' : 'Beta (local)'}
+      />
 
-      <Section title="SignIn" subtitle="Por agora é um login local (sem password).">
+      <Section title={isEn ? 'Sign in' : 'SignIn'} subtitle={isEn ? 'For now this is a local login without password.' : 'Por agora é um login local (sem password).'}>
         <div className="authWrap">
           <aside className="authAside">
             <div className="authCard">
-              <div className="authCard__title">Novo por aqui?</div>
-              <p className="authCard__p">Cria uma conta em segundos.</p>
-              <Link className="btn btn--primary btn--block" to="/signup">
-                Criar conta
+              <div className="authCard__title">{isEn ? 'New here?' : 'Novo por aqui?'}</div>
+              <p className="authCard__p">{isEn ? 'Create an account in seconds.' : 'Cria uma conta em segundos.'}</p>
+              <Link className="btn btn--primary btn--block" to={path('/signup')}>
+                {isEn ? 'Create account' : 'Criar conta'}
               </Link>
             </div>
           </aside>
@@ -62,7 +68,7 @@ export default function SignInPage() {
                   </div>
                   <div className="field field--span2">
                     <label className="field__label" htmlFor="signin-name">
-                      Nome (opcional)
+                      {isEn ? 'Name (optional)' : 'Nome (opcional)'}
                     </label>
                     <input
                       id="signin-name"
@@ -78,10 +84,10 @@ export default function SignInPage() {
 
                 <div className="form__actions">
                   <button className="btn btn--primary" type="submit">
-                    Entrar →
+                    {isEn ? 'Sign in →' : 'Entrar →'}
                   </button>
-                  <Link className="btn btn--ghost" to="/signup">
-                    Criar conta
+                  <Link className="btn btn--ghost" to={path('/signup')}>
+                    {isEn ? 'Create account' : 'Criar conta'}
                   </Link>
                 </div>
               </form>

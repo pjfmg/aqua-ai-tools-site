@@ -1,59 +1,71 @@
 import React from 'react';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
-
-const LAST_UPDATED = '28 de fevereiro de 2026';
+import { useLanguage } from '../i18n.jsx';
 
 export default function TermsPage() {
+  const { isEn } = useLanguage();
+
   return (
     <>
       <Hero
-        title="Termos"
-        subtitle="Condições gerais de utilização do AQUA AI Tools."
-        badge={`Atualizado: ${LAST_UPDATED}`}
+        title={isEn ? 'Terms' : 'Termos'}
+        subtitle={
+          isEn
+            ? 'Basic terms for using AQUA AI Tools.'
+            : 'Termos basicos para usar o AQUA AI Tools.'
+        }
+        badge={isEn ? 'Terms of use' : 'Termos de utilizacao'}
       />
 
-      <Section title="Uso do site" subtitle="Regras simples para manter a plataforma útil para todos.">
+      <Section title={isEn ? 'Use of the service' : 'Uso do servico'} align="left">
+        <div className="page">
+          <div className="page__body">
+            <p>
+              {isEn
+                ? 'AQUA AI Tools is a directory for discovering AI tools. Information is provided for convenience and may change over time.'
+                : 'O AQUA AI Tools e um diretorio para descobrir ferramentas de IA. A informacao e fornecida por conveniencia e pode mudar ao longo do tempo.'}
+            </p>
+            <p>
+              {isEn
+                ? 'You are responsible for evaluating each external tool, its terms, pricing, privacy policy and suitability for your use case.'
+                : 'Tu es responsavel por avaliar cada ferramenta externa, os seus termos, precos, politica de privacidade e adequacao ao teu caso de uso.'}
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section title={isEn ? 'Submissions and accounts' : 'Submissoes e contas'} align="left">
         <div className="page">
           <div className="page__body">
             <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 8 }}>
-              <li>O diretório é informativo; a utilização das ferramentas é da responsabilidade do utilizador.</li>
-              <li>Não garantimos disponibilidade, preços ou funcionalidades das ferramentas listadas.</li>
-              <li>Podemos atualizar, remover ou reordenar conteúdos a qualquer momento.</li>
+              <li>
+                {isEn
+                  ? 'Submitted tools may be reviewed, edited, rejected or removed.'
+                  : 'Ferramentas submetidas podem ser revistas, editadas, rejeitadas ou removidas.'}
+              </li>
+              <li>
+                {isEn
+                  ? 'Paid features depend on active billing status and may change as the product evolves.'
+                  : 'Funcionalidades pagas dependem de subscricao ativa e podem mudar com a evolucao do produto.'}
+              </li>
+              <li>
+                {isEn
+                  ? 'Do not submit unlawful, misleading or infringing content.'
+                  : 'Nao submetas conteudo ilegal, enganador ou que viole direitos de terceiros.'}
+              </li>
             </ul>
           </div>
         </div>
       </Section>
 
-      <Section title="Submissões" subtitle="O que acontece quando sugeres uma ferramenta.">
+      <Section title={isEn ? 'Liability' : 'Responsabilidade'} align="left">
         <div className="page">
           <div className="page__body">
             <p>
-              Ao submeteres uma ferramenta, declaras que tens direito a partilhar a informação fornecida e autorizas a
-              sua revisão e possível publicação no diretório. Podemos editar campos (ex: normalização de links e
-              categorias) para consistência.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Conteúdos e marcas" subtitle="Direitos de terceiros.">
-        <div className="page">
-          <div className="page__body">
-            <p>
-              Os nomes, logótipos e marcas apresentados pertencem aos respetivos proprietários. O AQUA AI Tools não é
-              afiliado a essas marcas, salvo indicação explícita.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Limitação de responsabilidade" subtitle="Sem garantias absolutas.">
-        <div className="page">
-          <div className="page__body">
-            <p>
-              O site é disponibilizado “como está”. Na medida permitida por lei, não assumimos responsabilidade por
-              perdas decorrentes do uso do diretório ou de ferramentas de terceiros.
+              {isEn
+                ? 'The service is provided as is. We try to keep data accurate, but we cannot guarantee completeness, availability or results from third-party tools.'
+                : 'O servico e fornecido tal como esta. Tentamos manter os dados corretos, mas nao garantimos completude, disponibilidade ou resultados de ferramentas terceiras.'}
             </p>
           </div>
         </div>
@@ -61,4 +73,3 @@ export default function TermsPage() {
     </>
   );
 }
-

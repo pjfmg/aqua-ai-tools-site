@@ -3,22 +3,24 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/auth.jsx';
 import Hero from './Hero.jsx';
 import Section from './Section.jsx';
+import { useLanguage } from '../i18n.jsx';
 
 export default function RequirePro({ children, title = 'Área Pro' }) {
+  const { path, isEn } = useLanguage();
   const { isAuthed, billingLoaded, hasProAccess } = useAuth();
 
   if (!isAuthed) {
     return (
       <>
-        <Hero title={title} subtitle="Precisas de entrar para continuar." badge="Acesso restrito" />
-        <Section title="Entrar" subtitle="Cria conta ou entra antes de ativar o Pro.">
+        <Hero title={title} subtitle={isEn ? 'You need to sign in to continue.' : 'Precisas de entrar para continuar.'} badge={isEn ? 'Restricted access' : 'Acesso restrito'} />
+        <Section title={isEn ? 'Sign in' : 'Entrar'} subtitle={isEn ? 'Create an account or sign in before activating Pro.' : 'Cria conta ou entra antes de ativar o Pro.'}>
           <div className="panel">
             <div className="form__actions" style={{ justifyContent: 'center' }}>
-              <Link className="btn btn--primary" to="/signup">
-                Criar conta
+              <Link className="btn btn--primary" to={path('/signup')}>
+                {isEn ? 'Create account' : 'Criar conta'}
               </Link>
-              <Link className="btn btn--ghost" to="/signin">
-                Entrar
+              <Link className="btn btn--ghost" to={path('/signin')}>
+                {isEn ? 'Sign in' : 'Entrar'}
               </Link>
             </div>
           </div>
@@ -30,11 +32,11 @@ export default function RequirePro({ children, title = 'Área Pro' }) {
   if (!billingLoaded) {
     return (
       <>
-        <Hero title={title} subtitle="A validar a tua subscrição." badge="A carregar" />
-        <Section title="Aguarda" subtitle="Estamos a confirmar o teu acesso Pro no Airtable.">
+        <Hero title={title} subtitle={isEn ? 'Validating your subscription.' : 'A validar a tua subscrição.'} badge={isEn ? 'Loading' : 'A carregar'} />
+        <Section title={isEn ? 'Please wait' : 'Aguarda'} subtitle={isEn ? 'We are confirming your Pro access.' : 'Estamos a confirmar o teu acesso Pro no Airtable.'}>
           <div className="panel">
             <p className="note" style={{ margin: 0 }}>
-              Isto demora apenas alguns instantes.
+              {isEn ? 'This only takes a few moments.' : 'Isto demora apenas alguns instantes.'}
             </p>
           </div>
         </Section>
@@ -45,15 +47,15 @@ export default function RequirePro({ children, title = 'Área Pro' }) {
   if (!hasProAccess) {
     return (
       <>
-        <Hero title={title} subtitle="Esta funcionalidade faz parte da subscrição Pro." badge="Upgrade necessário" />
-        <Section title="Desbloquear" subtitle="Ativa o plano Pro para aceder a favoritos, histórico e reviews.">
+        <Hero title={title} subtitle={isEn ? 'This feature is part of the Pro subscription.' : 'Esta funcionalidade faz parte da subscrição Pro.'} badge={isEn ? 'Upgrade required' : 'Upgrade necessário'} />
+        <Section title={isEn ? 'Unlock' : 'Desbloquear'} subtitle={isEn ? 'Activate Pro to access favorites, history and reviews.' : 'Ativa o plano Pro para aceder a favoritos, histórico e reviews.'}>
           <div className="panel">
             <div className="form__actions" style={{ justifyContent: 'center' }}>
-              <Link className="btn btn--primary" to="/pro">
-                Ver Pro
+              <Link className="btn btn--primary" to={path('/pro')}>
+                {isEn ? 'View Pro' : 'Ver Pro'}
               </Link>
-              <Link className="btn btn--ghost" to="/conta">
-                Ir para conta
+              <Link className="btn btn--ghost" to={path('/conta')}>
+                {isEn ? 'Go to account' : 'Ir para conta'}
               </Link>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { useLanguage } from "../i18n.jsx";
 
 const ADSENSE_SCRIPT_SRC = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 const DEFAULT_AD_CLIENT =
@@ -37,6 +38,7 @@ export default function AdStrip({
   slot = DEFAULT_AD_SLOT,
   format = "auto",
 }) {
+  const { isEn } = useLanguage();
   const adRef = useRef(null);
   const adClient = useMemo(() => String(client || "").trim(), [client]);
   const adSlot = useMemo(() => String(slot || "").trim(), [slot]);
@@ -74,9 +76,9 @@ export default function AdStrip({
   if (!adClient || !adSlot) return null;
 
   return (
-    <section className="adsStrip" aria-label={label}>
+    <section className="adsStrip" aria-label={isEn && label === "Publicidade" ? "Advertisement" : label}>
       <div className="adsStrip__inner">
-        <div className="adsStrip__label">{label}</div>
+        <div className="adsStrip__label">{isEn && label === "Publicidade" ? "Advertisement" : label}</div>
         <div className="adsStrip__slot">
           <ins
             ref={adRef}

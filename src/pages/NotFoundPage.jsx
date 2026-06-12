@@ -1,14 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SimplePage from './SimplePage.jsx';
+import { useLanguage } from '../i18n.jsx';
 
 export default function NotFoundPage() {
+  const { path, isEn } = useLanguage();
   return (
-    <SimplePage title="Página não encontrada">
+    <SimplePage title={isEn ? 'Page not found' : 'Página não encontrada'}>
       <p>
-        Voltar para <Link to="/">Home</Link>.
+        {isEn ? 'Back to ' : 'Voltar para '}<Link to={path('/')}>Home</Link>.
       </p>
     </SimplePage>
   );
 }
-

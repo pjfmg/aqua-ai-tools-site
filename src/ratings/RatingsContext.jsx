@@ -1,18 +1,23 @@
-import React, { createContext, useContext } from 'react';
-import { useRatingsSummary } from '../hooks/useRatings.js';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 
-const RatingsContext = createContext({ ratings: {}, loading: true, error: '' });
+const RatingsContext = createContext(null);
 
 export function RatingsProvider({ children }) {
-  const { ratings, loading, error } = useRatingsSummary();
-  return (
-    <RatingsContext.Provider value={{ ratings, loading, error }}>
-      {children}
-    </RatingsContext.Provider>
+  const [ratings, setRatings] = useState({});
+
+  const value = useMemo(
+    () => ({
+      ratings,
+      setRatings,
+    }),
+    [ratings],
   );
+
+  return <RatingsContext.Provider value={value}>{children}</RatingsContext.Provider>;
 }
 
 export function useRatings() {
-  return useContext(RatingsContext);
+  const ctx = useContext(RatingsContext);
+  if (!ctx) throw new Error('useRatings must be used within <RatingsProvider>');
+  return ctx;
 }
-

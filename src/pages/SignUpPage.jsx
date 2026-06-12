@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { useAuth } from '../auth/auth.jsx';
+import { useLanguage } from '../i18n.jsx';
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -10,6 +11,7 @@ function isValidEmail(email) {
 
 export default function SignUpPage() {
   const navigate = useNavigate();
+  const { path, isEn } = useLanguage();
   const { signIn } = useAuth();
 
   const [name, setName] = useState('');
@@ -23,38 +25,38 @@ export default function SignUpPage() {
     const nameTrim = name.trim();
     const emailTrim = email.trim().toLowerCase();
     if (!nameTrim) {
-      setError('Indica o teu nome.');
+      setError(isEn ? 'Enter your name.' : 'Indica o teu nome.');
       return;
     }
     if (!isValidEmail(emailTrim)) {
-      setError('Indica um email válido.');
+      setError(isEn ? 'Enter a valid email.' : 'Indica um email válido.');
       return;
     }
 
     signIn({ name: nameTrim, email: emailTrim });
-    navigate('/conta', { replace: true });
+    navigate(path('/conta'), { replace: true });
   }
 
   return (
     <>
       <Hero
-        title="Criar conta"
-        subtitle="Guarda as tuas preferências e acelera a descoberta de ferramentas."
+        title={isEn ? 'Create account' : 'Criar conta'}
+        subtitle={isEn ? 'Save preferences and speed up tool discovery.' : 'Guarda as tuas preferências e acelera a descoberta de ferramentas.'}
         badge="Beta (local)"
       />
 
-      <Section title="SignUp" subtitle="Por agora é um perfil local (sem password).">
+      <Section title={isEn ? 'Sign up' : 'SignUp'} subtitle={isEn ? 'For now this is a local profile without password.' : 'Por agora é um perfil local (sem password).'}>
         <div className="authWrap">
           <aside className="authAside">
             <div className="authCard">
-              <div className="authCard__title">O que ganhas</div>
+              <div className="authCard__title">{isEn ? 'What you get' : 'O que ganhas'}</div>
               <ul className="authCard__list">
-                <li>Experiência personalizada</li>
-                <li>Acesso rápido a favoritas</li>
-                <li>Submissões com identidade</li>
+                <li>{isEn ? 'Personalized experience' : 'Experiência personalizada'}</li>
+                <li>{isEn ? 'Fast access to favorites' : 'Acesso rápido a favoritas'}</li>
+                <li>{isEn ? 'Submissions with identity' : 'Submissões com identidade'}</li>
               </ul>
               <div className="authCard__hint">
-                Já tens conta? <Link to="/signin">Entrar</Link>
+                {isEn ? 'Already have an account?' : 'Já tens conta?'} <Link to={path('/signin')}>{isEn ? 'Sign in' : 'Entrar'}</Link>
               </div>
             </div>
           </aside>
@@ -65,7 +67,7 @@ export default function SignUpPage() {
                 <div className="form__grid">
                   <div className="field field--span2">
                     <label className="field__label" htmlFor="signup-name">
-                      Nome *
+                      {isEn ? 'Name *' : 'Nome *'}
                     </label>
                     <input
                       id="signup-name"
@@ -94,10 +96,10 @@ export default function SignUpPage() {
 
                 <div className="form__actions">
                   <button className="btn btn--primary" type="submit">
-                    Criar conta →
+                    {isEn ? 'Create account →' : 'Criar conta →'}
                   </button>
-                  <Link className="btn btn--ghost" to="/signin">
-                    Já tenho conta
+                  <Link className="btn btn--ghost" to={path('/signin')}>
+                    {isEn ? 'I already have an account' : 'Já tenho conta'}
                   </Link>
                 </div>
               </form>

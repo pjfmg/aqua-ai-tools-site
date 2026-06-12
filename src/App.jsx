@@ -75,6 +75,48 @@ export default function App() {
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/procurar" element={<Navigate to="/ferramentas" replace />} />
 
+          <Route path="/en" element={<HomePage />} />
+          <Route path="/en/tools" element={<ToolsPage title="AQUA AI Tools" mode="all" />} />
+          <Route path="/en/featured" element={<ToolsPage title="Featured" mode="destaques" />} />
+          <Route path="/en/surprise-me" element={<SurpreendeMePage />} />
+          <Route path="/en/submit" element={<SubmitPage />} />
+          <Route path="/en/signup" element={<SignUpPage />} />
+          <Route path="/en/signin" element={<SignInPage />} />
+          <Route path="/en/account" element={<AccountPage />} />
+          <Route
+            path="/en/visited"
+            element={
+              <RequirePro title="Visited">
+                <ToolsPage title="Visited" mode="visitadas" />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/en/favorites"
+            element={
+              <RequirePro title="Favorites">
+                <ToolsPage title="Favorites" mode="favoritas" />
+              </RequirePro>
+            }
+          />
+          <Route
+            path="/en/reviews"
+            element={
+              <RequirePro title="Reviews">
+                <ReviewsPage />
+              </RequirePro>
+            }
+          />
+          <Route path="/en/suggestions" element={<SuggestionsPage />} />
+          <Route path="/en/blog" element={<BlogPage />} />
+          <Route path="/en/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/en/pro" element={<ProPage />} />
+          <Route path="/en/about" element={<AboutPage />} />
+          <Route path="/en/contact" element={<ContactPage />} />
+          <Route path="/en/consulting" element={<ConsultingPage />} />
+          <Route path="/en/privacy" element={<PrivacyPage />} />
+          <Route path="/en/terms" element={<TermsPage />} />
+
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

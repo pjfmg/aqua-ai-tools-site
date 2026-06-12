@@ -45,8 +45,12 @@ export function getToolKey(tool) {
       tool?.id ||
       tool?.['Número'] ||
       tool?.Numero ||
+      tool?.['Number'] ||
+      tool?.Number ||
       tool?.Nome ||
       tool?.['Nome'] ||
+      tool?.Name ||
+      tool?.['Name'] ||
       '',
   ).trim();
   return key || '';

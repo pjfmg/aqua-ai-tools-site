@@ -1,149 +1,59 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { getInitials, useAuth } from '../auth/auth.jsx';
+import React from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { getLanguageSwitchPath, useLanguage } from '../i18n.jsx';
 
-function Item({ to, children }) {
-  return (
-    <NavLink to={to} className={({ isActive }) => `topnav__link ${isActive ? 'is-active' : ''}`}>
-      {children}
-    </NavLink>
-  );
-}
-
-function PillItem({ to, children }) {
-  return (
-    <NavLink to={to} className={({ isActive }) => `pillNav__item ${isActive ? 'is-active' : ''}`}>
-      {children}
-    </NavLink>
-  );
-}
+const NAV_ITEMS = [
+  { to: '/', pt: 'Home', en: 'Home' },
+  { to: '/pro', pt: 'Pro', en: 'Pro' },
+  { to: '/ferramentas', pt: 'Ferramentas', en: 'Tools' },
+  { to: '/destaques', pt: 'Destaques', en: 'Featured' },
+  { to: '/surpreende-me', pt: 'Surpreende-me', en: 'Surprise me' },
+  { to: '/blog', pt: 'Blog', en: 'Blog' },
+  { to: '/visitadas', pt: 'Visitadas', en: 'Visited' },
+  { to: '/favoritas', pt: 'Favoritas', en: 'Favorites' },
+  { to: '/reviews', pt: 'Reviews', en: 'Reviews' },
+  { to: '/submeter', pt: 'Submeter', en: 'Submit' },
+  { to: '/sugestoes', pt: 'Sugestões', en: 'Suggestions' },
+];
 
 export default function TopNav() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthed, hasProAccess, user, signOut } = useAuth();
-  const [moreOpen, setMoreOpen] = useState(false);
-
-  const primaryLinks = useMemo(
-    () => [
-      { to: '/', label: 'Home' },
-      { to: '/pro', label: 'Pro' },
-      { to: '/ferramentas', label: 'Ferramentas' },
-      { to: '/destaques', label: 'Destaques' },
-    ],
-    [],
-  );
-
-  const extraLinks = useMemo(
-    () => [
-      { to: '/surpreende-me', label: 'Surpreende-me' },
-      { to: '/blog', label: 'Blog' },
-      { to: '/visitadas', label: 'Visitadas' },
-      { to: '/favoritas', label: 'Favoritas' },
-      { to: '/reviews', label: 'Reviews' },
-      { to: '/submeter', label: 'Submeter' },
-      { to: '/sugestoes', label: 'Sugestões' },
-    ],
-    [],
-  );
-
-  useEffect(() => {
-    // Close the mobile menu on navigation.
-    setMoreOpen(false);
-  }, [location.pathname]);
+  const { isEn, path } = useLanguage();
+  const languagePath = getLanguageSwitchPath(location.pathname, isEn ? 'pt' : 'en');
 
   return (
-    <nav className="topnav" aria-label="Menu principal">
+    <header className="topnav">
       <div className="topnav__inner">
         <div className="topnav__row">
-          <div className="topnav__brand">
-            <span className="topnav__spark">✨</span>
-            <span className="topnav__name">AQUA AI Tools</span>
-          </div>
+          <Link className="topnav__brand" to={path('/')}>
+            <img className="topnav__logo" src="/assets/branding/aqua-ai-tools-inline.svg" alt="AQUA AI Tools" />
+          </Link>
 
           <div className="topnav__auth">
-          {isAuthed ? (
-            <>
-              <NavLink to="/conta" className="topnav__profile" title={user?.email || 'Conta'}>
-                <span className="topnav__avatar">{getInitials(user?.name || user?.email)}</span>
-                <span className="topnav__profileText">
-                  {user?.name || 'Conta'}
-                  <span className={`topnav__plan ${hasProAccess ? 'is-pro' : ''}`}>{hasProAccess ? 'Pro' : 'Starter'}</span>
-                </span>
-              </NavLink>
-              <button
-                className="topnav__signout"
-                type="button"
-                onClick={() => {
-                  signOut();
-                  navigate('/', { replace: true });
-                }}
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/signin" className="btn btn--ghost btn--sm">
-                Entrar
-              </NavLink>
-              <NavLink to="/signup" className="btn btn--primary btn--sm">
-                SignUp
-              </NavLink>
-            </>
-          )}
+            <Link className="btn btn--ghost btn--small" to={languagePath}>
+              {isEn ? 'PT' : 'EN'}
+            </Link>
+            <Link className="btn btn--ghost btn--small" to={path('/signin')}>
+              {isEn ? 'Sign in' : 'Entrar'}
+            </Link>
+            <Link className="btn btn--primary btn--small" to={path('/signup')}>
+              {isEn ? 'SignUp' : 'SignUp'}
+            </Link>
           </div>
         </div>
 
-        <div className="pillNav" aria-label="Atalhos">
-          <div className="pillNav__scroll">
-            {primaryLinks.map((l) => (
-              <PillItem key={l.to} to={l.to}>
-                {l.label}
-              </PillItem>
-            ))}
-
-            <button
-              className="pillNav__item pillNav__moreBtn"
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded={moreOpen ? 'true' : 'false'}
-              onClick={() => setMoreOpen((v) => !v)}
+        <nav className="topnav__pill" aria-label={isEn ? 'Main navigation' : 'Navegação principal'}>
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              className={({ isActive }) => `topnav__link ${isActive ? 'is-active' : ''}`}
+              to={path(item.to)}
             >
-              Mais
-            </button>
-
-            <span className="pillNav__extra">
-              {extraLinks.map((l) => (
-                <PillItem key={l.to} to={l.to}>
-                  {l.label}
-                </PillItem>
-              ))}
-            </span>
-          </div>
-        </div>
+              {isEn ? item.en : item.pt}
+            </NavLink>
+          ))}
+        </nav>
       </div>
-
-      {moreOpen ? (
-        <div
-          className="pillNav__overlay"
-          role="dialog"
-          aria-label="Mais opções"
-          aria-modal="true"
-          onClick={() => setMoreOpen(false)}
-        >
-          <div className="pillNav__sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="pillNav__sheetTitle">Menu</div>
-            <div className="pillNav__sheetLinks">
-              {extraLinks.map((l) => (
-                <NavLink key={l.to} to={l.to} className="pillNav__sheetLink">
-                  {l.label}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </nav>
+    </header>
   );
 }

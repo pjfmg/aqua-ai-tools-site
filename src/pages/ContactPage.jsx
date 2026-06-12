@@ -1,93 +1,53 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
-
-function buildMessage({ name, email, subject, message }) {
-  const lines = [
-    `Nome: ${name || ''}`.trim(),
-    `Email: ${email || ''}`.trim(),
-    `Assunto: ${subject || ''}`.trim(),
-    '',
-    (message || '').trim(),
-  ];
-  return lines.join('\n');
-}
+import { useLanguage } from '../i18n.jsx';
 
 export default function ContactPage() {
+  const { isEn } = useLanguage();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
 
-  const composed = useMemo(
-    () => buildMessage({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() }),
-    [name, email, subject, message],
-  );
-
-  async function copyToClipboard() {
-    setError('');
-    setStatus('');
-    if (!message.trim()) {
-      setError('Escreve a mensagem primeiro.');
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(composed);
-      setStatus('Mensagem copiada. Cola-a no email/DM que preferires.');
-    } catch {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = composed;
-        ta.setAttribute('readonly', 'true');
-        ta.style.position = 'absolute';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        setStatus('Mensagem copiada. Cola-a no email/DM que preferires.');
-      } catch (e) {
-        setError('Não foi possível copiar automaticamente. Seleciona o texto e copia manualmente.');
-      }
-    }
-  }
+  const mailto = useMemo(() => {
+    const subject = encodeURIComponent(isEn ? 'AQUA AI Tools contact' : 'Contacto AQUA AI Tools');
+    const body = encodeURIComponent(
+      `${isEn ? 'Name' : 'Nome'}: ${name}\n${isEn ? 'Email' : 'Email'}: ${email}\n\n${message}`,
+    );
+    return `mailto:geral@aquaticus.pt?subject=${subject}&body=${body}`;
+  }, [email, isEn, message, name]);
 
   return (
     <>
       <Hero
-        title="Contacto"
-        subtitle="Fala connosco para sugestões, parcerias ou consultoria."
-        badge="Resposta em breve"
-        right={
-          <div className="hero__search">
-            <Link className="btn btn--primary" to="/consultoria">
-              Consultoria →
-            </Link>
-            <Link className="btn btn--ghost" to="/submeter">
-              Submeter
-            </Link>
-          </div>
+        title={isEn ? 'Contact' : 'Contacto'}
+        subtitle={
+          isEn
+            ? 'Talk to us about the directory, partnerships, submissions or consulting.'
+            : 'Fala connosco sobre o diretório, parcerias, submissões ou consultoria.'
         }
+        badge={isEn ? 'AQUATICUS' : 'AQUATICUS'}
       />
 
-      <Section title="Mensagem" subtitle="Copia o texto e envia pelo canal que preferires.">
+      <Section
+        title={isEn ? 'Send a message' : 'Enviar mensagem'}
+        subtitle={isEn ? 'Use the form to prepare an email.' : 'Usa o formulário para preparar um email.'}
+      >
         <div className="panel">
           <div className="form__grid">
             <div className="field">
               <label className="field__label" htmlFor="contact-name">
-                Nome
+                {isEn ? 'Name' : 'Nome'}
               </label>
               <input
                 id="contact-name"
                 className="input"
-                placeholder="O teu nome"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(event) => setName(event.target.value)}
+                placeholder={isEn ? 'Your name' : 'O teu nome'}
               />
             </div>
+
             <div className="field">
               <label className="field__label" htmlFor="contact-email">
                 Email
@@ -95,70 +55,57 @@ export default function ContactPage() {
               <input
                 id="contact-email"
                 className="input"
-                placeholder="o.teu@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="field field--span2">
-              <label className="field__label" htmlFor="contact-subject">
-                Assunto
-              </label>
-              <input
-                id="contact-subject"
-                className="input"
-                placeholder="Ex: Parceria / Consultoria / Sugestão"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="email@example.com"
               />
             </div>
 
             <div className="field field--span2">
               <label className="field__label" htmlFor="contact-message">
-                Mensagem *
+                {isEn ? 'Message' : 'Mensagem'}
               </label>
               <textarea
                 id="contact-message"
                 className="textarea"
                 rows={6}
-                placeholder="Escreve aqui…"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder={
+                  isEn
+                    ? 'Tell us what you need.'
+                    : 'Diz-nos o que precisas.'
+                }
               />
             </div>
           </div>
 
-          {error ? <p className="error">{error}</p> : null}
-          {status ? <p className="success">{status}</p> : null}
-
           <div className="form__actions">
-            <button className="btn btn--primary" type="button" onClick={copyToClipboard}>
-              Copiar mensagem →
-            </button>
-            <button
-              className="btn btn--ghost"
-              type="button"
-              onClick={() => {
-                setName('');
-                setEmail('');
-                setSubject('');
-                setMessage('');
-                setError('');
-                setStatus('');
-              }}
-            >
-              Limpar
-            </button>
+            <a className="btn btn--primary" href={mailto}>
+              {isEn ? 'Open email' : 'Abrir email'}
+            </a>
+            <a className="btn btn--ghost" href="mailto:geral@aquaticus.pt">
+              geral@aquaticus.pt
+            </a>
           </div>
+        </div>
+      </Section>
 
-          <div className="contactPreview">
-            <div className="contactPreview__title">Pré‑visualização</div>
-            <pre className="contactPreview__box">{composed}</pre>
-          </div>
+      <Section
+        title={isEn ? 'What we can help with' : 'Em que podemos ajudar'}
+        subtitle={isEn ? 'Typical requests we handle.' : 'Pedidos comuns que tratamos.'}
+      >
+        <div className="featureList">
+          {(isEn
+            ? ['Tool submissions', 'Creator partnerships', 'AI tool shortlists', 'Business consulting']
+            : ['Submissao de ferramentas', 'Parcerias com criadores', 'Shortlists de ferramentas IA', 'Consultoria para empresas']
+          ).map((item) => (
+            <div className="featureItem" key={item}>
+              {item}
+            </div>
+          ))}
         </div>
       </Section>
     </>
   );
 }
-
