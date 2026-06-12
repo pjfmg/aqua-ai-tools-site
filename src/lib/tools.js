@@ -351,6 +351,9 @@ export function getToolAreas(tool) {
     ...normalizeArea(tool?.Categoria ?? ''),
     ...normalizeArea(tool?.['Category'] ?? ''),
     ...normalizeArea(tool?.['Subcategory'] ?? ''),
+    ...normalizeArea(tool?.['Categoria sugerida (IA) EN'] ?? ''),
+    ...normalizeArea(tool?.['Categoria sugerida (IA) En'] ?? ''),
+    ...normalizeArea(tool?.['Categoria sugerida (IA) PT'] ?? ''),
     ...normalizeArea(tool?.['Categoria sugerida (IA)'] ?? ''),
   ].filter((value, idx, arr) => value && arr.indexOf(value) === idx);
 
@@ -358,7 +361,12 @@ export function getToolAreas(tool) {
 }
 
 export function getLocalizedToolAreas(tool, lang = 'pt') {
-  return getToolAreas(tool).map((area) => localizeCategory(area, lang));
+  const preferred =
+    lang === 'en'
+      ? normalizeArea(tool?.['Categoria sugerida (IA) EN'] ?? tool?.['Categoria sugerida (IA) En'] ?? '')
+      : normalizeArea(tool?.['Categoria sugerida (IA) PT'] ?? '');
+  const fallback = getToolAreas(tool).map((area) => localizeCategory(area, lang));
+  return [...preferred, ...fallback].filter((value, idx, arr) => value && arr.indexOf(value) === idx);
 }
 
 function normalizeCheckbox(value) {
@@ -483,6 +491,9 @@ export function extractToolFromRecord(record) {
         fields['Area/Categoria'] ??
         fields['Area'] ??
         fields['Category'] ??
+        fields['Categoria sugerida (IA) EN'] ??
+        fields['Categoria sugerida (IA) En'] ??
+        fields['Categoria sugerida (IA) PT'] ??
         fields['Categoria sugerida (IA)'] ??
         null,
     ),

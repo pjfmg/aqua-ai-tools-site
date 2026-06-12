@@ -3,8 +3,8 @@ import ToolCard from '../components/ToolCard.jsx';
 import Hero from '../components/Hero.jsx';
 import {
   getHostnameFromWebsiteUrl,
+  getLocalizedToolAreas,
   getLocalDateKey,
-  getToolAreas,
   getToolName,
   getToolNumber,
   getToolPrice,
@@ -16,10 +16,10 @@ import { getPreviewCandidates, getPreviewUrl } from '../lib/sitePreview.js';
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
 
-function buildAreaOptions(tools) {
+function buildAreaOptions(tools, lang) {
   const set = new Set();
   for (const t of tools) {
-    for (const a of getToolAreas(t)) set.add(a);
+    for (const a of getLocalizedToolAreas(t, lang)) set.add(a);
   }
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt'));
 }
@@ -39,6 +39,7 @@ function clamp(n, min, max) {
 
 export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoFocusSearch = false }) {
   const { isEn } = useLanguage();
+  const lang = isEn ? 'en' : 'pt';
   const [filterNome, setFilterNome] = useState('');
   const [filterNumero, setFilterNumero] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -54,7 +55,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     filters: serverFilters,
   });
 
-  const areaOptions = useMemo(() => buildAreaOptions(tools), [tools]);
+  const areaOptions = useMemo(() => buildAreaOptions(tools, lang), [tools, lang]);
   const priceOptions = useMemo(() => buildPriceOptions(tools), [tools]);
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
@@ -75,7 +76,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       if (nome && !getToolName(t).toLowerCase().includes(nome)) return false;
       if (numero && getToolNumber(t) !== numero) return false;
       if (filterArea) {
-        const areas = getToolAreas(t);
+        const areas = getLocalizedToolAreas(t, lang);
         if (!areas.includes(filterArea)) return false;
       }
       if (filterPreco && getToolPrice(t) !== filterPreco) return false;
@@ -102,6 +103,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     filterPreco,
     filterVisitado,
     filterFavorito,
+    lang,
     sortDir,
   ]);
 

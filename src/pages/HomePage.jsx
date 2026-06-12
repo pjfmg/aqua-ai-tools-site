@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { getCategoryIconDataUrl } from '../lib/categoryIcons.js';
-import { getLocalDateKey, getToolAreas, getToolName, getToolNumber, getToolSite, pickDailyFeaturedTools } from '../lib/tools.js';
+import { getLocalizedToolAreas, getLocalDateKey, getToolName, getToolNumber, getToolSite, pickDailyFeaturedTools } from '../lib/tools.js';
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
 
 export default function HomePage() {
   const { path, isEn } = useLanguage();
+  const lang = isEn ? 'en' : 'pt';
   const { tools, loading, loadingMore, error, warning } = useTools({ initialPageSize: 12 });
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
@@ -18,14 +19,14 @@ export default function HomePage() {
   const categoryCounts = useMemo(() => {
     const counts = new Map();
     for (const t of tools) {
-      for (const a of getToolAreas(t)) {
+      for (const a of getLocalizedToolAreas(t, lang)) {
         counts.set(a, (counts.get(a) || 0) + 1);
       }
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8);
-  }, [tools]);
+  }, [tools, lang]);
 
   return (
     <>
@@ -59,7 +60,7 @@ export default function HomePage() {
             {featuredTools.length
               ? featuredTools.map((tool, idx) => {
                   const site = getToolSite(tool);
-                  const area = getToolAreas(tool)[0] || (isEn ? 'Uncategorized' : 'Sem categoria');
+                  const area = getLocalizedToolAreas(tool, lang)[0] || (isEn ? 'Uncategorized' : 'Sem categoria');
                   const nome = getToolName(tool) || (isEn ? 'Tool' : 'Ferramenta');
                   const numero = getToolNumber(tool) || String(idx + 1);
                   return (
