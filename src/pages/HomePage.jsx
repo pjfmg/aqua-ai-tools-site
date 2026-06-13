@@ -7,6 +7,81 @@ import { getLocalizedToolAreas, getLocalDateKey, getToolName, getToolNumber, get
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
 
+const TOP_AI_TOOL_GROUPS = [
+  {
+    pt: 'Texto e Conteúdo',
+    en: 'Text and Content',
+    tools: [
+      { name: 'Jasper', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Writesonic', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Copy.ai', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'QuillBot', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+  {
+    pt: 'Vídeo',
+    en: 'Video',
+    tools: [
+      { name: 'Synthesia', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Pictory', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'DeepBrain', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+  {
+    pt: 'Voz',
+    en: 'Voice',
+    tools: [
+      { name: 'ElevenLabs', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Murf', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+  {
+    pt: 'Produtividade',
+    en: 'Productivity',
+    tools: [
+      { name: 'Notion AI', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'ClickUp AI', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+  {
+    pt: 'SEO e Marketing',
+    en: 'SEO and Marketing',
+    tools: [
+      { name: 'Surfer SEO', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Semrush', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'AdCreative', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+  {
+    pt: 'Criação de Apps',
+    en: 'App Creation',
+    tools: [
+      { name: 'Lovable', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+      { name: 'Durable', affiliateProgramUrl: '', affiliateStatus: 'pending' },
+    ],
+  },
+];
+
+const AQUATICUS_AFFILIATE_PROFILE = {
+  brand: 'AQUATICUS / AQUA AI Tools',
+  contactEmail: 'aquaticus@mail.telepac.pt',
+  website: 'AQUA AI Tools',
+  channel: {
+    pt: 'Diretório curado de ferramentas de IA, com pesquisa, filtros, destaques editoriais e páginas de descoberta.',
+    en: 'Curated AI tools directory with search, filters, editorial picks and discovery pages.',
+  },
+  audience: {
+    pt: 'Criadores, freelancers, pequenas empresas e equipas que procuram ferramentas de IA para conteúdo, vídeo, voz, produtividade, marketing e criação de apps.',
+    en: 'Creators, freelancers, small businesses and teams looking for AI tools for content, video, voice, productivity, marketing and app creation.',
+  },
+};
+
+function getAffiliateStatusLabel(status, isEn) {
+  if (status === 'ready') return isEn ? 'Ready' : 'Pronto';
+  if (status === 'applied') return isEn ? 'Applied' : 'Candidatado';
+  return isEn ? 'Link pending' : 'Link pendente';
+}
+
 export default function HomePage() {
   const { path, isEn } = useLanguage();
   const lang = isEn ? 'en' : 'pt';
@@ -132,6 +207,93 @@ export default function HomePage() {
             <div className="stat__icon">📈</div>
             <div className="stat__value">{Math.max(1, categoryCounts.length)}+</div>
             <div className="stat__label">{isEn ? 'Categories' : 'Categorias'}</div>
+          </div>
+        </div>
+      </Section>
+
+      <Section
+        title={isEn ? 'Top AI Tools' : 'Top Ferramentas AI'}
+        subtitle={
+          isEn
+            ? 'A curated starting point for high-quality affiliate tools, organized by the use cases most likely to convert.'
+            : 'Um ponto de partida curado para ferramentas afiliadas de qualidade, organizado pelos casos de uso com maior potencial de conversão.'
+        }
+        align="left"
+      >
+        <div className="topTools">
+          <div className="topTools__intro">
+            <div>
+              <div className="topTools__eyebrow">{isEn ? 'Monetization focus' : 'Foco de monetização'}</div>
+              <p className="topTools__text">
+                {isEn
+                  ? 'For a young directory, the strongest first target is 30-50 carefully selected tools instead of hundreds of low-intent listings.'
+                  : 'Para um diretório ainda pequeno, o melhor objetivo inicial é chegar a 30-50 ferramentas bem selecionadas, em vez de centenas de listagens pouco qualificadas.'}
+              </p>
+            </div>
+            <div className="topTools__actions">
+              <Link className="btn btn--primary" to={path('/ferramentas')}>
+                {isEn ? 'Explore tools' : 'Explorar ferramentas'}
+              </Link>
+              <Link className="btn btn--ghost" to={path('/submeter')}>
+                {isEn ? 'Suggest a tool' : 'Sugerir ferramenta'}
+              </Link>
+            </div>
+          </div>
+
+          <div className="topTools__grid">
+            {TOP_AI_TOOL_GROUPS.map((group) => (
+              <article className="topToolsCard" key={group.en}>
+                <div className="topToolsCard__head">
+                  <h3>{isEn ? group.en : group.pt}</h3>
+                  <span>{group.tools.length}</span>
+                </div>
+                <div className="topToolsCard__list">
+                  {group.tools.map((tool) => (
+                    <div className="topToolsCard__toolRow" key={tool.name}>
+                      <Link className="topToolsCard__tool" to={path(`/ferramentas?search=${encodeURIComponent(tool.name)}`)}>
+                        {tool.name}
+                      </Link>
+                      {tool.affiliateProgramUrl ? (
+                        <a
+                          className="topToolsCard__affiliate"
+                          href={tool.affiliateProgramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {isEn ? 'Affiliate program' : 'Programa afiliado'}
+                        </a>
+                      ) : (
+                        <span className="topToolsCard__affiliate topToolsCard__affiliate--pending">
+                          {getAffiliateStatusLabel(tool.affiliateStatus, isEn)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="affiliateProfile">
+            <div>
+              <div className="affiliateProfile__eyebrow">{isEn ? 'Application data' : 'Dados para candidatura'}</div>
+              <h3>{AQUATICUS_AFFILIATE_PROFILE.brand}</h3>
+              <p>{isEn ? AQUATICUS_AFFILIATE_PROFILE.channel.en : AQUATICUS_AFFILIATE_PROFILE.channel.pt}</p>
+            </div>
+            <dl className="affiliateProfile__facts">
+              <div>
+                <dt>{isEn ? 'Contact' : 'Contacto'}</dt>
+                <dd>{AQUATICUS_AFFILIATE_PROFILE.contactEmail}</dd>
+              </div>
+              <div>
+                <dt>{isEn ? 'Website' : 'Website'}</dt>
+                <dd>{AQUATICUS_AFFILIATE_PROFILE.website}</dd>
+              </div>
+              <div>
+                <dt>{isEn ? 'Audience' : 'Audiência'}</dt>
+                <dd>{isEn ? AQUATICUS_AFFILIATE_PROFILE.audience.en : AQUATICUS_AFFILIATE_PROFILE.audience.pt}</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </Section>

@@ -14,7 +14,7 @@ export default function ContactPage() {
     const body = encodeURIComponent(
       `${isEn ? 'Name' : 'Nome'}: ${name}\n${isEn ? 'Email' : 'Email'}: ${email}\n\n${message}`,
     );
-    return `mailto:geral@aquaticus.pt?subject=${subject}&body=${body}`;
+    return `mailto:aquaticus@mail.telepac.pt?subject=${subject}&body=${body}`;
   }, [email, isEn, message, name]);
 
   return (
@@ -84,8 +84,8 @@ export default function ContactPage() {
             <a className="btn btn--primary" href={mailto}>
               {isEn ? 'Open email' : 'Abrir email'}
             </a>
-            <a className="btn btn--ghost" href="mailto:geral@aquaticus.pt">
-              geral@aquaticus.pt
+            <a className="btn btn--ghost" href="mailto:aquaticus@mail.telepac.pt">
+              aquaticus@mail.telepac.pt
             </a>
           </div>
         </div>

@@ -64,8 +64,8 @@ export default function PrivacyPage() {
           <div className="page__body">
             <p>
               {isEn
-                ? 'For privacy questions or data requests, contact us at geral@aquaticus.pt.'
-                : 'Para questoes de privacidade ou pedidos sobre dados, contacta-nos em geral@aquaticus.pt.'}
+                ? 'For privacy questions or data requests, contact us at aquaticus@mail.telepac.pt.'
+                : 'Para questoes de privacidade ou pedidos sobre dados, contacta-nos em aquaticus@mail.telepac.pt.'}
             </p>
           </div>
         </div>

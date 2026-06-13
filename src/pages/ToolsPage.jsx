@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import ToolCard from '../components/ToolCard.jsx';
 import Hero from '../components/Hero.jsx';
 import {
@@ -39,8 +40,9 @@ function clamp(n, min, max) {
 
 export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoFocusSearch = false }) {
   const { isEn } = useLanguage();
+  const location = useLocation();
   const lang = isEn ? 'en' : 'pt';
-  const [filterNome, setFilterNome] = useState('');
+  const [filterNome, setFilterNome] = useState(() => new URLSearchParams(location.search).get('search') || '');
   const [filterNumero, setFilterNumero] = useState('');
   const [filterArea, setFilterArea] = useState('');
   const [filterPreco, setFilterPreco] = useState('');
@@ -164,6 +166,11 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   useEffect(() => {
     hoverOpenRef.current = hoverOpen;
   }, [hoverOpen]);
+
+  useEffect(() => {
+    const search = new URLSearchParams(location.search).get('search') || '';
+    setFilterNome(search);
+  }, [location.search]);
 
   function clearHoverTimers() {
     if (hoverEnterTimerRef.current) window.clearTimeout(hoverEnterTimerRef.current);
