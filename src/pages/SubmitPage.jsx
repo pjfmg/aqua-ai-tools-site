@@ -3,6 +3,7 @@ import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { useTools } from '../hooks/useTools.js';
 import { normalizeArea, normalizeWebsiteUrl } from '../lib/tools.js';
+import { getAccessToken } from '../lib/supabaseAuth.js';
 import { useLanguage } from '../i18n.jsx';
 
 export default function SubmitPage() {
@@ -54,14 +55,16 @@ export default function SubmitPage() {
         'Área/Categoria': area ? [area] : [],
       };
 
-      const res = await fetch('/submit', {
+      const accessToken = await getAccessToken();
+      if (!accessToken) throw new Error(isEn ? 'Sign in before submitting a tool.' : 'Inicia sessão antes de submeter uma ferramenta.');
+      const res = await fetch('/v1/tool-submissions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify(payload),
       });
 
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || `Falha ao submeter (${res.status})`);
+      if (!res.ok) throw new Error(json?.errors?.[0]?.message || json?.errors?.[0]?.code || json?.error || `Falha ao submeter (${res.status})`);
 
       setSuccess(isEn ? 'Submitted successfully. Thank you. We will review it before adding it to the database.' : 'Submetido com sucesso! Obrigado — vamos rever e adicionar à base de dados.');
       setNome('');

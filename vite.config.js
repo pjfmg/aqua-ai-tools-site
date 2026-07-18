@@ -5,6 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      '/v1': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
       '/airtable': {
         target: 'http://localhost:3001',
         changeOrigin: true,

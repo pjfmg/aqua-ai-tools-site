@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { loadLocalToolsSnapshot, loadToolsPhased, normalizeRecordStatus, normalizeToolFilters } from '../lib/tools.js';
+import { loadToolsPhased, normalizeRecordStatus, normalizeToolFilters } from '../lib/tools.js';
 import { applyUserLists } from '../lib/userLists.js';
+import { useAuth } from '../auth/auth.jsx';
 
 const cacheByStatus = new Map();
 const partialByStatus = new Map();
@@ -10,15 +11,6 @@ const subscribers = new Set();
 const TOOLS_STORAGE_KEY = 'aqua_tools_cache_v1';
 const TOOLS_STORAGE_VERSION = 2;
 const REVALIDATE_AFTER_MS = 10 * 60 * 1000; // 10 min
-
-function isMockWarning(value) {
-  const s = String(value || '');
-  return s.includes('mock local') || s.includes('source: mock');
-}
-
-function isMockSnapshot(value) {
-  return value?.source === 'mock' || isMockWarning(value?.warning);
-}
 
 function sanitizeWarning(value) {
   return String(value || '');
@@ -78,6 +70,8 @@ function writeStoredTools(cacheKey, tools, warning, source) {
 }
 
 export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filters = {} } = {}) {
+  const { user } = useAuth();
+  const userId = user?.id || '';
   const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
   const normalizedFilters = normalizeToolFilters(filters);
   const cacheKey = getCacheKey(normalizedRecordStatus, normalizedFilters);
@@ -106,13 +100,13 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
   useEffect(() => {
     function refreshFromLists() {
       const cache = cacheByStatus.get(cacheKey);
-      if (cache?.rawTools) setTools(applyUserLists(cache.rawTools));
-      else setTools((prev) => applyUserLists(prev));
+      if (cache?.rawTools) setTools(applyUserLists(cache.rawTools, userId));
+      else setTools((prev) => applyUserLists(prev, userId));
     }
 
     function onStorage(e) {
       if (!e?.key) return;
-      if (e.key === 'aqua_tools_visitadas_v1' || e.key === 'aqua_tools_favoritas_v1') refreshFromLists();
+      if (e.key === `aqua_tools_visitadas_v1:${userId}` || e.key === `aqua_tools_favoritas_v1:${userId}`) refreshFromLists();
     }
 
     window.addEventListener('storage', onStorage);
@@ -121,7 +115,7 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('aqua_lists_changed', refreshFromLists);
     };
-  }, [cacheKey]);
+  }, [cacheKey, userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,7 +123,7 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
     function applySnapshot(snapshot, { keepLoading = false } = {}) {
       const list = snapshot?.rawTools || snapshot?.tools || [];
       setRawTools(list);
-      setTools(applyUserLists(list));
+      setTools(applyUserLists(list, userId));
       setWarning(sanitizeWarning(snapshot?.warning || ''));
       setSource(String(snapshot?.source || ''));
       setUpdatedAt(typeof snapshot?.ts === 'number' ? snapshot.ts : 0);
@@ -160,7 +154,7 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
         if (cache) {
           applySnapshot(cache);
           const cacheAge = typeof cache?.ts === 'number' ? now - cache.ts : Infinity;
-          const shouldFetchCached = !cachePromise && (isMockSnapshot(cache) || cacheAge > REVALIDATE_AFTER_MS);
+          const shouldFetchCached = !cachePromise && cacheAge > REVALIDATE_AFTER_MS;
           if (!shouldFetchCached) return;
         }
 
@@ -171,31 +165,11 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
         } else {
           setLoading(true);
           setWarning('');
-
-          loadLocalToolsSnapshot().then((seedTools) => {
-            if (cancelled) return;
-            if (!Array.isArray(seedTools) || !seedTools.length) return;
-            if (cache?.rawTools?.length || partial?.rawTools?.length) return;
-
-            applySnapshot(
-              {
-                rawTools: seedTools,
-                warning: '',
-                source: 'snapshot',
-                loadingMore: true,
-              },
-              { keepLoading: false },
-            );
-          });
         }
 
         const shouldFetch =
           !cachePromise &&
-          (!stored?.tools?.length ||
-            storedAge > REVALIDATE_AFTER_MS ||
-            isMockSnapshot(stored) ||
-            isMockSnapshot(partial) ||
-            isMockSnapshot(cache));
+          (!stored?.tools?.length || storedAge > REVALIDATE_AFTER_MS);
         if (!shouldFetch) {
           if (import.meta?.env?.DEV && t0) {
             const dt = performance.now() - t0;
@@ -223,7 +197,7 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
                 publish(cacheKey, {
                   rawTools: merged,
                   warning: '',
-                  source: 'airtable',
+                  source: 'data-platform',
                   loadingMore: !meta?.done,
                 });
 
@@ -269,7 +243,7 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
       cancelled = true;
       subscribers.delete(onUpdate);
     };
-  }, [initialPageSize, cacheKey, refreshNonce]);
+  }, [initialPageSize, cacheKey, refreshNonce, userId]);
 
   return { tools, rawTools, loading, loadingMore, error, warning, source, updatedAt, refresh, recordStatus: normalizedRecordStatus };
 }

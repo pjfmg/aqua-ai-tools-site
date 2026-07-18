@@ -25,11 +25,11 @@ export async function requestJson(url, options = {}) {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    const message = data?.errors?.[0]?.message || data?.errors?.[0]?.code || data?.error || data?.message || `Request failed (${response.status})`;
     throw new Error(message);
   }
 
-  return data;
+  return data && typeof data === 'object' && 'data' in data && Array.isArray(data.errors) ? data.data : data;
 }
 
 export function getJson(url, options = {}) {

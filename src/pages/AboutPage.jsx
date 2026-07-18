@@ -71,13 +71,13 @@ export default function AboutPage() {
               <h3 style={{ marginTop: 0 }}>{isEn ? 'Database' : 'Base de dados'}</h3>
               <p>
                 {isEn
-                  ? 'Records live in Airtable and are loaded through a server endpoint so credentials never reach the browser.'
-                  : 'Os registos vivem no Airtable e são carregados através de um endpoint do servidor (para manter as chaves fora do browser).'}
+                  ? 'Records live in the AQUA Data Platform on PostgreSQL/Supabase and are exposed through a governed API.'
+                  : 'Os registos vivem na AQUA Data Platform em PostgreSQL/Supabase e são disponibilizados através de uma API governada.'}
               </p>
               <p>
                 {isEn
-                  ? 'When the endpoint is unavailable, a local mock keeps development usable.'
-                  : 'Quando o endpoint não está disponível, usamos um mock local para manter a app funcional em ambiente de desenvolvimento.'}
+                  ? 'The browser may show a recent cache while revalidating, but the Data Platform remains the only source of truth.'
+                  : 'O browser pode mostrar uma cache recente durante a revalidação, mas a Data Platform continua a ser a única fonte oficial.'}
               </p>
             </div>
           </div>

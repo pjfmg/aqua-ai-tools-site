@@ -59,7 +59,7 @@ export default function ToolCard({ tool }) {
     if (!isAuthed || !hasProAccess) return;
     if (!toolKey) return;
     if (!setRatingLocal({ toolKey, rating: v })) return;
-    await submitMyRating({ email: user?.email, tool, rating: v });
+    await submitMyRating({ tool, rating: v });
   }
 
   return (
@@ -118,7 +118,7 @@ export default function ToolCard({ tool }) {
                 type="button"
                 title={isFav ? (isEn ? 'Remove from favorites' : 'Remover de favoritas') : (isEn ? 'Add to favorites' : 'Adicionar a favoritas')}
                 aria-label={isFav ? (isEn ? 'Remove from favorites' : 'Remover de favoritas') : (isEn ? 'Add to favorites' : 'Adicionar a favoritas')}
-                onClick={() => toggleFavorite(tool)}
+                onClick={() => toggleFavorite(tool, user?.id)}
               >
                 ♥
               </button>
@@ -182,7 +182,7 @@ export default function ToolCard({ tool }) {
             onClick={() => {
               // Never let local list bookkeeping interfere with navigation.
               try {
-                if (hasProAccess) markVisited(tool);
+                if (hasProAccess) markVisited(tool, user?.id);
               } catch {
                 // ignore
               }

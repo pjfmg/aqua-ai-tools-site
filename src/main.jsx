@@ -5,15 +5,16 @@ import { AuthProvider } from './auth/auth.jsx';
 import { MyRatingsProvider } from './ratings/MyRatingsContext.jsx';
 import { RatingsProvider } from './ratings/RatingsContext.jsx';
 import './styles.css';
+import { ConsentProvider } from './privacy/ConsentContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RatingsProvider>
-        <MyRatingsProvider>
-          <App />
-        </MyRatingsProvider>
-      </RatingsProvider>
-    </AuthProvider>
+    <ConsentProvider>
+      <AuthProvider>
+        <RatingsProvider>
+          <MyRatingsProvider><App /></MyRatingsProvider>
+        </RatingsProvider>
+      </AuthProvider>
+    </ConsentProvider>
   </React.StrictMode>,
 );

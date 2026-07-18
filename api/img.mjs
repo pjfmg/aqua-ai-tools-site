@@ -7,9 +7,6 @@ function isAllowedHost(hostname) {
   if (h === 'www.google.com') return true;
   if (h === 'google.com') return true;
   if (h === 'lh3.googleusercontent.com') return true;
-  if (h.endsWith('.airtableusercontent.com')) return true;
-  if (h === 'dl.airtable.com') return true;
-  if (h.endsWith('.airtable.com')) return true;
   return false;
 }
 
@@ -121,4 +118,3 @@ export default async function handler(req, res) {
     res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
   }
 }
-

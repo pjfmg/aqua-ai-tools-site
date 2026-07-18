@@ -1,5 +1,29 @@
 {
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com https://*.clarity.ms https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.google-analytics.com https://*.clarity.ms https://*.googlesyndication.com https://*.doubleclick.net; frame-src https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net; upgrade-insecure-requests" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(self)" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+      ]
+    }
+  ],
   "rewrites": [
+    { "source": "/v1/health/live", "destination": "/api/health?mode=live" },
+    { "source": "/v1/health/ready", "destination": "/api/health?mode=ready" },
+    { "source": "/v1/tools", "destination": "/api/v1/gateway?operation=tools" },
+    { "source": "/v1/tool-submissions", "destination": "/api/v1/gateway?operation=tool-submissions" },
+    { "source": "/v1/tool-ratings", "destination": "/api/v1/gateway?operation=tool-ratings-read" },
+    { "source": "/v1/site-previews", "destination": "/api/v1/gateway?operation=site-previews" },
+    { "source": "/v1/images", "destination": "/api/v1/gateway?operation=images" },
+    { "source": "/v1/billing/checkout-sessions", "destination": "/api/v1/gateway?operation=billing-checkout" },
+    { "source": "/v1/billing/checkout-sessions/status", "destination": "/api/v1/gateway?operation=billing-status" },
+    { "source": "/v1/entitlements/me", "destination": "/api/v1/gateway?operation=entitlements" },
+    { "source": "/v1/billing/portal-sessions", "destination": "/api/v1/gateway?operation=billing-portal" },
     { "source": "/airtable", "destination": "/api/airtable" },
     { "source": "/img", "destination": "/api/img" },
     { "source": "/submit", "destination": "/api/submit" },

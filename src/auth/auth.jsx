@@ -1,72 +1,72 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { fetchBillingSubscription } from '../lib/billing.js';
 import { hasProAccess, normalizeSubscription } from '../lib/subscription.js';
+import {
+  getAuthenticatedUser,
+  signInWithPassword,
+  signOutFromSupabase,
+  signUpWithPassword,
+} from '../lib/supabaseAuth.js';
 
-const STORAGE_KEY = 'aqua_auth_user_v1';
-
-function readStoredUser() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (typeof parsed.email !== 'string' || !parsed.email.trim()) return null;
-    return {
-      name: typeof parsed.name === 'string' ? parsed.name : '',
-      email: parsed.email.trim(),
-      subscription: normalizeSubscription(parsed.subscription),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredUser(user) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  } catch {
-    // ignore (storage may be unavailable)
-  }
-}
-
-function clearStoredUser() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
-  }
+function toAppUser(authUser) {
+  if (!authUser?.id || !authUser?.email) return null;
+  return {
+    id: authUser.id,
+    name: String(authUser.user_metadata?.name || authUser.email.split('@')[0] || '').trim(),
+    email: String(authUser.email).trim().toLowerCase(),
+    subscription: null,
+  };
 }
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const [billingLoaded, setBillingLoaded] = useState(false);
 
   useEffect(() => {
-    setUser(readStoredUser());
-    setBillingLoaded(true);
+    let ignore = false;
+    try {
+      localStorage.removeItem('aqua_auth_user_v1');
+    } catch {
+      // Ignore unavailable storage while removing the legacy local profile.
+    }
+    getAuthenticatedUser()
+      .then((authUser) => {
+        if (!ignore) setUser(toAppUser(authUser));
+      })
+      .catch(() => {
+        if (!ignore) setUser(null);
+      })
+      .finally(() => {
+        if (!ignore) setAuthLoaded(true);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.id) {
+      if (authLoaded) setBillingLoaded(true);
+      return;
+    }
 
     let ignore = false;
     setBillingLoaded(false);
 
-    fetchBillingSubscription(user.email)
+    fetchBillingSubscription()
       .then((result) => {
         if (ignore || !result) return;
         const nextSubscription = normalizeSubscription(result.subscription);
         setUser((prev) => {
           if (!prev || prev.email !== user.email) return prev;
-          const next = { ...prev, subscription: nextSubscription };
-          writeStoredUser(next);
-          return next;
+          return { ...prev, subscription: nextSubscription };
         });
       })
       .catch(() => {
-        // keep the locally persisted subscription if billing sync fails
+        // Authentication remains valid even if billing is temporarily unavailable.
       })
       .finally(() => {
         if (!ignore) setBillingLoaded(true);
@@ -75,37 +75,40 @@ export function AuthProvider({ children }) {
     return () => {
       ignore = true;
     };
-  }, [user?.email]);
+  }, [authLoaded, user?.id]);
 
   const value = useMemo(() => {
     return {
       user,
+      authLoaded,
       isAuthed: Boolean(user),
       billingLoaded,
       hasProAccess: hasProAccess(user),
-      signIn: ({ name, email }) => {
-        const current = readStoredUser();
-        const nextEmail = (email || '').trim().toLowerCase();
-        const keepSubscription =
-          current?.email && current.email === nextEmail ? normalizeSubscription(current.subscription) : null;
-        const next = { name: (name || '').trim(), email: nextEmail, subscription: keepSubscription };
-        writeStoredUser(next);
+      signIn: async ({ email, password }) => {
+        const session = await signInWithPassword({ email, password });
+        const next = toAppUser(session?.user);
+        if (!next) throw new Error('A sessão não contém um utilizador válido.');
         setUser(next);
+        return next;
+      },
+      signUp: async ({ name, email, password }) => {
+        const result = await signUpWithPassword({ name, email, password });
+        const next = toAppUser(result?.user || result);
+        if (result?.access_token && next) setUser(next);
+        return { user: next, authenticated: Boolean(result?.access_token && next) };
       },
       setSubscription: (subscription) => {
         setUser((prev) => {
           if (!prev) return prev;
-          const next = { ...prev, subscription: normalizeSubscription(subscription) };
-          writeStoredUser(next);
-          return next;
+          return { ...prev, subscription: normalizeSubscription(subscription) };
         });
       },
-      signOut: () => {
-        clearStoredUser();
+      signOut: async () => {
+        await signOutFromSupabase();
         setUser(null);
       },
     };
-  }, [billingLoaded, user]);
+  }, [authLoaded, billingLoaded, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

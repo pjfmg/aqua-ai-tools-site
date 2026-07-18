@@ -15,10 +15,11 @@ export default function SignInPage() {
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     setError('');
     const emailTrim = email.trim().toLowerCase();
@@ -26,8 +27,19 @@ export default function SignInPage() {
       setError(isEn ? 'Enter a valid email.' : 'Indica um email válido.');
       return;
     }
-    signIn({ name: name.trim(), email: emailTrim });
-    navigate(path('/conta'), { replace: true });
+    if (!password) {
+      setError(isEn ? 'Enter your password.' : 'Indica a tua palavra-passe.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await signIn({ email: emailTrim, password });
+      navigate(path('/conta'), { replace: true });
+    } catch (err) {
+      setError(err.message || (isEn ? 'Could not sign in.' : 'Não foi possível iniciar sessão.'));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -35,10 +47,10 @@ export default function SignInPage() {
       <Hero
         title={isEn ? 'Sign in' : 'Entrar'}
         subtitle={isEn ? 'Access your profile.' : 'Acede ao teu perfil.'}
-        badge={isEn ? 'Beta (local)' : 'Beta (local)'}
+        badge="Supabase Auth"
       />
 
-      <Section title={isEn ? 'Sign in' : 'SignIn'} subtitle={isEn ? 'For now this is a local login without password.' : 'Por agora é um login local (sem password).'}>
+      <Section title={isEn ? 'Sign in' : 'Entrar'} subtitle={isEn ? 'Secure access through Supabase Auth.' : 'Acesso seguro através do Supabase Auth.'}>
         <div className="authWrap">
           <aside className="authAside">
             <div className="authCard">
@@ -61,21 +73,26 @@ export default function SignInPage() {
                     <input
                       id="signin-email"
                       className="input"
+                      type="email"
+                      autoComplete="email"
+                      required
                       placeholder="paulo@exemplo.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="field field--span2">
-                    <label className="field__label" htmlFor="signin-name">
-                      {isEn ? 'Name (optional)' : 'Nome (opcional)'}
+                    <label className="field__label" htmlFor="signin-password">
+                      {isEn ? 'Password *' : 'Palavra-passe *'}
                     </label>
                     <input
-                      id="signin-name"
+                      id="signin-password"
                       className="input"
-                      placeholder="Paulo"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                 </div>
@@ -83,8 +100,8 @@ export default function SignInPage() {
                 {error ? <p className="error">{error}</p> : null}
 
                 <div className="form__actions">
-                  <button className="btn btn--primary" type="submit">
-                    {isEn ? 'Sign in →' : 'Entrar →'}
+                  <button className="btn btn--primary" type="submit" disabled={loading}>
+                    {loading ? (isEn ? 'Signing in…' : 'A entrar…') : (isEn ? 'Sign in →' : 'Entrar →')}
                   </button>
                   <Link className="btn btn--ghost" to={path('/signup')}>
                     {isEn ? 'Create account' : 'Criar conta'}

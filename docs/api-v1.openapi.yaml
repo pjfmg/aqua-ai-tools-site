@@ -1,0 +1,121 @@
+openapi: 3.1.0
+info:
+  title: AQUA AI Tools Public API
+  version: 1.0.0
+  description: API pública governada pela AQUA OS API Platform. As rotas sem versão estão depreciadas.
+servers:
+  - url: /
+security: []
+paths:
+  /v1/health/live:
+    get:
+      operationId: getLiveness
+      summary: Confirma que o runtime consegue responder; não testa dependências
+      responses: { '200': { $ref: '#/components/responses/Health' } }
+  /v1/health/ready:
+    get:
+      operationId: getReadiness
+      summary: Confirma configuração e disponibilidade das dependências críticas
+      responses: { '200': { $ref: '#/components/responses/Health' }, '503': { $ref: '#/components/responses/Health' } }
+  /v1/tools:
+    get:
+      operationId: listTools
+      summary: Lista e filtra ferramentas publicadas
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [published, eligible, all] } }
+        - { name: q, in: query, schema: { type: string } }
+        - { name: number, in: query, schema: { type: string } }
+        - { name: area, in: query, schema: { type: string } }
+        - { name: price, in: query, schema: { type: string } }
+        - { name: pageSize, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - { name: offset, in: query, schema: { type: string } }
+      responses: { '200': { $ref: '#/components/responses/Success' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/tool-submissions:
+    post:
+      operationId: submitTool
+      summary: Submete uma ferramenta para revisão manual
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/tool-ratings:
+    get:
+      operationId: listToolRatings
+      summary: Obtém agregados públicos de avaliações
+      responses: { '200': { $ref: '#/components/responses/Success' }, '429': { $ref: '#/components/responses/RateLimited' } }
+    post:
+      operationId: rateTool
+      summary: Grava uma avaliação pessoal; requer entitlement Pro
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/site-previews:
+    get:
+      operationId: getSitePreview
+      summary: Obtém uma imagem de preview de um site
+      responses: { '200': { description: Imagem }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/images:
+    get:
+      operationId: proxyImage
+      summary: Obtém uma imagem HTTPS através do proxy seguro
+      responses: { '200': { description: Imagem }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/billing/checkout-sessions:
+    post:
+      operationId: createCheckoutSession
+      security: [{ bearerAuth: [] }]
+      responses: { '201': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/billing/checkout-sessions/status:
+    get:
+      operationId: getCheckoutSessionStatus
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: session_id, in: query, required: true, schema: { type: string } }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/entitlements/me:
+    get:
+      operationId: getMyEntitlements
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /v1/billing/portal-sessions:
+    post:
+      operationId: createPortalSession
+      deprecated: true
+      summary: Endpoint suspenso; responde 503
+      security: [{ bearerAuth: [] }]
+      responses: { '503': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/RateLimited' } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Envelope:
+      type: object
+      required: [data, meta, errors]
+      properties:
+        data: {}
+        meta:
+          type: object
+          required: [traceId]
+          properties: { traceId: { type: string } }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [code]
+            properties: { code: { type: string }, message: { type: string } }
+  responses:
+    Health:
+      description: Estado operacional sem detalhes sensíveis
+      headers:
+        X-Trace-Id: { schema: { type: string } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } }
+    Success:
+      description: Sucesso
+      headers:
+        X-Trace-Id: { schema: { type: string } }
+        RateLimit-Limit: { schema: { type: integer } }
+        RateLimit-Remaining: { schema: { type: integer } }
+        RateLimit-Reset: { schema: { type: integer }, description: Segundos até reiniciar a janela }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } }
+    Error:
+      description: Erro normalizado
+      content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } }
+    RateLimited:
+      description: Limite excedido
+      headers: { Retry-After: { schema: { type: integer } } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } }

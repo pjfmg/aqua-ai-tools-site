@@ -1,25 +1,27 @@
 # AQUA AI Tools Site
 
-Frontend em **Vite + React** que consome dados do Airtable via endpoint **`/airtable`** (segredos apenas no servidor).
+Frontend em **Vite + React** que consome a API pública versionada **`/v1`** (segredos apenas no servidor).
+
+A identidade utiliza **Supabase Auth**. Billing pertence ao **AQUA OS Commerce** e os dados operacionais à **AQUA OS Data Platform**; este produto contém apenas fachadas de integração.
 
 ## Requisitos
 
-- Node.js 18+ (ideal 20+)
+- Node.js 20+
 
 ## Dev (local)
 
-Terminal 1 (proxy local que fala com Airtable):
+Terminal 1 (proxy local para os serviços AQUA OS):
 
 ```bash
 cd "/Users/paulogoncalves/Desktop/04-AQUA Apps/AQUA AI Tools Site"
-export AIRTABLE_PAT="..."
-export AIRTABLE_BASE_ID="app..."
-export AIRTABLE_TABLE_ID="tbl... ou NomeDaTabela"
-export AIRTABLE_RATINGS_TABLE_ID="tbl... ou NomeDaTabelaRatings"
-export STRIPE_SECRET_KEY="sk_live_... ou sk_test_..."
-export STRIPE_PRICE_ID_PRO="price_..."
-export PUBLIC_SITE_URL="http://localhost:5173"
-export AIRTABLE_BILLING_TABLE_ID="tbl... ou NomeDaTabelaBilling"
+export VITE_SUPABASE_URL="https://<project-ref>.supabase.co"
+export VITE_SUPABASE_ANON_KEY="..."
+export SUPABASE_URL="$VITE_SUPABASE_URL"
+export SUPABASE_ANON_KEY="$VITE_SUPABASE_ANON_KEY"
+export SUPABASE_SERVICE_ROLE_KEY="..." # apenas no servidor; rate limiting/auditoria duráveis
+export AQUA_OS_COMMERCE_URL="http://localhost:3100"
+export AQUA_OS_DATA_URL="http://localhost:3200"
+export AQUA_OS_PRODUCT_KEY="..."
 node proxy/server.mjs
 ```
 
@@ -38,26 +40,22 @@ npm run dev:proxy
 npm run dev:vite
 ```
 
-O Vite faz proxy de `/airtable` para `http://localhost:3001` (ver `vite.config.js`).
-O formulário de submissão usa `POST /submit` (também via proxy local).
-Os previews de sites usam `GET /preview` (também via proxy local).
-O checkout Pro usa `POST /billing/checkout`, `GET /billing/session-status`, `GET /billing/subscription` e `POST /billing/portal`.
+O Vite encaminha `/v1/*` para `http://localhost:3001`. Diretório, submissões, ratings, imagens, previews, billing e entitlements usam exclusivamente contratos `/v1` no frontend.
 
 ## Deploy (Vercel)
 
-- Define env vars no projeto Vercel: `AIRTABLE_PAT`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_ID`
-- (Opcional) `AIRTABLE_SUBMIT_TABLE_ID` para usar uma tabela separada para submissões
-- (Opcional) `AIRTABLE_RATINGS_TABLE_ID` para gravar e computar avaliações (1–5 estrelas)
-- Para subscrição Pro: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID_PRO`, `PUBLIC_SITE_URL` e `AIRTABLE_BILLING_TABLE_ID`
-- (Opcional) `AIRTABLE_BILLING_BASE_ID` se as subscrições viverem noutra base
+- Para subscrição Pro: `AQUA_OS_COMMERCE_URL` e `AQUA_OS_PRODUCT_KEY`
+- Para dados operacionais: `AQUA_OS_DATA_URL` e `AQUA_OS_PRODUCT_KEY`
+- Para autenticação: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL` e `SUPABASE_ANON_KEY`
+- Para rate limiting e auditoria duráveis: `SUPABASE_SERVICE_ROLE_KEY` apenas no runtime do servidor
 - (Opcional) `VITE_ADSENSE_CLIENT` e `VITE_ADSENSE_SLOT` para trocar publisher/slot sem editar código
-- O `vercel.json` faz rewrite de `/airtable` para `/api/airtable`
-  e de `/submit` para `/api/submit` (e também `/rate`, `/ratings`, `/preview` e `/billing/*`)
+- O `vercel.json` encaminha `/v1/*` para o gateway governado. As rotas antigas continuam temporariamente disponíveis para compatibilidade.
 
 ## Deploy (Cloudflare Pages)
 
-Este projeto pode correr em **Cloudflare Pages** com **Pages Functions** para manter:
-`/airtable`, `/submit`, `/rate`, `/ratings`, `/preview`, `/billing/checkout`, `/billing/session-status`, `/billing/subscription`, `/billing/portal`.
+Este projeto pode correr em **Cloudflare Pages** através da Function catch-all `/v1/[[path]]`.
+
+`/billing/portal` permanece publicado apenas como endpoint suspenso e responde com HTTP 503, sem contactar a Stripe.
 
 ### Build settings
 
@@ -66,22 +64,18 @@ Este projeto pode correr em **Cloudflare Pages** com **Pages Functions** para ma
 
 ### Env vars (Cloudflare Pages → Settings → Environment variables)
 
-- `AIRTABLE_PAT`
-- `AIRTABLE_BASE_ID`
-- `AIRTABLE_TABLE_ID`
-- (Opcional) `AIRTABLE_SUBMIT_TABLE_ID`
-- (Recomendado) `AIRTABLE_RATINGS_TABLE_ID`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_PRICE_ID_PRO`
-- `PUBLIC_SITE_URL`
-- `AIRTABLE_BILLING_TABLE_ID`
-- (Opcional) `AIRTABLE_BILLING_BASE_ID`
+- `AQUA_OS_COMMERCE_URL`
+- `AQUA_OS_DATA_URL`
+- `AQUA_OS_PRODUCT_KEY`
+- `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no ambiente de build
+- `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente runtime das Functions
+- `SUPABASE_SERVICE_ROLE_KEY` no runtime das Functions, nunca no build do frontend
 - (Opcional) `VITE_ADSENSE_CLIENT`
 - (Opcional) `VITE_ADSENSE_SLOT`
 
 ## Dados do diretório
 
-O endpoint `/airtable` aceita `status`:
+O endpoint `/v1/tools` aceita `status`:
 
 - `published` (default): `Published` ativo e exclui duplicados/inoperacionais
 - `eligible`: exclui duplicados/inoperacionais, sem exigir `Published`
@@ -98,14 +92,44 @@ Também aceita filtros server-side:
 
 Na UI estes filtros são enviados ao servidor com debounce, enquanto `Visitado` e `Favorito` continuam no cliente por serem listas pessoais.
 
-Campos usados para controlo operacional:
+Campos canónicos usados para controlo operacional:
 
 - `Published`
 - `Duplicated`
 - `Site Status`
 - `Operational Status`
 
-Para evitar discrepâncias entre Airtable e site, mantém estes campos normalizados.
+O PostgreSQL/Supabase da AQUA Data Platform é a fonte oficial. O Airtable existe apenas como origem transitória do importador documentado em `AQUA OS/Services/DataPlatform`.
+
+## AQUA OS Data Platform
+
+As entidades `Tool`, `ToolSubmission` e `ToolRating`, respetivas migrations, RLS, retenção e importador idempotente pertencem a `AQUA OS/Services/DataPlatform`. O produto não contém credenciais Airtable nem acede diretamente ao PostgreSQL.
+
+## Autenticação
+
+- O registo e o login usam email e palavra-passe através do Supabase Auth.
+- Se a confirmação de email estiver ativa no Supabase, o utilizador tem de confirmar o email antes de iniciar sessão.
+- Checkout, confirmação de checkout, consulta de subscrição e gravação de ratings exigem `Authorization: Bearer <access_token>`.
+- A submissão de ferramentas também exige sessão autenticada.
+- Billing e autorização Pro são validados pelo AQUA OS Commerce; ratings continuam validados pela fachada do produto.
+- O AQUA OS ignora qualquer email enviado no body ou query string e deriva a identidade do token Supabase.
+- A `SUPABASE_SERVICE_ROLE_KEY` existe apenas nos runtimes server-side e permite rate limiting/auditoria persistentes. Nunca a prefixar com `VITE_`.
+
+## API v1 e governação
+
+A especificação está em [`docs/api-v1.openapi.yaml`](docs/api-v1.openapi.yaml). Todas as respostas JSON seguem `{ data, meta: { traceId }, errors }`; imagens e previews mantêm body binário. Cada operação publica `X-Trace-Id` e cabeçalhos `RateLimit-*`.
+
+As políticas variam entre 5 submissões/hora e 120 leituras/minuto. Em produção são atómicas no Supabase através de `AQUA OS/Services/APIPlatform/migrations/001_api_governance.sql`; sem a migração/chave, o desenvolvimento usa limites por processo em memória. A auditoria guarda operação, hash do principal, estado e duração — nunca tokens, emails ou bodies.
+
+As rotas sem versão (`/airtable`, `/submit`, `/rate`, `/ratings`, `/preview`, `/img` e `/billing/*`) estão depreciadas e destinam-se apenas a clientes antigos. Novos consumidores devem usar `/v1`; a remoção exige uma versão major e aviso prévio.
+
+## Observabilidade e operação
+
+- `/v1/health/live` confirma o runtime sem contactar dependências.
+- `/v1/health/ready` valida configuração, Data Platform e Commerce, respondendo `503` quando o produto não está pronto.
+- O gateway propaga `X-Trace-Id`, publica `Server-Timing` e produz eventos RED estruturados sem bodies, emails ou tokens.
+- Leituras AQUA OS repetem uma vez falhas transitórias; escritas nunca são repetidas automaticamente. Cinco falhas abrem o circuit breaker durante 30 segundos.
+- SLOs, alertas, diagnóstico e recuperação estão em [`docs/operations-runbook.md`](docs/operations-runbook.md).
 
 ## Versão em inglês
 
@@ -130,20 +154,19 @@ npm run test:smoke
 npm run build
 ```
 
-Os smoke tests validam fórmulas Airtable, AdSense e `ads.txt`.
+Para executar o quality gate completo usado pela CI:
 
-### Tabela de billing no Airtable
+```bash
+npm run check
+```
 
-Cria uma tabela para subscrições com estes campos:
+A arquitetura, matriz dos oito pontos, checklist de deployment, registo de dívida e release candidate estão em `docs/`. O estado atual é **Review**; a conclusão do código não autoriza publicação sem as ações e aprovações externas listadas.
 
-- `Key` (single line text, usado para upsert; guardar o email em minúsculas)
-- `UserEmail` (email ou single line text)
-- `Plan` (single line text)
-- `Status` (single line text)
-- `CustomerId` (single line text)
-- `CheckoutSessionId` (single line text)
-- `CurrentPeriodEnd` (date/time ou texto ISO)
-- `UpdatedAt` (date/time ou texto ISO)
+Os smoke tests validam autenticação, envelopes, rate limiting, integrações AQUA OS Data Platform/Commerce, AdSense e `ads.txt`.
+
+### AQUA OS Commerce
+
+O serviço partilhado encontra-se em `AQUA OS/Services/Commerce`. Stripe, webhooks, persistência de subscrições e decisão de entitlement não pertencem a este repositório.
 
 ### SPA routing
 
@@ -151,10 +174,9 @@ Existe um `public/_redirects` com `/* /index.html 200` para suportar rotas do Re
 
 ## Troubleshooting
 
-- Se o `/airtable` devolver `{"error":"NOT_FOUND"}` do Airtable, confirma:
-  - `AIRTABLE_BASE_ID` está correto (começa por `app...`)
-  - `AIRTABLE_TABLE_ID` é **o id `tbl...`** ou o **nome da tabela** (evita colar nomes já URL-encoded tipo `Table%201`)
-  - o `AIRTABLE_PAT` tem acesso à base e scope de leitura de records
+- `AQUA_OS_DATA_NOT_CONFIGURED`: confirmar `AQUA_OS_DATA_URL` e `AQUA_OS_PRODUCT_KEY` no runtime do produto.
+- `DATA_PLATFORM_NOT_CONFIGURED`: confirmar `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no serviço Data Platform.
+- Diretório vazio após a migração: executar primeiro `migrations/001_catalog.sql`, depois o importador Airtable e validar a contagem de ferramentas publicadas.
 
 ## Legacy
 

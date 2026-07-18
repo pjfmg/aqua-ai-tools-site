@@ -1,6 +1,11 @@
 const VISITED_KEY = 'aqua_tools_visitadas_v1';
 const FAVORITES_KEY = 'aqua_tools_favoritas_v1';
 
+function userStorageKey(baseKey, userId) {
+  const id = String(userId || '').trim();
+  return id ? `${baseKey}:${id}` : '';
+}
+
 function safeParseJsonArray(raw) {
   try {
     const parsed = JSON.parse(raw);
@@ -56,34 +61,36 @@ export function getToolKey(tool) {
   return key || '';
 }
 
-export function markVisited(tool) {
+export function markVisited(tool, userId) {
   const k = getToolKey(tool);
-  if (!k) return false;
-  const set = readSet(VISITED_KEY);
+  const storageKey = userStorageKey(VISITED_KEY, userId);
+  if (!k || !storageKey) return false;
+  const set = readSet(storageKey);
   if (set.has(k)) return false;
   set.add(k);
-  writeSet(VISITED_KEY, set);
+  writeSet(storageKey, set);
   emitChange();
   return true;
 }
 
-export function toggleFavorite(tool) {
+export function toggleFavorite(tool, userId) {
   const k = getToolKey(tool);
-  if (!k) return false;
-  const set = readSet(FAVORITES_KEY);
+  const storageKey = userStorageKey(FAVORITES_KEY, userId);
+  if (!k || !storageKey) return false;
+  const set = readSet(storageKey);
   if (set.has(k)) set.delete(k);
   else set.add(k);
-  writeSet(FAVORITES_KEY, set);
+  writeSet(storageKey, set);
   emitChange();
   return true;
 }
 
-export function applyUserLists(tools) {
+export function applyUserLists(tools, userId) {
   let visited;
   let favorites;
   try {
-    visited = readSet(VISITED_KEY);
-    favorites = readSet(FAVORITES_KEY);
+    visited = readSet(userStorageKey(VISITED_KEY, userId));
+    favorites = readSet(userStorageKey(FAVORITES_KEY, userId));
   } catch {
     visited = new Set();
     favorites = new Set();

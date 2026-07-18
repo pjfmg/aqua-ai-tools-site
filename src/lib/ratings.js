@@ -1,4 +1,5 @@
 import { getToolKey } from './userLists.js';
+import { getAccessToken } from './supabaseAuth.js';
 
 function storageKeyForUser(email) {
   const safe = String(email || '').trim().toLowerCase();
@@ -40,7 +41,7 @@ export function setMyRating(email, tool, rating) {
   return true;
 }
 
-export async function submitMyRating({ email, tool, rating }) {
+export async function submitMyRating({ tool, rating }) {
   const toolKey = getToolKey(tool);
   if (!toolKey) return { ok: false, error: 'Missing tool key' };
   const r = Number(rating);
@@ -50,22 +51,22 @@ export async function submitMyRating({ email, tool, rating }) {
     toolKey,
     toolId: String(tool?.id || ''),
     toolName: String(tool?.Nome || tool?.['Nome'] || ''),
-    userEmail: String(email || '').trim().toLowerCase(),
     rating: Math.round(r),
   };
 
   try {
-    const res = await fetch('/rate', {
+    const accessToken = await getAccessToken();
+    if (!accessToken) return { ok: false, error: 'AUTH_REQUIRED' };
+    const res = await fetch('/v1/tool-ratings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify(payload),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, error: json?.error || `Falha ao guardar (${res.status})` };
+    if (!res.ok) return { ok: false, error: json?.errors?.[0]?.code || json?.error || `Falha ao guardar (${res.status})` };
     window.dispatchEvent(new CustomEvent('aqua_ratings_changed'));
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e.message || 'Network error' };
   }
 }
-

@@ -1,3 +1,5 @@
+import { getAccessToken } from './supabaseAuth.js';
+
 async function parseJson(res) {
   const text = await res.text();
   try {
@@ -7,42 +9,39 @@ async function parseJson(res) {
   }
 }
 
-export async function createCheckoutSession({ email }) {
-  const res = await fetch('/billing/checkout', {
+async function authenticatedHeaders(includeJson = false) {
+  const accessToken = await getAccessToken();
+  if (!accessToken) throw new Error('AUTH_REQUIRED');
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+  };
+}
+
+export async function createCheckoutSession() {
+  const res = await fetch('/v1/billing/checkout-sessions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    headers: await authenticatedHeaders(true),
+    body: JSON.stringify({}),
   });
-  const json = await parseJson(res);
-  if (!res.ok) throw new Error(json?.error || 'Não foi possível iniciar o checkout');
-  return json;
+  const envelope = await parseJson(res);
+  if (!res.ok) throw new Error(envelope?.errors?.[0]?.code || envelope?.error || 'Não foi possível iniciar o checkout');
+  return envelope?.data ?? envelope;
 }
 
 export async function fetchCheckoutSessionStatus(sessionId) {
-  const url = new URL('/billing/session-status', window.location.origin);
+  const url = new URL('/v1/billing/checkout-sessions/status', window.location.origin);
   url.searchParams.set('session_id', sessionId);
-  const res = await fetch(url.toString(), { cache: 'no-store' });
-  const json = await parseJson(res);
-  if (!res.ok) throw new Error(json?.error || 'Não foi possível confirmar o pagamento');
-  return json;
+  const res = await fetch(url.toString(), { cache: 'no-store', headers: await authenticatedHeaders() });
+  const envelope = await parseJson(res);
+  if (!res.ok) throw new Error(envelope?.errors?.[0]?.code || envelope?.error || 'Não foi possível confirmar o pagamento');
+  return envelope?.data ?? envelope;
 }
 
-export async function fetchBillingSubscription(email) {
-  const url = new URL('/billing/subscription', window.location.origin);
-  url.searchParams.set('email', String(email || '').trim().toLowerCase());
-  const res = await fetch(url.toString(), { cache: 'no-store' });
-  const json = await parseJson(res);
-  if (!res.ok) throw new Error(json?.error || 'Não foi possível carregar a subscrição');
-  return json;
-}
-
-export async function createBillingPortalSession({ customerId }) {
-  const res = await fetch('/billing/portal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ customerId }),
-  });
-  const json = await parseJson(res);
-  if (!res.ok) throw new Error(json?.error || 'Não foi possível abrir a faturação');
-  return json;
+export async function fetchBillingSubscription() {
+  const url = new URL('/v1/entitlements/me', window.location.origin);
+  const res = await fetch(url.toString(), { cache: 'no-store', headers: await authenticatedHeaders() });
+  const envelope = await parseJson(res);
+  if (!res.ok) throw new Error(envelope?.errors?.[0]?.code || envelope?.error || 'Não foi possível carregar a subscrição');
+  return envelope?.data ?? envelope;
 }

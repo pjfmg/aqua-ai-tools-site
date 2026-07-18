@@ -3,7 +3,6 @@ import { fetchWithTimeout } from './http.js';
 const PAGE_SIZE = 100;
 const FIRST_PAGE_SIZE = 20;
 const FETCH_TIMEOUT_MS = 20000;
-let localSnapshotPromise = null;
 
 export function normalizeRecordStatus(value) {
   const mode = String(value || 'eligible').trim().toLowerCase();
@@ -56,7 +55,7 @@ export function proxyImageUrl(value) {
   } catch {
     // ignore
   }
-  return `/img?u=${encodeURIComponent(raw)}`;
+  return `/v1/images?u=${encodeURIComponent(raw)}`;
 }
 
 function expandImageUrlVariants(urls) {
@@ -91,8 +90,8 @@ async function readUpstreamError(res) {
   }
 }
 
-async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'eligible', filters = {} } = {}) {
-  const url = new URL('/airtable', window.location.origin);
+async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'eligible', filters = {} } = {}) {
+  const url = new URL('/v1/tools', window.location.origin);
   const normalizedFilters = normalizeToolFilters(filters);
   url.searchParams.set('pageSize', String(pageSize));
   url.searchParams.set('status', normalizeRecordStatus(recordStatus));
@@ -101,17 +100,17 @@ async function fetchAirtablePage({ offset = null, pageSize = PAGE_SIZE, recordSt
   if (normalizedFilters.area) url.searchParams.set('area', normalizedFilters.area);
   if (normalizedFilters.price) url.searchParams.set('price', normalizedFilters.price);
   if (offset) url.searchParams.set('offset', offset);
-  // Extra cache-buster for the first page to avoid any stale cached `offset` cursor (not forwarded to Airtable).
+  // Extra cache-buster for the first page to avoid a stale pagination cursor.
   if (!offset) url.searchParams.set('_ts', String(Date.now()));
 
-  // iOS Safari/WebViews can be aggressive with caching; a cached Airtable page may include an expired `offset`
-  // cursor and cause 422 LIST_RECORDS_ITERATOR_NOT_AVAILABLE on the next page request.
+  // iOS Safari/WebViews can be aggressive with caching; avoid replaying an old cursor.
   const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, FETCH_TIMEOUT_MS);
   if (!res.ok) {
     const details = await readUpstreamError(res);
-    throw new Error(`Proxy /airtable falhou (${res.status})${details ? `: ${details}` : ''}`);
+    throw new Error(`API /v1/tools falhou (${res.status})${details ? `: ${details}` : ''}`);
   }
-  const json = await res.json();
+  const envelope = await res.json();
+  const json = envelope?.data ?? envelope;
   if (!json?.records) throw new Error('Resposta inválida do proxy');
   return { records: json.records, offset: json.offset || null };
 }
@@ -121,8 +120,8 @@ function isAuthFailureMessage(message) {
   return (
     text.includes('invalid authentication token') ||
     text.includes('authentication token') ||
-    text.includes('proxy /airtable falhou (401)') ||
-    text.includes('proxy /airtable falhou (403)')
+    text.includes('api /v1/tools falhou (401)') ||
+    text.includes('api /v1/tools falhou (403)')
   );
 }
 
@@ -397,10 +396,10 @@ function isInoperationalRecord(fields) {
   );
 }
 
-export function getAirtableAttachmentUrl(value) {
+export function getAttachmentUrl(value) {
   if (!value) return '';
 
-  // Airtable attachments are typically arrays; be defensive if a single object is passed.
+  // Imported attachments may be arrays; be defensive if a single object is passed.
   const first = Array.isArray(value) ? value[0] : value;
   if (!first) return '';
 
@@ -423,7 +422,7 @@ export function pickLogoUrls(tool) {
 
   const fromLogoField =
     (typeof tool?.Logo === 'string' && normalizeImageUrl(tool.Logo)) ||
-    getAirtableAttachmentUrl(tool?.Logo);
+    getAttachmentUrl(tool?.Logo);
   if (fromLogoField) candidates.push(fromLogoField);
 
   if (typeof tool?.ClearbitLogo === 'string') {
@@ -449,36 +448,6 @@ export function pickLogoUrls(tool) {
   const fallbacks = variants.slice(1, 10);
   const secondary = fallbacks[0] || '';
   return { primary, secondary, fallbacks };
-}
-
-export function mapMockToTool(mock) {
-  return {
-    id: mock?.id ?? (mock?.numero ? `mock:${String(mock.numero)}` : ''),
-    Nome: mock?.nome ?? '',
-    Número: mock?.numero ?? '',
-    Logo: mock?.logo ?? '',
-    Site: mock?.site ?? '',
-    Preço: mock?.preco ?? '',
-    Visitado: mock?.visitado ?? '',
-    Favorito: mock?.favorito ?? '',
-    'Descrição': mock?.descricao ?? mock?.descrição ?? '',
-    'Área/Categoria': mock?.area ? [String(mock.area)] : [],
-    Funções: mock?.funcoes ? { value: String(mock.funcoes) } : { value: '' },
-  };
-}
-
-export async function loadLocalToolsSnapshot() {
-  if (!localSnapshotPromise) {
-    localSnapshotPromise = fetchWithTimeout('/data/tools.json', { cache: 'force-cache' }, 2500)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Snapshot local indisponivel (${res.status})`);
-        const json = await res.json();
-        return (Array.isArray(json) ? json : []).map(mapMockToTool);
-      })
-      .catch(() => []);
-  }
-
-  return await localSnapshotPromise;
 }
 
 export function extractToolFromRecord(record) {
@@ -599,7 +568,7 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
       const pageSize = isFirstPage
         ? Math.max(10, Math.min(FIRST_PAGE_SIZE, Number(initialPageSize) || FIRST_PAGE_SIZE))
         : PAGE_SIZE;
-      const page = await fetchAirtablePage({
+      const page = await fetchToolsPage({
         offset,
         pageSize,
         recordStatus: normalizedRecordStatus,
@@ -626,15 +595,15 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
     }
 
     if (normalizedRecordStatus === 'all' && out.length > 0) {
-      return { tools: out, warning: '', source: 'airtable' };
+      return { tools: out, warning: '', source: 'data-platform' };
     }
 
     if (normalizedRecordStatus === 'eligible' && out.length > 0) {
-      return { tools: out, warning: '', source: 'airtable' };
+      return { tools: out, warning: '', source: 'data-platform' };
     }
 
     if (publishedOut.length > 0) {
-      return { tools: publishedOut, warning: '', source: 'airtable' };
+      return { tools: publishedOut, warning: '', source: 'data-platform' };
     }
 
     if (out.length > 0) {
@@ -643,7 +612,7 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
         warning: hasToolFilters(normalizedFilters)
           ? 'Aviso: nenhum registo publicado correspondeu aos filtros no servidor. A mostrar registos elegíveis recebidos.'
           : 'Aviso: nenhum registo com Published ativo foi detetado. A mostrar todos os registos elegíveis recebidos.',
-        source: 'airtable',
+        source: 'data-platform',
       };
     }
 
@@ -658,7 +627,7 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
       return {
         ...fallback,
         warning: fallback.tools?.length
-          ? 'Aviso: nenhum registo com Published ativo foi detetado no Airtable. A mostrar registos elegíveis.'
+          ? 'Aviso: nenhuma ferramenta publicada foi detetada. A mostrar ferramentas elegíveis.'
           : fallback.warning,
       };
     }
@@ -666,22 +635,11 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
     return {
       tools: allRecordsOut,
       warning: 'Aviso: filtros automáticos removeram todos os registos. A mostrar todos os registos recebidos.',
-      source: 'airtable',
+      source: 'data-platform',
     };
   } catch (err) {
-    const mapped = await loadLocalToolsSnapshot();
-
-    if (typeof onChunk === 'function') {
-      onChunk(mapped, { done: true, total: mapped.length, source: 'mock' });
-    }
-
-    return {
-      tools: mapped,
-      warning: isAuthFailureMessage(err?.message)
-        ? ''
-        : `Aviso: a fonte principal falhou (${err.message}). A mostrar mock local.`,
-      source: 'mock',
-    };
+    if (isAuthFailureMessage(err?.message)) throw new Error('AUTH_REQUIRED');
+    throw err;
   }
 }
 

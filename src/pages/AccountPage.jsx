@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { getInitials, useAuth } from '../auth/auth.jsx';
-import { createBillingPortalSession, fetchCheckoutSessionStatus } from '../lib/billing.js';
+import { fetchCheckoutSessionStatus } from '../lib/billing.js';
 import { getSubscriptionLabel, hasProAccess as userHasProAccess, PRO_FEATURES } from '../lib/subscription.js';
 import { useLanguage } from '../i18n.jsx';
 
@@ -71,20 +71,6 @@ export default function AccountPage() {
     };
   }, [isAuthed, location.search, navigate, setSubscription, user?.email]);
 
-  async function onOpenPortal() {
-    if (!user?.subscription?.customerId) return;
-    setBillingLoading(true);
-    setBillingError('');
-    try {
-      const result = await createBillingPortalSession({ customerId: user.subscription.customerId });
-      if (!result?.url) throw new Error(isEn ? 'Portal returned no URL' : 'Portal sem URL');
-      window.location.href = result.url;
-    } catch (err) {
-      setBillingError(err.message || (isEn ? 'Could not open billing' : 'Não foi possível abrir a faturação'));
-      setBillingLoading(false);
-    }
-  }
-
   if (!isAuthed) {
     return (
       <>
@@ -118,8 +104,8 @@ export default function AccountPage() {
           <button
             className="btn btn--ghost"
             type="button"
-            onClick={() => {
-              signOut();
+            onClick={async () => {
+              await signOut();
               navigate(path('/'), { replace: true });
             }}
           >
@@ -128,7 +114,7 @@ export default function AccountPage() {
         }
       />
 
-      <Section title={isEn ? 'Profile' : 'Perfil'} subtitle={isEn ? 'The account is still stored locally, but the subscription is validated through checkout.' : 'A conta continua guardada localmente, mas a subscrição é validada no checkout.'}>
+      <Section title={isEn ? 'Profile' : 'Perfil'} subtitle={isEn ? 'Your identity is validated by Supabase Auth and billing is checked on the server.' : 'A tua identidade é validada pelo Supabase Auth e a subscrição é verificada no servidor.'}>
         <div className="accountGrid">
           <div className="accountCard">
             <div className="accountAvatar">{getInitials(user?.name || user?.email)}</div>
@@ -149,9 +135,11 @@ export default function AccountPage() {
             </div>
             <div className="form__actions" style={{ justifyContent: 'flex-start' }}>
               {proActive ? (
-                <button className="btn btn--primary" type="button" onClick={onOpenPortal} disabled={billingLoading}>
-                  {billingLoading ? (isEn ? 'Opening…' : 'A abrir…') : (isEn ? 'Manage billing' : 'Gerir faturação')}
-                </button>
+                <span className="note" role="status">
+                  {isEn
+                    ? 'Billing management is temporarily unavailable while secure authentication is implemented.'
+                    : 'A gestão de faturação está temporariamente indisponível enquanto implementamos autenticação segura.'}
+                </span>
               ) : (
                 <Link className="btn btn--primary" to={path('/pro')}>
                   {isEn ? 'Activate Pro' : 'Ativar Pro'}

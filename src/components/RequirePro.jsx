@@ -33,7 +33,7 @@ export default function RequirePro({ children, title = 'Área Pro' }) {
     return (
       <>
         <Hero title={title} subtitle={isEn ? 'Validating your subscription.' : 'A validar a tua subscrição.'} badge={isEn ? 'Loading' : 'A carregar'} />
-        <Section title={isEn ? 'Please wait' : 'Aguarda'} subtitle={isEn ? 'We are confirming your Pro access.' : 'Estamos a confirmar o teu acesso Pro no Airtable.'}>
+        <Section title={isEn ? 'Please wait' : 'Aguarda'} subtitle={isEn ? 'We are confirming your Pro access.' : 'Estamos a confirmar o teu acesso Pro no AQUA OS Commerce.'}>
           <div className="panel">
             <p className="note" style={{ margin: 0 }}>
               {isEn ? 'This only takes a few moments.' : 'Isto demora apenas alguns instantes.'}

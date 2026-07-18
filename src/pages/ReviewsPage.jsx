@@ -36,12 +36,10 @@ export default function ReviewsPage() {
   }, [tools, toolName]);
 
   const ratingsCount = useMemo(() => Object.keys(ratings || {}).length, [ratings]);
-  const dataIsLive = source === 'airtable' && !toolsError;
+  const dataIsLive = source === 'data-platform' && !toolsError;
   const dataLabel = dataIsLive
-    ? (isEn ? 'Connected to Airtable' : 'Ligado ao Airtable')
-    : source === 'snapshot'
-      ? (isEn ? 'Using local snapshot' : 'A usar snapshot local')
-      : source
+    ? (isEn ? 'Connected to AQUA Data Platform' : 'Ligado à AQUA Data Platform')
+    : source
         ? (isEn ? `Source: ${source}` : `Fonte: ${source}`)
         : (isEn ? 'Checking data source' : 'A verificar fonte de dados');
 
@@ -100,11 +98,11 @@ export default function ReviewsPage() {
             <p className="dbStatus__text">
               {dataIsLive
                 ? (isEn
-                    ? `${tools.length} tools loaded from Airtable.`
-                    : `${tools.length} ferramentas carregadas do Airtable.`)
+                    ? `${tools.length} tools loaded from the Data Platform.`
+                    : `${tools.length} ferramentas carregadas da Data Platform.`)
                 : (isEn
-                    ? 'Local preview is not connected to Airtable right now. Start the proxy with AIRTABLE_* variables to test live data.'
-                    : 'A pré-visualização local não está ligada ao Airtable neste momento. Arranca o proxy com as variáveis AIRTABLE_* para testar dados reais.')}
+                    ? 'The Data Platform is unavailable. Check AQUA_OS_DATA_URL and the local services.'
+                    : 'A Data Platform não está disponível. Confirma AQUA_OS_DATA_URL e os serviços locais.')}
             </p>
             {toolsError ? <p className="dbStatus__error">{toolsError}</p> : null}
             {toolsWarning ? <p className="dbStatus__warning">{toolsWarning}</p> : null}

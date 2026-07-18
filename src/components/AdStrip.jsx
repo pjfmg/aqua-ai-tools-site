@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useLanguage } from "../i18n.jsx";
+import { useConsent } from "../privacy/ConsentContext.jsx";
 
 const ADSENSE_SCRIPT_SRC = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 const DEFAULT_AD_CLIENT =
@@ -39,6 +40,7 @@ export default function AdStrip({
   format = "auto",
 }) {
   const { isEn } = useLanguage();
+  const { advertisingAvailable, advertisingAllowed, openPreferences } = useConsent();
   const adRef = useRef(null);
   const adClient = useMemo(() => String(client || "").trim(), [client]);
   const adSlot = useMemo(() => String(slot || "").trim(), [slot]);
@@ -52,7 +54,7 @@ export default function AdStrip({
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !adClient || !adSlot) return;
+    if (typeof window === "undefined" || !advertisingAllowed || !adClient || !adSlot) return;
 
     loadAdSenseScript(adClient);
 
@@ -71,9 +73,15 @@ export default function AdStrip({
         }
       }
     }, 0);
-  }, [adClient, adSlot, adFormat]);
+  }, [advertisingAllowed, adClient, adSlot, adFormat]);
 
   if (!adClient || !adSlot) return null;
+  if (!advertisingAllowed) {
+    const message = !advertisingAvailable
+      ? (isEn ? 'Advertising is suspended until the certified consent platform is configured.' : 'A publicidade está suspensa até a plataforma de consentimento certificada estar configurada.')
+      : (isEn ? 'Advertising is off until you allow it.' : 'A publicidade está desligada até a autorizares.');
+    return <section className="adsStrip adsStrip--consent" aria-label={isEn ? 'Advertising preferences' : 'Preferências de publicidade'}><p>{message}</p><button className="btn btn--ghost btn--small" type="button" onClick={openPreferences}>{isEn ? 'Privacy settings' : 'Definições de privacidade'}</button></section>;
+  }
 
   return (
     <section className="adsStrip" aria-label={isEn && label === "Publicidade" ? "Advertisement" : label}>

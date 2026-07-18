@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { getLanguageSwitchPath, useLanguage } from '../i18n.jsx';
+import { useAuth } from '../auth/auth.jsx';
 
 const NAV_ITEMS = [
   { to: '/', pt: 'Home', en: 'Home' },
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 export default function TopNav() {
   const location = useLocation();
   const { isEn, path } = useLanguage();
+  const { isAuthed } = useAuth();
   const languagePath = getLanguageSwitchPath(location.pathname, isEn ? 'pt' : 'en');
 
   return (
@@ -33,12 +35,20 @@ export default function TopNav() {
             <Link className="btn btn--ghost btn--small" to={languagePath}>
               {isEn ? 'PT' : 'EN'}
             </Link>
-            <Link className="btn btn--ghost btn--small" to={path('/signin')}>
-              {isEn ? 'Sign in' : 'Entrar'}
-            </Link>
-            <Link className="btn btn--primary btn--small" to={path('/signup')}>
-              {isEn ? 'SignUp' : 'SignUp'}
-            </Link>
+            {isAuthed ? (
+              <Link className="btn btn--primary btn--small" to={path('/conta')}>
+                {isEn ? 'Account' : 'Conta'}
+              </Link>
+            ) : (
+              <>
+                <Link className="btn btn--ghost btn--small" to={path('/signin')}>
+                  {isEn ? 'Sign in' : 'Entrar'}
+                </Link>
+                <Link className="btn btn--primary btn--small" to={path('/signup')}>
+                  {isEn ? 'Sign up' : 'Criar conta'}
+                </Link>
+              </>
+            )}
           </div>
         </div>
 

@@ -5,9 +5,10 @@ let cache = null;
 let cachePromise = null;
 
 async function loadRatingsSummary() {
-  const res = await fetchWithTimeout('/ratings', { cache: 'no-store' }, 6000);
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error || `Falha ao carregar ratings (${res.status})`);
+  const res = await fetchWithTimeout('/v1/tool-ratings', { cache: 'no-store' }, 6000);
+  const envelope = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(envelope?.errors?.[0]?.code || envelope?.error || `Falha ao carregar ratings (${res.status})`);
+  const json = envelope?.data ?? envelope;
   return json?.ratings && typeof json.ratings === 'object' ? json.ratings : {};
 }
 

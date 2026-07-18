@@ -10,7 +10,7 @@ import { useLanguage } from '../i18n.jsx';
 function SubscribeButton() {
   const location = useLocation();
   const { path, isEn } = useLanguage();
-  const { isAuthed, hasProAccess, user } = useAuth();
+  const { isAuthed, hasProAccess } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,7 +19,7 @@ function SubscribeButton() {
     setLoading(true);
     setError('');
     try {
-      const session = await createCheckoutSession({ email: user?.email });
+      const session = await createCheckoutSession();
       if (!session?.url) throw new Error('Checkout sem URL de redirecionamento');
       window.location.href = session.url;
     } catch (err) {
@@ -139,7 +139,7 @@ export default function ProPage() {
             price={SUBSCRIPTION_PLAN.priceLabel}
             subtitle={isEn ? 'Monthly recurring billing' : 'Cobrança mensal recorrente'}
             bullets={isEn ? ['Save favorites', 'Visited tools history', 'Personal tool ratings', 'Access to Reviews'] : PRO_FEATURES}
-            footer={isEn ? 'Secure checkout via Stripe. Billing can be managed from your account.' : 'Checkout seguro via Stripe. Podes gerir a cobrança a partir da conta.'}
+            footer={isEn ? 'Secure checkout via Stripe. Billing management remains suspended until the secure portal is available.' : 'Checkout seguro via Stripe. A gestão da cobrança permanece suspensa até o portal seguro estar disponível.'}
             highlight
           >
             <SubscribeButton />
