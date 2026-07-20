@@ -5,6 +5,7 @@ import Footer from '../components/Footer.jsx';
 import TopNav from '../components/TopNav.jsx';
 import { LanguageProvider } from '../i18n.jsx';
 import ConsentManager from '../privacy/ConsentManager.jsx';
+import NewsletterSignup from '../components/NewsletterSignup.jsx';
 
 export default function AppLayout() {
   return (
@@ -17,6 +18,7 @@ export default function AppLayout() {
         <AdStrip />
         <Footer />
         <ConsentManager />
+        <NewsletterSignup />
       </div>
     </LanguageProvider>
   );

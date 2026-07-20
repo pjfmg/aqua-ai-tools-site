@@ -39,6 +39,11 @@ export default function PrivacyPage() {
                   ? 'Analytics, ads and infrastructure providers may process technical data such as page views, device data and IP addresses.'
                   : 'Fornecedores de analytics, anuncios e infraestrutura podem processar dados tecnicos como visualizacoes, dados do dispositivo e endereco IP.'}
               </li>
+              <li>
+                {isEn
+                  ? 'If you join AQUA Weekly, we store your email, language, chosen themes, subscription source and consent date to deliver and tailor the newsletter.'
+                  : 'Se subscreveres a AQUA Weekly, guardamos o teu email, idioma, temas escolhidos, origem da subscrição e data do consentimento para enviar e personalizar a newsletter.'}
+              </li>
             </ul>
           </div>
         </div>
@@ -61,6 +66,11 @@ export default function PrivacyPage() {
               {isEn
                 ? 'We use data to operate the directory, review submissions, provide billing features, improve the product and keep the service secure.'
                 : 'Usamos dados para operar o diretorio, rever submissoes, fornecer funcionalidades de faturacao, melhorar o produto e manter o servico seguro.'}
+            </p>
+            <p>
+              {isEn
+                ? 'Newsletter data is used only to send the weekly edition and tailor tool recommendations to your selected themes. Every edition must provide an unsubscribe option.'
+                : 'Os dados da newsletter são usados apenas para enviar a edição semanal e ajustar as recomendações aos temas escolhidos. Todas as edições devem incluir uma opção de cancelamento.'}
             </p>
             <p>
               {isEn

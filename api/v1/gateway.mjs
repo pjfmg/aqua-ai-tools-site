@@ -8,6 +8,7 @@ import checkoutHandler from '../billing/checkout.mjs';
 import sessionStatusHandler from '../billing/session-status.mjs';
 import subscriptionHandler from '../billing/subscription.mjs';
 import portalHandler from '../billing/portal.mjs';
+import newsletterHandler from '../newsletter.mjs';
 import { authenticateRequest } from '../../authSession.mjs';
 import { apiEnvelope, auditApiEvent, enforceApiGovernance } from '../../apiGovernance.mjs';
 
@@ -22,6 +23,7 @@ const ROUTES = {
   'billing-status': { operation: 'billing-status', handler: sessionStatusHandler },
   entitlements: { operation: 'entitlements', handler: subscriptionHandler },
   'billing-portal': { operation: 'billing-portal', handler: portalHandler, auth: true },
+  'newsletter-subscriptions': { operation: 'newsletter-subscriptions', handler: newsletterHandler },
 };
 
 function capturedResponse() {

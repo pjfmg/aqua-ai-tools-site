@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../i18n.jsx';
 import { useConsent } from '../privacy/ConsentContext.jsx';
+import { openNewsletterSignup } from './NewsletterSignup.jsx';
 
 export default function Footer() {
   const { isEn, path } = useLanguage();
@@ -15,6 +16,7 @@ export default function Footer() {
         <Link to={path('/consultoria')}>{isEn ? 'Consulting' : 'Consultoria'}</Link>
         <Link to={path('/privacidade')}>{isEn ? 'Privacy' : 'Privacidade'}</Link>
         <Link to={path('/termos')}>{isEn ? 'Terms' : 'Termos'}</Link>
+        <button className="footer__privacyButton" type="button" onClick={openNewsletterSignup}>Newsletter</button>
         <button className="footer__privacyButton" type="button" onClick={openPreferences}>{isEn ? 'Privacy settings' : 'Definições de privacidade'}</button>
       </nav>
       <strong>AQUA AI Tools / AQUATICUS / 2026</strong>

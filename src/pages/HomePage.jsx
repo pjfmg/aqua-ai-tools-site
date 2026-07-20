@@ -6,6 +6,7 @@ import { getCategoryIconDataUrl } from '../lib/categoryIcons.js';
 import { getLocalizedToolAreas, getLocalDateKey, getToolName, getToolNumber, getToolSite, pickDailyFeaturedTools } from '../lib/tools.js';
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
+import { openNewsletterSignup } from '../components/NewsletterSignup.jsx';
 
 export default function HomePage() {
   const { path, isEn } = useLanguage();
@@ -131,6 +132,21 @@ export default function HomePage() {
           ) : (
             <div className="categoryGrid__empty">{isEn ? 'Loading categories…' : 'A carregar categorias…'}</div>
           )}
+        </div>
+      </Section>
+
+      <Section
+        title={isEn ? 'A better AI shortlist, every week' : 'Uma seleção melhor de IA, todas as semanas'}
+        subtitle={isEn ? 'A short, useful newsletter tailored to your interests.' : 'Uma newsletter curta, útil e ajustada aos teus interesses.'}
+      >
+        <div className="newsletterCta">
+          <div className="newsletterCta__mark" aria-hidden="true">✦</div>
+          <div className="newsletterCta__text">
+            <div className="newsletterCta__eyebrow">AQUA WEEKLY</div>
+            <div className="newsletterCta__title">{isEn ? '5 tools. One theme. Zero noise.' : '5 ferramentas. Um tema. Zero ruído.'}</div>
+            <div className="newsletterCta__subtitle">{isEn ? 'Choose your themes and receive hand-picked recommendations every week.' : 'Escolhe os teus temas e recebe recomendações selecionadas todas as semanas.'}</div>
+          </div>
+          <button className="btn btn--primary" type="button" onClick={openNewsletterSignup}>{isEn ? 'Choose themes →' : 'Escolher temas →'}</button>
         </div>
       </Section>
 

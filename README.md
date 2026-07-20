@@ -42,6 +42,12 @@ npm run dev:vite
 
 O Vite encaminha `/v1/*` para `http://localhost:3001`. Diretório, submissões, ratings, imagens, previews, billing e entitlements usam exclusivamente contratos `/v1` no frontend.
 
+## AQUA Weekly
+
+A homepage inclui um convite persistente e uma janela de subscrição semanal, bilingue e acessível. A janela só aparece automaticamente depois de existir uma escolha de privacidade, fica suprimida durante 30 dias quando é fechada e deixa de aparecer após uma subscrição concluída.
+
+O endpoint público `POST /v1/newsletter-subscriptions` valida email, temas e idioma, aplica rate limiting e encaminha a subscrição para `POST /v1/marketing/newsletter-subscriptions` na AQUA OS Data Platform. A automação semanal e o envio das edições pertencem ao serviço de marketing da plataforma; o frontend nunca recebe as respetivas credenciais.
+
 ## Deploy (Vercel)
 
 - Para subscrição Pro: `AQUA_OS_COMMERCE_URL` e `AQUA_OS_PRODUCT_KEY`
