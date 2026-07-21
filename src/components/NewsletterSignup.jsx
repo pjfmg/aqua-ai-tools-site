@@ -155,7 +155,7 @@ export default function NewsletterSignup() {
                 <span>{isEn ? 'I agree to receive the weekly newsletter. I can unsubscribe at any time.' : 'Aceito receber a newsletter semanal. Posso cancelar a qualquer momento.'}</span>
               </label>
               {message ? <p className="newsletterForm__error" role="alert">{message}</p> : null}
-              <small className="newsletterForm__finePrint">{isEn ? 'One useful email per week. No spam.' : 'Um email útil por semana. Sem spam.'}</small>
+              <small className="newsletterForm__finePrint">{isEn ? 'Every Monday at 09:00 Azores time. No spam.' : 'Todas as segundas-feiras às 09:00, hora dos Açores. Sem spam.'}</small>
             </form>
           )}
         </div>
