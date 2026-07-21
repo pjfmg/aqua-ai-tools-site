@@ -4,7 +4,7 @@ import vercelBillingPortalHandler from '../api/billing/portal.mjs';
 import vercelBillingCheckoutHandler from '../api/billing/checkout.mjs';
 import { onRequest as cloudflareBillingPortalHandler } from '../functions/billing/portal.js';
 import { authenticateRequest } from '../authSession.mjs';
-import { apiEnvelope, enforceApiGovernance } from '../apiGovernance.mjs';
+import { API_POLICIES, apiEnvelope, enforceApiGovernance } from '../apiGovernance.mjs';
 import vercelV1Gateway from '../api/v1/gateway.mjs';
 
 function assertContains(value, expected, label) {
@@ -146,6 +146,7 @@ assertContains(ratingsClientSource, '/v1/tool-ratings', 'ratings client versione
 assert.ok(!ratingsClientSource.includes('userEmail:'), 'ratings client must not declare user identity');
 const newsletterClientSource = fs.readFileSync('src/lib/newsletter.js', 'utf8');
 assertContains(newsletterClientSource, '/v1/newsletter-subscriptions', 'newsletter client versioned API');
+assert.ok(API_POLICIES['newsletter-subscriptions'], 'newsletter operation must be governed');
 assertContains(fs.readFileSync('newsletterHandler.mjs', 'utf8'), '/v1/marketing/newsletter-subscriptions', 'newsletter Data Platform integration');
 assertContains(fs.readFileSync('functions/newsletter.js', 'utf8'), '/v1/marketing/newsletter-subscriptions', 'Cloudflare newsletter Data Platform integration');
 assertContains(fs.readFileSync('proxy/server.mjs', 'utf8'), '/v1/newsletter-subscriptions', 'local newsletter route');

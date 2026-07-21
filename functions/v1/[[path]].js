@@ -9,6 +9,7 @@ import { onRequest as status } from '../billing/session-status.js';
 import { onRequest as entitlements } from '../billing/subscription.js';
 import { onRequest as portal } from '../billing/portal.js';
 import { onRequest as health } from '../health.js';
+import { onRequest as newsletter } from '../newsletter.js';
 import { authenticateRequest } from '../../authSession.mjs';
 import { apiEnvelope, auditApiEvent, enforceApiGovernance } from '../../apiGovernance.mjs';
 import { withCors } from '../_utils.js';
@@ -23,6 +24,7 @@ const ROUTES = {
   'billing/checkout-sessions/status': { operation: 'billing-status', handler: status },
   'entitlements/me': { operation: 'entitlements', handler: entitlements },
   'billing/portal-sessions': { operation: 'billing-portal', handler: portal, auth: true },
+  'newsletter-subscriptions': { operation: 'newsletter-subscriptions', handler: newsletter },
 };
 
 function json(statusCode, body, headers = {}) {
