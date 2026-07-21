@@ -13,6 +13,7 @@ import sessionStatusHandler from '../api/billing/session-status.mjs';
 import portalHandler from '../api/billing/portal.mjs';
 import subscriptionHandler from '../api/billing/subscription.mjs';
 import healthHandler from '../api/health.mjs';
+import newsletterHandler from '../newsletterHandler.mjs';
 
 function loadDotEnvIfPresent() {
   try {
@@ -33,6 +34,7 @@ const versioned = {
   '/v1/tools': 'tools', '/v1/tool-submissions': 'tool-submissions', '/v1/site-previews': 'site-previews', '/v1/images': 'images',
   '/v1/billing/checkout-sessions': 'billing-checkout', '/v1/billing/checkout-sessions/status': 'billing-status',
   '/v1/entitlements/me': 'entitlements', '/v1/billing/portal-sessions': 'billing-portal',
+  '/v1/newsletter-subscriptions': 'newsletter-subscriptions',
 };
 const legacy = {
   '/airtable': toolsHandler, '/img': imageHandler, '/submit': submitHandler, '/rate': rateHandler, '/ratings': ratingsHandler,

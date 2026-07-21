@@ -1,4 +1,4 @@
-import { callAquaOsData, dataError } from '../aquaOsDataClient.mjs';
+import { callAquaOsData, dataError } from './aquaOsDataClient.mjs';
 
 const VALID_TOPICS = new Set(['productivity', 'content-design', 'code-automation', 'business-research', 'education']);
 
@@ -33,7 +33,7 @@ function normalize(payload) {
   };
 }
 
-export default async function handler(req, res) {
+export default async function newsletterHandler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method Not Allowed' });
   let payload;
   try { payload = normalize(await readJson(req)); }

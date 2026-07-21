@@ -144,6 +144,11 @@ assert.ok(!billingClientSource.includes('JSON.stringify({ email'), 'billing clie
 const ratingsClientSource = fs.readFileSync('src/lib/ratings.js', 'utf8');
 assertContains(ratingsClientSource, '/v1/tool-ratings', 'ratings client versioned API');
 assert.ok(!ratingsClientSource.includes('userEmail:'), 'ratings client must not declare user identity');
+const newsletterClientSource = fs.readFileSync('src/lib/newsletter.js', 'utf8');
+assertContains(newsletterClientSource, '/v1/newsletter-subscriptions', 'newsletter client versioned API');
+assertContains(fs.readFileSync('newsletterHandler.mjs', 'utf8'), '/v1/marketing/newsletter-subscriptions', 'newsletter Data Platform integration');
+assertContains(fs.readFileSync('functions/newsletter.js', 'utf8'), '/v1/marketing/newsletter-subscriptions', 'Cloudflare newsletter Data Platform integration');
+assertContains(fs.readFileSync('proxy/server.mjs', 'utf8'), '/v1/newsletter-subscriptions', 'local newsletter route');
 
 const previousCommerceEnv = {
   AQUA_OS_COMMERCE_URL: process.env.AQUA_OS_COMMERCE_URL,

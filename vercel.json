@@ -24,6 +24,7 @@
     { "source": "/v1/billing/checkout-sessions/status", "destination": "/api/v1/gateway?operation=billing-status" },
     { "source": "/v1/entitlements/me", "destination": "/api/v1/gateway?operation=entitlements" },
     { "source": "/v1/billing/portal-sessions", "destination": "/api/v1/gateway?operation=billing-portal" },
+    { "source": "/v1/newsletter-subscriptions", "destination": "/api/v1/gateway?operation=newsletter-subscriptions" },
     { "source": "/airtable", "destination": "/api/airtable" },
     { "source": "/img", "destination": "/api/img" },
     { "source": "/submit", "destination": "/api/submit" },

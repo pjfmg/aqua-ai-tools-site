@@ -8,7 +8,7 @@ import checkoutHandler from '../billing/checkout.mjs';
 import sessionStatusHandler from '../billing/session-status.mjs';
 import subscriptionHandler from '../billing/subscription.mjs';
 import portalHandler from '../billing/portal.mjs';
-import newsletterHandler from '../newsletter.mjs';
+import newsletterHandler from '../../newsletterHandler.mjs';
 import { authenticateRequest } from '../../authSession.mjs';
 import { apiEnvelope, auditApiEvent, enforceApiGovernance } from '../../apiGovernance.mjs';
 
