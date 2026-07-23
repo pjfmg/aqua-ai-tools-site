@@ -16,12 +16,12 @@ function AppFrame() {
         {isEn ? 'Skip to content' : 'Saltar para o conteúdo'}
       </a>
       <TopNav />
+      <ConsentManager />
       <main id="main-content" className="appMain" tabIndex={-1}>
         <Outlet />
       </main>
       <AdStrip />
       <Footer />
-      <ConsentManager />
       <NewsletterSignup />
     </div>
   );
