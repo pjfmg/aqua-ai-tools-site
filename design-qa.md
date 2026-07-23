@@ -26,6 +26,50 @@ final result: passed
 
 ---
 
+# Design QA — Campo Número dos filtros
+
+- Source visual truth: `/Users/paulogoncalves/Desktop/Captura de ecrã 2026-07-23, às 13.54.47.png`.
+- Browser-rendered implementation: `/Users/paulogoncalves/Desktop/04-AQUA Apps/AQUA AI Tools Site/audit/number-field-2026-07-23/implementation-full.png`.
+- Focused implementation: `/Users/paulogoncalves/Desktop/04-AQUA Apps/AQUA AI Tools Site/audit/number-field-2026-07-23/implementation-filters.png`.
+- Focused comparison: `/Users/paulogoncalves/Desktop/04-AQUA Apps/AQUA AI Tools Site/audit/number-field-2026-07-23/comparison-reference-vs-fixed.png`.
+- Viewport: 1280 × 720 CSS px at device scale factor 1.
+- Source pixels: 2522 × 350; normalized to 1120 × 155 for the focused comparison.
+- Implementation pixels: 1280 × 1001 full page and 1120 × 180 focused crop.
+- State: Portuguese, signed out, secondary filters visible, catalogue temporarily unavailable locally.
+
+## Findings and comparison history
+
+### Initial comparison
+
+- [P2] The `Número` input was taller than the adjacent native selects because it inherited a 24 px body line height in addition to vertical padding, while the selects used the browser's native line-height calculation.
+
+### Fixes made
+
+- Applied one explicit 48 px control height, horizontal-only padding and a common normal line height to all catalogue filter inputs and selects.
+- Preserved the existing responsive grid, labels, values, borders, radii, focus treatment and button layout.
+
+### Post-fix visual evidence
+
+- The focused stacked comparison shows `Categoria`, `Preço`, `Número`, `Registos`, `Visitado` and `Favorito` sharing the same height and baseline.
+- Browser measurements confirm all six controls render at exactly 48 px high.
+- The `Número` field accepted the value `12` and remained aligned; no browser console errors were recorded.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing interface font, weights and label hierarchy are unchanged; control text now shares a consistent vertical treatment.
+- Spacing and layout rhythm: all six controls align at 48 px without changing grid widths or panel spacing.
+- Colors and visual tokens: existing gradient, surfaces, borders, focus ring and text colors are unchanged.
+- Image quality and asset fidelity: no image assets are involved in this focused control correction.
+- Copy and content: Portuguese and English labels and placeholders are unchanged.
+
+## Follow-up polish
+
+- No actionable P0, P1 or P2 differences remain.
+
+final result: passed
+
+---
+
 # Design QA — Continuous top-navigation borders
 
 - Source visual truth: `/Users/paulogoncalves/Desktop/Captura de ecrã 2026-07-23, às 13.34.15.png`.
