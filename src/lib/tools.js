@@ -1,12 +1,12 @@
 import { fetchWithTimeout } from './http.js';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 40;
 const FIRST_PAGE_SIZE = 20;
 const FETCH_TIMEOUT_MS = 20000;
 
 export function normalizeRecordStatus(value) {
-  const mode = String(value || 'eligible').trim().toLowerCase();
-  return ['published', 'eligible', 'all'].includes(mode) ? mode : 'eligible';
+  const mode = String(value || 'published').trim().toLowerCase();
+  return ['published', 'eligible', 'all'].includes(mode) ? mode : 'published';
 }
 
 export function normalizeToolFilters(filters = {}) {
@@ -90,7 +90,7 @@ async function readUpstreamError(res) {
   }
 }
 
-async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'eligible', filters = {} } = {}) {
+async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'published', filters = {} } = {}) {
   const url = new URL('/v1/tools', window.location.origin);
   const normalizedFilters = normalizeToolFilters(filters);
   url.searchParams.set('pageSize', String(pageSize));
@@ -100,11 +100,7 @@ async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatu
   if (normalizedFilters.area) url.searchParams.set('area', normalizedFilters.area);
   if (normalizedFilters.price) url.searchParams.set('price', normalizedFilters.price);
   if (offset) url.searchParams.set('offset', offset);
-  // Extra cache-buster for the first page to avoid a stale pagination cursor.
-  if (!offset) url.searchParams.set('_ts', String(Date.now()));
-
-  // iOS Safari/WebViews can be aggressive with caching; avoid replaying an old cursor.
-  const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, FETCH_TIMEOUT_MS);
+  const res = await fetchWithTimeout(url.toString(), { cache: 'default' }, FETCH_TIMEOUT_MS);
   if (!res.ok) {
     const details = await readUpstreamError(res);
     throw new Error(`API /v1/tools falhou (${res.status})${details ? `: ${details}` : ''}`);
@@ -553,7 +549,50 @@ export function pickDailyFeaturedTools(tools, count = 20, dateKey = getLocalDate
   return shuffled.slice(0, Math.max(0, count));
 }
 
-export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordStatus = 'eligible', filters = {} } = {}) {
+export async function loadToolsPage({
+  offset = null,
+  pageSize = PAGE_SIZE,
+  recordStatus = 'published',
+  filters = {},
+} = {}) {
+  try {
+    const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
+    const normalizedFilters = normalizeToolFilters(filters);
+    const page = await fetchToolsPage({
+      offset,
+      pageSize: Math.max(1, Math.min(100, Number(pageSize) || PAGE_SIZE)),
+      recordStatus: normalizedRecordStatus,
+      filters: normalizedFilters,
+    });
+    const sourceRecords =
+      normalizedRecordStatus === 'all'
+        ? page.records
+        : page.records.filter((record) => !isDuplicateRecord(record?.fields) && !isInoperationalRecord(record?.fields));
+    const eligibleTools = sourceRecords.map(extractToolFromRecord);
+    const publishedTools = sourceRecords
+      .filter((record) => isPublishedRecord(record?.fields))
+      .map(extractToolFromRecord);
+    const tools =
+      normalizedRecordStatus === 'published' && publishedTools.length > 0
+        ? publishedTools
+        : eligibleTools;
+
+    return {
+      tools,
+      nextOffset: page.offset || null,
+      warning:
+        normalizedRecordStatus === 'published' && eligibleTools.length > 0 && publishedTools.length === 0
+          ? 'Aviso: esta página não continha registos marcados como publicados.'
+          : '',
+      source: 'data-platform',
+    };
+  } catch (err) {
+    if (isAuthFailureMessage(err?.message)) throw new Error('AUTH_REQUIRED');
+    throw err;
+  }
+}
+
+export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordStatus = 'published', filters = {} } = {}) {
   try {
     const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
     const normalizedFilters = normalizeToolFilters(filters);

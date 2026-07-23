@@ -3,7 +3,15 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { getCategoryIconDataUrl } from '../lib/categoryIcons.js';
-import { getLocalizedToolAreas, getLocalDateKey, getToolName, getToolNumber, getToolSite, pickDailyFeaturedTools } from '../lib/tools.js';
+import {
+  getLocalizedToolAreas,
+  getLocalDateKey,
+  getToolName,
+  getToolNumber,
+  getToolSite,
+  pickDailyFeaturedTools,
+  pickLogoUrls,
+} from '../lib/tools.js';
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
 import { openNewsletterSignup } from '../components/NewsletterSignup.jsx';
@@ -11,11 +19,12 @@ import { openNewsletterSignup } from '../components/NewsletterSignup.jsx';
 export default function HomePage() {
   const { path, isEn } = useLanguage();
   const lang = isEn ? 'en' : 'pt';
-  const { tools, loading, loadingMore, error, warning } = useTools({ initialPageSize: 12 });
+  const { tools, loading, error, warning, refresh } = useTools({ initialPageSize: 12 });
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
 
   const featuredTools = useMemo(() => pickDailyFeaturedTools(tools, 6, dateKey), [tools, dateKey]);
+  const isInitialLoading = loading && tools.length === 0;
 
   const categoryCounts = useMemo(() => {
     const counts = new Map();
@@ -32,13 +41,19 @@ export default function HomePage() {
   return (
     <>
       <Hero
-        title="AQUA AI Tools"
+        showMark={false}
         subtitle={
           isEn
-            ? 'Find the right AI tool for every need: search, filters and personal lists.'
-            : 'Encontra a ferramenta de IA certa para cada necessidade — pesquisa, filtros e listas.'
+            ? 'Find the right AI tool for every need.'
+            : 'Encontra a ferramenta de IA certa para cada necessidade.'
         }
-        badge={isEn ? `${tools.length} tools available` : `${tools.length} ferramentas disponíveis`}
+        badge={
+          isInitialLoading
+            ? isEn ? 'Loading tools…' : 'A carregar ferramentas…'
+            : error
+              ? isEn ? 'Temporarily unavailable' : 'Temporariamente indisponível'
+              : isEn ? `${tools.length} tools to explore` : `${tools.length} ferramentas para explorar`
+        }
         right={
           <div className="hero__search">
             <Link className="btn btn--primary" to={path('/ferramentas')}>
@@ -58,19 +73,79 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="heroQuick__rail">
-            {featuredTools.length
-              ? featuredTools.map((tool, idx) => {
+            {isInitialLoading ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <article className="heroQuickCard heroQuickCard--skeleton" key={`hero-skeleton-${idx}`} aria-hidden="true">
+                  <div className="heroQuickCard__meta">
+                    <span className="heroQuickCard__badge heroQuickCard__badge--skeleton" />
+                    <span className="heroQuickCard__number heroQuickCard__number--skeleton" />
+                  </div>
+                  <div className="heroQuickCard__line heroQuickCard__line--title" />
+                  <div className="heroQuickCard__actions">
+                    <span className="btn btn--ghost btn--sm btn--skeleton" />
+                    <span className="btn btn--primary btn--sm btn--skeleton" />
+                  </div>
+                </article>
+              ))
+            ) : featuredTools.length ? (
+              featuredTools.map((tool, idx) => {
                   const site = getToolSite(tool);
                   const area = getLocalizedToolAreas(tool, lang)[0] || (isEn ? 'Uncategorized' : 'Sem categoria');
                   const nome = getToolName(tool) || (isEn ? 'Tool' : 'Ferramenta');
                   const numero = getToolNumber(tool) || String(idx + 1);
+                  const logoUrls = pickLogoUrls(tool);
                   return (
                     <article className="heroQuickCard" key={`${tool.id || numero || idx}`}>
                       <div className="heroQuickCard__meta">
                         <span className="heroQuickCard__badge">{area}</span>
                         <span className="heroQuickCard__number">#{numero}</span>
                       </div>
-                      <h2 className="heroQuickCard__title">{nome}</h2>
+                      <div className="heroQuickCard__identity">
+                        <span className="heroQuickCard__logoWrap">
+                          <img
+                            className="heroQuickCard__logo"
+                            src={logoUrls.primary}
+                            data-fallback={logoUrls.secondary}
+                            data-fallbacks={
+                              Array.isArray(logoUrls.fallbacks) && logoUrls.fallbacks.length
+                                ? JSON.stringify(logoUrls.fallbacks)
+                                : ''
+                            }
+                            alt={isEn ? `Logo for ${nome}` : `Logótipo de ${nome}`}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            onError={(event) => {
+                              const image = event.currentTarget;
+                              const rawFallbacks = image.dataset.fallbacks;
+
+                              if (rawFallbacks) {
+                                try {
+                                  const fallbacks = JSON.parse(rawFallbacks);
+                                  const next = Array.isArray(fallbacks) ? fallbacks.shift() : '';
+                                  if (next) {
+                                    image.dataset.fallbacks = JSON.stringify(fallbacks);
+                                    image.src = next;
+                                    return;
+                                  }
+                                } catch {
+                                  image.dataset.fallbacks = '';
+                                }
+                              }
+
+                              const fallback = image.dataset.fallback;
+                              if (fallback) {
+                                image.dataset.fallback = '';
+                                image.src = fallback;
+                                return;
+                              }
+
+                              image.onerror = null;
+                              image.src = '/assets/img/placeholder-ai-tools.png';
+                            }}
+                          />
+                        </span>
+                        <h2 className="heroQuickCard__title">{nome}</h2>
+                      </div>
                       <div className="heroQuickCard__actions">
                         <Link className="btn btn--ghost btn--sm" to={path('/ferramentas')}>
                           {isEn ? 'Details' : 'Detalhes'}
@@ -84,26 +159,31 @@ export default function HomePage() {
                     </article>
                   );
                 })
-              : Array.from({ length: 4 }).map((_, idx) => (
-                  <article className="heroQuickCard heroQuickCard--skeleton" key={`hero-skeleton-${idx}`} aria-hidden="true">
-                    <div className="heroQuickCard__meta">
-                      <span className="heroQuickCard__badge heroQuickCard__badge--skeleton" />
-                      <span className="heroQuickCard__number heroQuickCard__number--skeleton" />
-                    </div>
-                    <div className="heroQuickCard__line heroQuickCard__line--title" />
-                    <div className="heroQuickCard__actions">
-                      <span className="btn btn--ghost btn--sm btn--skeleton" />
-                      <span className="btn btn--primary btn--sm btn--skeleton" />
-                    </div>
-                  </article>
-                ))}
+            ) : (
+              <div className="heroQuick__empty">
+                <strong>{error ? (isEn ? 'Tools are unavailable right now.' : 'As ferramentas estão temporariamente indisponíveis.') : (isEn ? 'No tools available yet.' : 'Ainda não existem ferramentas disponíveis.')}</strong>
+                {error ? (
+                  <button className="btn btn--ghost btn--sm" type="button" onClick={refresh}>{isEn ? 'Try again' : 'Tentar novamente'}</button>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </Hero>
 
-      {warning ? <p className="note">{warning}</p> : null}
-      {loadingMore && !loading ? <p className="note">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      <div className="catalogueStatus" aria-live="polite" aria-atomic="true">
+        {!isInitialLoading && error ? (
+          <div className="statePanel statePanel--error" role="alert">
+            <div>
+              <strong>{isEn ? 'We could not load the catalogue.' : 'Não foi possível carregar o catálogo.'}</strong>
+              <span>{isEn ? 'Try again to continue exploring.' : 'Tenta novamente para continuares a explorar.'}</span>
+            </div>
+            <button className="btn btn--primary btn--sm" type="button" onClick={refresh}>{isEn ? 'Try again' : 'Tentar novamente'}</button>
+          </div>
+        ) : !isInitialLoading && warning ? (
+          <p className="statePanel statePanel--warning">{warning}</p>
+        ) : null}
+      </div>
 
       <Section
         title={isEn ? 'Browse by category' : 'Explorar por categoria'}
@@ -126,11 +206,19 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="categoryCard__name">{name}</div>
-                <div className="categoryCard__meta">{isEn ? `${count}+ tools` : `${count}+ ferramentas`}</div>
+                <div className="categoryCard__meta">
+                  {isEn ? `${count} in this selection` : `${count} nesta seleção`}
+                </div>
               </Link>
             ))
           ) : (
-            <div className="categoryGrid__empty">{isEn ? 'Loading categories…' : 'A carregar categorias…'}</div>
+            <div className="categoryGrid__empty">
+              {isInitialLoading
+                ? (isEn ? 'Loading categories…' : 'A carregar categorias…')
+                : error
+                  ? (isEn ? 'Categories are temporarily unavailable.' : 'As categorias estão temporariamente indisponíveis.')
+                  : (isEn ? 'No categories available yet.' : 'Ainda não existem categorias disponíveis.')}
+            </div>
           )}
         </div>
       </Section>

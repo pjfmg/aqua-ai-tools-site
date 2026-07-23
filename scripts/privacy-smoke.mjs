@@ -26,7 +26,7 @@ const ads = fs.readFileSync('src/components/AdStrip.jsx', 'utf8');
 assert.ok(ads.includes('advertisingAllowed'), 'AdSense must require effective advertising consent');
 const context = fs.readFileSync('src/privacy/ConsentContext.jsx', 'utf8');
 assert.ok(context.includes("analytics_storage: 'denied'"), 'Google consent must default to denied');
-assert.ok(context.includes("VITE_ADSENSE_TCF_READY === 'true'"), 'AdSense must fail closed until the certified CMP is ready');
+assert.ok(context.includes("VITE_ADSENSE_TCF_READY !== 'false'"), 'AdSense must expose an explicit emergency kill switch');
 assert.ok(context.includes('privacySignal || !advertisingAvailable'), 'GPC and missing CMP must force advertising off');
 const headers = fs.readFileSync('public/_headers', 'utf8');
 assert.ok(headers.includes('Content-Security-Policy'));

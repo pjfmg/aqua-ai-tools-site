@@ -21,7 +21,7 @@
 - [ ] Importação Airtable executada e reconciliada.
 - [ ] RLS e retenção verificadas com utilizador anon/authenticated/service_role.
 - [ ] Stripe webhook e Supabase Auth configurados com URLs de produção.
-- [ ] CMP certificada configurada ou publicidade mantida suspensa.
+- [x] CMP Google certificada publicada para `aqua-aitools.com`; publicidade protegida por consentimento e interruptor de suspensão.
 
 ## Operação
 

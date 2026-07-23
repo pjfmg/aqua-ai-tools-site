@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/auth.jsx';
 import { MyRatingsProvider } from './ratings/MyRatingsContext.jsx';
 import { RatingsProvider } from './ratings/RatingsContext.jsx';
 import './styles.css';
+import './brand-system.css';
 import { ConsentProvider } from './privacy/ConsentContext.jsx';
 
 createRoot(document.getElementById('root')).render(

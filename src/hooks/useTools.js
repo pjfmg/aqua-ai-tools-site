@@ -1,34 +1,34 @@
-import { useEffect, useState } from 'react';
-import { loadToolsPhased, normalizeRecordStatus, normalizeToolFilters } from '../lib/tools.js';
+import { useCallback, useEffect, useState } from 'react';
+import { loadToolsPage, normalizeRecordStatus, normalizeToolFilters } from '../lib/tools.js';
 import { applyUserLists } from '../lib/userLists.js';
 import { useAuth } from '../auth/auth.jsx';
 
-const cacheByStatus = new Map();
-const partialByStatus = new Map();
-const promiseByStatus = new Map();
+const cacheByQuery = new Map();
+const initialPromiseByQuery = new Map();
+const pagePromiseByQuery = new Map();
 const subscribers = new Set();
 
 const TOOLS_STORAGE_KEY = 'aqua_tools_cache_v1';
-const TOOLS_STORAGE_VERSION = 2;
+const TOOLS_STORAGE_VERSION = 3;
 const REVALIDATE_AFTER_MS = 10 * 60 * 1000; // 10 min
 
 function sanitizeWarning(value) {
   return String(value || '');
 }
 
-function getCacheKey(recordStatus, filters = {}) {
+function getCacheKey(recordStatus, filters = {}, pageSize = 40) {
   const normalized = normalizeToolFilters(filters);
-  return `${recordStatus}:${JSON.stringify(normalized)}`;
-}
-
-function publish(cacheKey, next) {
-  const partial = { cacheKey, ts: Date.now(), ...next };
-  partialByStatus.set(cacheKey, partial);
-  for (const fn of subscribers) fn(partial);
+  return `${recordStatus}:${Math.max(1, Math.min(100, Number(pageSize) || 40))}:${JSON.stringify(normalized)}`;
 }
 
 function getStorageKey(cacheKey) {
   return `${TOOLS_STORAGE_KEY}:${cacheKey}`;
+}
+
+function publish(cacheKey, snapshot) {
+  const next = { cacheKey, ...snapshot };
+  cacheByQuery.set(cacheKey, next);
+  for (const fn of subscribers) fn(next);
 }
 
 function readStoredTools(cacheKey) {
@@ -38,11 +38,12 @@ function readStoredTools(cacheKey) {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.v !== TOOLS_STORAGE_VERSION) return null;
-    if (!Array.isArray(parsed.tools)) return null;
-    if (typeof parsed.ts !== 'number') return null;
+    if (!Array.isArray(parsed.tools) || typeof parsed.ts !== 'number') return null;
     return {
-      tools: parsed.tools,
-      warning: sanitizeWarning(parsed.warning || ''),
+      cacheKey,
+      rawTools: parsed.tools,
+      nextOffset: typeof parsed.nextOffset === 'string' && parsed.nextOffset ? parsed.nextOffset : null,
+      warning: sanitizeWarning(parsed.warning),
       source: String(parsed.source || ''),
       ts: parsed.ts,
     };
@@ -51,32 +52,51 @@ function readStoredTools(cacheKey) {
   }
 }
 
-function writeStoredTools(cacheKey, tools, warning, source) {
+function writeStoredTools(cacheKey, snapshot) {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(
       getStorageKey(cacheKey),
       JSON.stringify({
         v: TOOLS_STORAGE_VERSION,
-        ts: Date.now(),
-        tools,
-        warning: warning || '',
-        source: source || '',
+        ts: snapshot.ts,
+        tools: snapshot.rawTools,
+        nextOffset: snapshot.nextOffset,
+        warning: snapshot.warning || '',
+        source: snapshot.source || '',
       }),
     );
   } catch {
-    // ignore quota/blocked storage
+    // Ignore unavailable storage and quota errors.
   }
 }
 
-export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filters = {} } = {}) {
+function toolIdentity(tool, index) {
+  return String(tool?.ID_Unico || tool?.id || tool?.Número || tool?.Nome || index);
+}
+
+function mergeTools(current, incoming) {
+  const merged = [...current];
+  const known = new Set(current.map(toolIdentity));
+  for (const tool of incoming) {
+    const identity = toolIdentity(tool, merged.length);
+    if (known.has(identity)) continue;
+    known.add(identity);
+    merged.push(tool);
+  }
+  return merged;
+}
+
+export function useTools({ initialPageSize = 40, recordStatus = 'published', filters = {} } = {}) {
   const { user } = useAuth();
   const userId = user?.id || '';
   const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
   const normalizedFilters = normalizeToolFilters(filters);
-  const cacheKey = getCacheKey(normalizedRecordStatus, normalizedFilters);
+  const pageSize = Math.max(1, Math.min(100, Number(initialPageSize) || 40));
+  const cacheKey = getCacheKey(normalizedRecordStatus, normalizedFilters, pageSize);
   const [tools, setTools] = useState([]);
   const [rawTools, setRawTools] = useState([]);
+  const [nextOffset, setNextOffset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
@@ -85,28 +105,41 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
   const [source, setSource] = useState('');
   const [refreshNonce, setRefreshNonce] = useState(0);
 
-  function refresh() {
-    cacheByStatus.delete(cacheKey);
-    partialByStatus.delete(cacheKey);
-    promiseByStatus.delete(cacheKey);
+  const applySnapshot = useCallback((snapshot) => {
+    const list = snapshot?.rawTools || [];
+    setRawTools(list);
+    setTools(applyUserLists(list, userId));
+    setNextOffset(snapshot?.nextOffset || null);
+    setWarning(sanitizeWarning(snapshot?.warning));
+    setSource(String(snapshot?.source || ''));
+    setUpdatedAt(typeof snapshot?.ts === 'number' ? snapshot.ts : 0);
+    setError('');
+  }, [userId]);
+
+  const refresh = useCallback(() => {
+    cacheByQuery.delete(cacheKey);
+    initialPromiseByQuery.delete(cacheKey);
+    for (const key of pagePromiseByQuery.keys()) {
+      if (key.startsWith(`${cacheKey}:`)) pagePromiseByQuery.delete(key);
+    }
     try {
       window.localStorage.removeItem(getStorageKey(cacheKey));
     } catch {
-      // ignore
+      // Ignore unavailable storage.
     }
     setRefreshNonce((value) => value + 1);
-  }
+  }, [cacheKey]);
 
   useEffect(() => {
     function refreshFromLists() {
-      const cache = cacheByStatus.get(cacheKey);
-      if (cache?.rawTools) setTools(applyUserLists(cache.rawTools, userId));
-      else setTools((prev) => applyUserLists(prev, userId));
+      setTools(applyUserLists(rawTools, userId));
     }
 
-    function onStorage(e) {
-      if (!e?.key) return;
-      if (e.key === `aqua_tools_visitadas_v1:${userId}` || e.key === `aqua_tools_favoritas_v1:${userId}`) refreshFromLists();
+    function onStorage(event) {
+      if (!event?.key) return;
+      if (event.key === `aqua_tools_visitadas_v1:${userId}` || event.key === `aqua_tools_favoritas_v1:${userId}`) {
+        refreshFromLists();
+      }
     }
 
     window.addEventListener('storage', onStorage);
@@ -115,125 +148,70 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('aqua_lists_changed', refreshFromLists);
     };
-  }, [cacheKey, userId]);
+  }, [rawTools, userId]);
 
   useEffect(() => {
     let cancelled = false;
 
-    function applySnapshot(snapshot, { keepLoading = false } = {}) {
-      const list = snapshot?.rawTools || snapshot?.tools || [];
-      setRawTools(list);
-      setTools(applyUserLists(list, userId));
-      setWarning(sanitizeWarning(snapshot?.warning || ''));
-      setSource(String(snapshot?.source || ''));
-      setUpdatedAt(typeof snapshot?.ts === 'number' ? snapshot.ts : 0);
-      setError('');
-      setLoadingMore(Boolean(snapshot?.loadingMore));
-      if (!keepLoading) setLoading(false);
-    }
-
-    function onUpdate(next) {
-      if (cancelled) return;
-      if (next?.cacheKey !== cacheKey) return;
-      applySnapshot(next);
+    function onUpdate(snapshot) {
+      if (cancelled || snapshot?.cacheKey !== cacheKey) return;
+      applySnapshot(snapshot);
     }
 
     subscribers.add(onUpdate);
 
     async function run() {
-      try {
-        const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
-        const now = Date.now();
+      const now = Date.now();
+      const memorySnapshot = cacheByQuery.get(cacheKey);
+      const storedSnapshot = readStoredTools(cacheKey);
+      const availableSnapshot = memorySnapshot || storedSnapshot;
 
-        const cache = cacheByStatus.get(cacheKey);
-        const partial = partialByStatus.get(cacheKey);
-        const cachePromise = promiseByStatus.get(cacheKey);
-        const stored = readStoredTools(cacheKey);
-        const storedAge = stored ? now - stored.ts : Infinity;
-
-        if (cache) {
-          applySnapshot(cache);
-          const cacheAge = typeof cache?.ts === 'number' ? now - cache.ts : Infinity;
-          const shouldFetchCached = !cachePromise && cacheAge > REVALIDATE_AFTER_MS;
-          if (!shouldFetchCached) return;
-        }
-
-        if (partial?.rawTools?.length) {
-          applySnapshot(partial);
-        } else if (stored?.tools?.length) {
-          applySnapshot({ rawTools: stored.tools, warning: stored.warning, source: stored.source, ts: stored.ts });
-        } else {
-          setLoading(true);
-          setWarning('');
-        }
-
-        const shouldFetch =
-          !cachePromise &&
-          (!stored?.tools?.length || storedAge > REVALIDATE_AFTER_MS);
-        if (!shouldFetch) {
-          if (import.meta?.env?.DEV && t0) {
-            const dt = performance.now() - t0;
-            // eslint-disable-next-line no-console
-            console.debug(`[useTools] hydrate in ${Math.round(dt)}ms`);
-          }
-          return;
-        }
-
+      if (availableSnapshot) {
+        applySnapshot(availableSnapshot);
+        setLoading(false);
+      } else {
+        setRawTools([]);
+        setTools([]);
+        setNextOffset(null);
+        setSource('');
+        setUpdatedAt(0);
+        setLoading(true);
         setError('');
-        setLoadingMore(true);
+        setWarning('');
+      }
 
-        const showPhases =
-          !cache?.rawTools?.length && !stored?.tools?.length && !(partial?.rawTools?.length);
-        let merged = [];
-        let firstChunk = true;
+      const age = availableSnapshot ? now - availableSnapshot.ts : Infinity;
+      if (availableSnapshot && age <= REVALIDATE_AFTER_MS) return;
 
-        const nextPromise = loadToolsPhased({
-          initialPageSize,
+      let initialPromise = initialPromiseByQuery.get(cacheKey);
+      if (!initialPromise) {
+        initialPromise = loadToolsPage({
+          pageSize,
           recordStatus: normalizedRecordStatus,
           filters: normalizedFilters,
-          onChunk: showPhases
-            ? (chunk, meta) => {
-                merged = merged.concat(chunk || []);
-                publish(cacheKey, {
-                  rawTools: merged,
-                  warning: '',
-                  source: 'data-platform',
-                  loadingMore: !meta?.done,
-                });
-
-                if (firstChunk) {
-                  firstChunk = false;
-                  if (!cancelled) setLoading(false);
-                  if (import.meta?.env?.DEV && t0) {
-                    const dt = performance.now() - t0;
-                    // eslint-disable-next-line no-console
-                    console.debug(`[useTools] first chunk in ${Math.round(dt)}ms`);
-                  }
-                }
-              }
-            : undefined,
         });
-        promiseByStatus.set(cacheKey, nextPromise);
+        initialPromiseByQuery.set(cacheKey, initialPromise);
+      }
 
-        const { tools: loaded, warning: w, source } = await nextPromise;
-
-        if (!cancelled) {
-          const nextCache = { rawTools: loaded, warning: w || '', source: source || '', ts: Date.now() };
-          cacheByStatus.set(cacheKey, nextCache);
-          publish(cacheKey, { rawTools: loaded, warning: w || '', source: source || '', loadingMore: false });
-          writeStoredTools(cacheKey, loaded, w || '', source || '');
-          setLoadingMore(false);
-          if (import.meta?.env?.DEV && t0) {
-            const dt = performance.now() - t0;
-            // eslint-disable-next-line no-console
-            console.debug(`[useTools] full load in ${Math.round(dt)}ms (${loaded.length} tools)`);
-          }
+      try {
+        const page = await initialPromise;
+        const snapshot = {
+          rawTools: page.tools,
+          nextOffset: page.nextOffset,
+          warning: page.warning || '',
+          source: page.source || '',
+          ts: Date.now(),
+        };
+        publish(cacheKey, snapshot);
+        writeStoredTools(cacheKey, snapshot);
+      } catch (loadError) {
+        if (import.meta?.env?.DEV) {
+          // eslint-disable-next-line no-console
+          console.error('[useTools] catalogue page load failed', loadError);
         }
-      } catch (e) {
-        promiseByStatus.delete(cacheKey);
-        if (!cancelled) setError(`Erro ao carregar dados: ${e.message}`);
+        if (!cancelled && !availableSnapshot) setError('LOAD_FAILED');
       } finally {
-        promiseByStatus.delete(cacheKey);
+        if (initialPromiseByQuery.get(cacheKey) === initialPromise) initialPromiseByQuery.delete(cacheKey);
         if (!cancelled) setLoading(false);
       }
     }
@@ -243,7 +221,83 @@ export function useTools({ initialPageSize = 20, recordStatus = 'eligible', filt
       cancelled = true;
       subscribers.delete(onUpdate);
     };
-  }, [initialPageSize, cacheKey, refreshNonce, userId]);
+  }, [
+    applySnapshot,
+    cacheKey,
+    normalizedFilters.area,
+    normalizedFilters.number,
+    normalizedFilters.price,
+    normalizedFilters.q,
+    normalizedRecordStatus,
+    pageSize,
+    refreshNonce,
+  ]);
 
-  return { tools, rawTools, loading, loadingMore, error, warning, source, updatedAt, refresh, recordStatus: normalizedRecordStatus };
+  const loadMore = useCallback(async () => {
+    const snapshot = cacheByQuery.get(cacheKey) || readStoredTools(cacheKey);
+    const offset = snapshot?.nextOffset || nextOffset;
+    if (!offset || loadingMore) return;
+
+    const pagePromiseKey = `${cacheKey}:${offset}`;
+    let pagePromise = pagePromiseByQuery.get(pagePromiseKey);
+    if (!pagePromise) {
+      pagePromise = loadToolsPage({
+        offset,
+        pageSize,
+        recordStatus: normalizedRecordStatus,
+        filters: normalizedFilters,
+      });
+      pagePromiseByQuery.set(pagePromiseKey, pagePromise);
+    }
+
+    setLoadingMore(true);
+    setError('');
+    try {
+      const page = await pagePromise;
+      const latest = cacheByQuery.get(cacheKey) || snapshot || { rawTools: [] };
+      const nextSnapshot = {
+        rawTools: mergeTools(latest.rawTools || [], page.tools || []),
+        nextOffset: page.nextOffset,
+        warning: page.warning || latest.warning || '',
+        source: page.source || latest.source || '',
+        ts: Date.now(),
+      };
+      publish(cacheKey, nextSnapshot);
+      writeStoredTools(cacheKey, nextSnapshot);
+    } catch (loadError) {
+      if (import.meta?.env?.DEV) {
+        // eslint-disable-next-line no-console
+        console.error('[useTools] next catalogue page failed', loadError);
+      }
+      setError('LOAD_MORE_FAILED');
+    } finally {
+      pagePromiseByQuery.delete(pagePromiseKey);
+      setLoadingMore(false);
+    }
+  }, [
+    cacheKey,
+    loadingMore,
+    nextOffset,
+    normalizedFilters.area,
+    normalizedFilters.number,
+    normalizedFilters.price,
+    normalizedFilters.q,
+    normalizedRecordStatus,
+    pageSize,
+  ]);
+
+  return {
+    tools,
+    rawTools,
+    loading,
+    loadingMore,
+    error,
+    warning,
+    source,
+    updatedAt,
+    hasMore: Boolean(nextOffset),
+    loadMore,
+    refresh,
+    recordStatus: normalizedRecordStatus,
+  };
 }

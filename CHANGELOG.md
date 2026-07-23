@@ -18,10 +18,13 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 - O catálogo deixou de usar Airtable como persistência runtime.
 - Billing, dados, trust e observabilidade passaram a capacidades governadas pelo AQUA OS.
 - Toolchain atualizado para Vite 6.4.3 e React Router 6.30.4 após dependency audit.
+- Publicidade AdSense ativada após confirmação da CMP Google certificada e publicada para `aqua-aitools.com`.
+- Domínio raiz corrigido para o alojamento atual, com certificado válido e `ads.txt` acessível ao AdSense.
 
 ### Security
 
-- Portal de billing e publicidade permanecem suspensos até cumprirem os respetivos controlos externos.
+- O portal de billing permanece suspenso até cumprir os respetivos controlos externos.
+- A publicidade respeita consentimento, Global Privacy Control e um interruptor explícito de suspensão.
 - Tokens, emails e bodies foram excluídos da telemetria operacional.
 - Dependências auditadas sem vulnerabilidades conhecidas no momento da revisão.
 

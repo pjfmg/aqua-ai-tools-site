@@ -4,9 +4,9 @@ import { createConsent, privacySignalEnabled, readConsent, removeTrackingCookies
 const ConsentContext = createContext(null);
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-SRS6GQE9B7';
 const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID || 'vplenoftul';
-// This switch is only a deployment interlock. It may be enabled after a
-// Google-certified CMP is publishing a valid IAB TCF string in production.
-const ADVERTISING_TCF_READY = import.meta.env.VITE_ADSENSE_TCF_READY === 'true';
+// The Google-certified CMP is published for aqua-aitools.com. Keep this as an
+// emergency kill switch: setting it explicitly to "false" suspends advertising.
+const ADVERTISING_TCF_READY = import.meta.env.VITE_ADSENSE_TCF_READY !== 'false';
 
 function addScript(id, src) {
   if (!src || document.getElementById(id)) return;
