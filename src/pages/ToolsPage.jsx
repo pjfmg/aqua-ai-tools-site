@@ -48,7 +48,8 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   const [filterPreco, setFilterPreco] = useState('');
   const [filterVisitado, setFilterVisitado] = useState('');
   const [filterFavorito, setFilterFavorito] = useState('');
-  const [recordStatus, setRecordStatus] = useState('eligible');
+  const [secondaryFiltersOpen, setSecondaryFiltersOpen] = useState(false);
+  const [recordStatus, setRecordStatus] = useState('published');
   const [sortDir, setSortDir] = useState(mode === 'destaques' ? 'RAND' : 'AZ'); // 'AZ' | 'ZA' | 'RAND'
   const [serverFilters, setServerFilters] = useState({ q: '', number: '', area: '', price: '' });
   const { tools, loading, loadingMore, error, warning, hasMore, loadMore, refresh } = useTools({
@@ -56,6 +57,8 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     recordStatus,
     filters: serverFilters,
   });
+  const isInitialLoading = loading || (loadingMore && tools.length === 0);
+  const secondaryFilterCount = [filterNumero, recordStatus !== 'published', filterVisitado, filterFavorito].filter(Boolean).length;
 
   const areaOptions = useMemo(() => buildAreaOptions(tools, lang), [tools, lang]);
   const priceOptions = useMemo(() => buildPriceOptions(tools), [tools]);
@@ -333,6 +336,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     setFilterVisitado('');
     setFilterFavorito('');
     setSortDir('AZ');
+    setSecondaryFiltersOpen(false);
   }
 
   return (
@@ -357,7 +361,11 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 : 'Explora e filtra a base de dados.'
         }
         badge={
-          mode === 'destaques'
+          isInitialLoading
+            ? isEn ? 'Loading tools…' : 'A carregar ferramentas…'
+            : error && tools.length === 0
+              ? isEn ? 'Temporarily unavailable' : 'Temporariamente indisponível'
+              : mode === 'destaques'
             ? isEn
               ? `${Math.min(10, baseTools.length)} featured`
               : `${Math.min(10, baseTools.length)} destaques`
@@ -371,6 +379,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
               className="input input--hero"
               type="text"
               placeholder={isEn ? 'Search…' : 'Pesquisar…'}
+              aria-label={isEn ? 'Search tools' : 'Pesquisar ferramentas'}
               value={filterNome}
               autoFocus={autoFocusSearch}
               onChange={(e) => setFilterNome(e.target.value)}
@@ -380,36 +389,6 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       >
         <div className="filters">
           <div className="filters__row">
-            <div className="field field--numero">
-              <label className="field__label" htmlFor="filter-numero">
-                {isEn ? 'Number' : 'Número'}
-              </label>
-              <input
-                className="input input--numero"
-                type="text"
-                id="filter-numero"
-                placeholder={isEn ? 'Number' : 'Número'}
-                value={filterNumero}
-                onChange={(e) => setFilterNumero(e.target.value)}
-              />
-            </div>
-
-            <div className="field">
-              <label className="field__label" htmlFor="filter-record-status">
-                {isEn ? 'Records' : 'Registos'}
-              </label>
-              <select
-                id="filter-record-status"
-                className="select"
-                value={recordStatus}
-                onChange={(e) => setRecordStatus(e.target.value)}
-              >
-                <option value="published">{isEn ? 'Published' : 'Publicadas'}</option>
-                <option value="eligible">{isEn ? 'Eligible' : 'Elegíveis'}</option>
-                <option value="all">{isEn ? 'All' : 'Todos'}</option>
-              </select>
-            </div>
-
             <div className="field">
               <label className="field__label" htmlFor="filter-area">
                 {isEn ? 'Category' : 'Categoria'}
@@ -448,36 +427,79 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
               </select>
             </div>
 
-            <div className="field">
-              <label className="field__label" htmlFor="filter-visitado">
-                {isEn ? 'Visited' : 'Visitado'}
-              </label>
-              <select
-                id="filter-visitado"
-                className="select"
-                value={filterVisitado}
-                onChange={(e) => setFilterVisitado(e.target.value)}
-              >
-                <option value="">{isEn ? 'All' : 'Todos'}</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </div>
+            <button
+              className="filters__toggle btn btn--ghost"
+              type="button"
+              aria-expanded={secondaryFiltersOpen}
+              aria-controls="secondary-tool-filters"
+              onClick={() => setSecondaryFiltersOpen((open) => !open)}
+            >
+              <span>{secondaryFiltersOpen ? (isEn ? 'Hide filters' : 'Ocultar filtros') : (isEn ? 'More filters' : 'Mais filtros')}</span>
+              {secondaryFilterCount > 0 ? <span className="filters__toggleCount">{secondaryFilterCount}</span> : null}
+            </button>
 
-            <div className="field">
-              <label className="field__label" htmlFor="filter-favorito">
-                {isEn ? 'Favorite' : 'Favorito'}
-              </label>
-              <select
-                id="filter-favorito"
-                className="select"
-                value={filterFavorito}
-                onChange={(e) => setFilterFavorito(e.target.value)}
-              >
-                <option value="">{isEn ? 'All' : 'Todos'}</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
+            <div id="secondary-tool-filters" className={`filters__secondary${secondaryFiltersOpen ? ' is-open' : ''}`}>
+              <div className="field field--numero">
+                <label className="field__label" htmlFor="filter-numero">
+                  {isEn ? 'Number' : 'Número'}
+                </label>
+                <input
+                  className="input input--numero"
+                  type="text"
+                  id="filter-numero"
+                  placeholder={isEn ? 'Number' : 'Número'}
+                  value={filterNumero}
+                  onChange={(e) => setFilterNumero(e.target.value)}
+                />
+              </div>
+
+              <div className="field">
+                <label className="field__label" htmlFor="filter-record-status">
+                  {isEn ? 'Records' : 'Registos'}
+                </label>
+                <select
+                  id="filter-record-status"
+                  className="select"
+                  value={recordStatus}
+                  onChange={(e) => setRecordStatus(e.target.value)}
+                >
+                  <option value="published">{isEn ? 'Published' : 'Publicadas'}</option>
+                  <option value="eligible">{isEn ? 'Eligible' : 'Elegíveis'}</option>
+                  <option value="all">{isEn ? 'All' : 'Todos'}</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="field__label" htmlFor="filter-visitado">
+                  {isEn ? 'Visited' : 'Visitado'}
+                </label>
+                <select
+                  id="filter-visitado"
+                  className="select"
+                  value={filterVisitado}
+                  onChange={(e) => setFilterVisitado(e.target.value)}
+                >
+                  <option value="">{isEn ? 'All' : 'Todos'}</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="field__label" htmlFor="filter-favorito">
+                  {isEn ? 'Favorite' : 'Favorito'}
+                </label>
+                <select
+                  id="filter-favorito"
+                  className="select"
+                  value={filterFavorito}
+                  onChange={(e) => setFilterFavorito(e.target.value)}
+                >
+                  <option value="">{isEn ? 'All' : 'Todos'}</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </div>
             </div>
 
             <div className="filters__actions">
@@ -507,13 +529,36 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
         </div>
       </Hero>
 
-      {warning ? <p className="note">{warning}</p> : null}
-      {loading ? <p className="no-results">{isEn ? 'Loading…' : 'A carregar…'}</p> : null}
-      {loadingMore && !loading ? <p className="note">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      <div className="catalogueStatus" aria-live="polite" aria-atomic="true">
+        {isInitialLoading ? (
+          <p className="statePanel statePanel--loading">{isEn ? 'Loading the tool catalogue…' : 'A carregar o catálogo de ferramentas…'}</p>
+        ) : error ? (
+          <div className="statePanel statePanel--error" role="alert">
+            <div>
+              <strong>
+                {error === 'LOAD_MORE_FAILED'
+                  ? (isEn ? 'We could not load more tools.' : 'Não foi possível carregar mais ferramentas.')
+                  : (isEn ? 'We could not load the tools.' : 'Não foi possível carregar as ferramentas.')}
+              </strong>
+              <span>{isEn ? 'Check your connection or try again in a moment.' : 'Verifica a ligação ou tenta novamente dentro de instantes.'}</span>
+            </div>
+            <button
+              className="btn btn--primary btn--sm"
+              type="button"
+              onClick={error === 'LOAD_MORE_FAILED' ? loadMore : refresh}
+            >
+              {isEn ? 'Try again' : 'Tentar novamente'}
+            </button>
+          </div>
+        ) : loadingMore ? (
+          <p className="statePanel statePanel--loading">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p>
+        ) : warning ? (
+          <p className="statePanel statePanel--warning">{warning}</p>
+        ) : null}
+      </div>
 
-      <main id="tools-container" className="grid-container grid-container--modern">
-        {!loading && filtered.length === 0 ? (
+      <section id="tools-container" className="grid-container grid-container--modern" aria-label={isEn ? 'Tool results' : 'Resultados de ferramentas'}>
+        {!loading && !loadingMore && !error && filtered.length === 0 ? (
           mode === 'favoritas' ? (
             <p className="no-results">
               {isEn ? 'You do not have favorites yet. Click ♥ on a tool to save it.' : 'Ainda não tens favoritas. Clica no ♥ numa ferramenta para a guardar.'}
@@ -546,7 +591,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
             <ToolCard tool={t} />
           </div>
         ))}
-      </main>
+      </section>
 
       {hoverOpen && hoveredTool && hoverStyle ? (
         <div

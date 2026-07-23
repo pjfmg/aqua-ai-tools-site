@@ -55,6 +55,7 @@ O endpoint público `POST /v1/newsletter-subscriptions` valida email, temas e id
 - Para autenticação: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL` e `SUPABASE_ANON_KEY`
 - Para rate limiting e auditoria duráveis: `SUPABASE_SERVICE_ROLE_KEY` apenas no runtime do servidor
 - (Opcional) `VITE_ADSENSE_CLIENT` e `VITE_ADSENSE_SLOT` para trocar publisher/slot sem editar código
+- (Opcional) `VITE_ADSENSE_TCF_READY=false` para suspender imediatamente a publicidade se a CMP certificada deixar de estar disponível
 - O `vercel.json` encaminha `/v1/*` para o gateway governado. As rotas antigas continuam temporariamente disponíveis para compatibilidade.
 
 ## Deploy (Cloudflare Pages)
@@ -78,6 +79,7 @@ Este projeto pode correr em **Cloudflare Pages** através da Function catch-all 
 - `SUPABASE_SERVICE_ROLE_KEY` no runtime das Functions, nunca no build do frontend
 - (Opcional) `VITE_ADSENSE_CLIENT`
 - (Opcional) `VITE_ADSENSE_SLOT`
+- (Opcional) `VITE_ADSENSE_TCF_READY=false` como interruptor de suspensão da publicidade
 
 ## Dados do diretório
 
