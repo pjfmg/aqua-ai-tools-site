@@ -19,12 +19,12 @@ import { openNewsletterSignup } from '../components/NewsletterSignup.jsx';
 export default function HomePage() {
   const { path, isEn } = useLanguage();
   const lang = isEn ? 'en' : 'pt';
-  const { tools, loading, loadingMore, error, warning, refresh } = useTools({ initialPageSize: 12 });
+  const { tools, loading, error, warning, refresh } = useTools({ initialPageSize: 12 });
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
 
   const featuredTools = useMemo(() => pickDailyFeaturedTools(tools, 6, dateKey), [tools, dateKey]);
-  const isInitialLoading = loading || (loadingMore && tools.length === 0);
+  const isInitialLoading = loading && tools.length === 0;
 
   const categoryCounts = useMemo(() => {
     const counts = new Map();
@@ -52,7 +52,7 @@ export default function HomePage() {
             ? isEn ? 'Loading tools…' : 'A carregar ferramentas…'
             : error
               ? isEn ? 'Temporarily unavailable' : 'Temporariamente indisponível'
-              : isEn ? `${tools.length} tools available` : `${tools.length} ferramentas disponíveis`
+              : isEn ? `${tools.length} tools to explore` : `${tools.length} ferramentas para explorar`
         }
         right={
           <div className="hero__search">
@@ -180,8 +180,6 @@ export default function HomePage() {
             </div>
             <button className="btn btn--primary btn--sm" type="button" onClick={refresh}>{isEn ? 'Try again' : 'Tentar novamente'}</button>
           </div>
-        ) : !isInitialLoading && loadingMore ? (
-          <p className="statePanel statePanel--loading">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p>
         ) : !isInitialLoading && warning ? (
           <p className="statePanel statePanel--warning">{warning}</p>
         ) : null}
@@ -208,7 +206,9 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="categoryCard__name">{name}</div>
-                <div className="categoryCard__meta">{isEn ? `${count}+ tools` : `${count}+ ferramentas`}</div>
+                <div className="categoryCard__meta">
+                  {isEn ? `${count} in this selection` : `${count} nesta seleção`}
+                </div>
               </Link>
             ))
           ) : (

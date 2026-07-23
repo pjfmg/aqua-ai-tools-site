@@ -50,9 +50,9 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   const [filterFavorito, setFilterFavorito] = useState('');
   const [recordStatus, setRecordStatus] = useState('eligible');
   const [sortDir, setSortDir] = useState(mode === 'destaques' ? 'RAND' : 'AZ'); // 'AZ' | 'ZA' | 'RAND'
-  const [visibleCount, setVisibleCount] = useState(50);
   const [serverFilters, setServerFilters] = useState({ q: '', number: '', area: '', price: '' });
-  const { tools, loading, loadingMore, error, warning, refresh } = useTools({
+  const { tools, loading, loadingMore, error, warning, hasMore, loadMore, refresh } = useTools({
+    initialPageSize: 40,
     recordStatus,
     filters: serverFilters,
   });
@@ -110,18 +110,12 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   ]);
 
   useEffect(() => {
-    setVisibleCount(50);
-  }, [mode, filterNome, filterNumero, filterArea, filterPreco, filterVisitado, filterFavorito, recordStatus, sortDir]);
-
-  useEffect(() => {
     const timer = window.setTimeout(() => {
       setServerFilters({
         q: filterNome.trim(),
         number: filterNumero.trim(),
-        // Category and price are optional catalogue attributes.
-        // Keep these secondary filters client-side so missing values do not break the listing.
-        area: '',
-        price: '',
+        area: filterArea,
+        price: filterPreco,
       });
     }, 300);
 
@@ -132,19 +126,6 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     if (mode !== 'destaques') return;
     setSortDir('RAND');
   }, [mode]);
-
-  useEffect(() => {
-    function onScroll() {
-      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
-      if (!nearBottom) return;
-      setVisibleCount((c) => Math.min(c + 50, filtered.length));
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [filtered.length]);
-
-  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
 
   const [hoveredTool, setHoveredTool] = useState(null);
   const [hoverAnchorRect, setHoverAnchorRect] = useState(null);
@@ -532,7 +513,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       {error ? <p className="error">{error}</p> : null}
 
       <main id="tools-container" className="grid-container grid-container--modern">
-        {!loading && visible.length === 0 ? (
+        {!loading && filtered.length === 0 ? (
           mode === 'favoritas' ? (
             <p className="no-results">
               {isEn ? 'You do not have favorites yet. Click ♥ on a tool to save it.' : 'Ainda não tens favoritas. Clica no ♥ numa ferramenta para a guardar.'}
@@ -546,7 +527,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
           )
         ) : null}
 
-        {visible.map((t, idx) => (
+        {filtered.map((t, idx) => (
           <div
             key={`${getToolName(t) || 'tool'}-${getToolNumber(t) || idx}`}
             className="toolHoverWrap"
@@ -659,9 +640,17 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
         </div>
       ) : null}
 
-      {!loading && visibleCount >= filtered.length && filtered.length > 0 ? (
-        <div style={{ textAlign: 'center', color: '#888', padding: '16px 0' }}>
-          {isEn ? 'End of list.' : 'Fim da lista.'}
+      {!loading && (hasMore || filtered.length > 0) ? (
+        <div style={{ textAlign: 'center', color: '#888', padding: '16px 0 28px' }}>
+          {hasMore ? (
+            <button className="btn btn--primary" type="button" onClick={loadMore} disabled={loadingMore}>
+              {loadingMore
+                ? (isEn ? 'Loading…' : 'A carregar…')
+                : (isEn ? 'Load more tools' : 'Carregar mais ferramentas')}
+            </button>
+          ) : (
+            <span>{isEn ? 'End of list.' : 'Fim da lista.'}</span>
+          )}
         </div>
       ) : null}
     </>
