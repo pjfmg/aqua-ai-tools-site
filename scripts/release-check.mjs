@@ -28,7 +28,13 @@ for (const line of envExample.split(/\r?\n/)) {
   if (/(KEY|SECRET|TOKEN|PASSWORD)/i.test(key)) assert.equal(value, '', `${key} must be empty in .env.example`);
 }
 
-const ignored = new Set(['node_modules', 'dist', '.git']);
+const ignored = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  'playwright-report',
+  'test-results',
+]);
 function sourceFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (ignored.has(entry.name)) return [];
