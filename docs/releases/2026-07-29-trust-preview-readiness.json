@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-ai-tools-site-6m206m6ou-pjfmgs-projects.vercel.app",
+  "checkedAt": "2026-07-29T14:42:17.460Z",
+  "ok": false,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000; includeSubDomains; preload",
+      "bundlePath": "/assets/index-BqGKNtaY.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "bundlePath": "/assets/index-BqGKNtaY.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": false,
+      "errors": [
+        "readiness returned HTTP 503",
+        "readiness status is not ready",
+        "configuration is fail",
+        "commerce is fail"
+      ],
+      "observedRelease": "0934f91"
+    },
+    {
+      "name": "cmp-and-tcf-browser-evidence",
+      "ok": false,
+      "errors": [
+        "__tcfapi is not available",
+        "CMP status is not loaded",
+        "TCF proof is not present",
+        "TCF event is not ready"
+      ],
+      "evidence": {
+        "tcfApiType": "undefined",
+        "cmpStatus": "blocked",
+        "tcStringStatus": "absent",
+        "eventStatus": "not-observed",
+        "adScriptsBeforeChoice": 0,
+        "analyticsScriptsBeforeChoice": 0
+      }
+    }
+  ]
+}
