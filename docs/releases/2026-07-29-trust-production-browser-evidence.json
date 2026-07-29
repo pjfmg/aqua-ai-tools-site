@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-aitools.com",
+  "checkedAt": "2026-07-29T16:59:31.546Z",
+  "handling": {
+    "thirdPartyRequestsIntercepted": true,
+    "rawTcfStringStored": false,
+    "personalDataStored": false
+  },
+  "browserEvidence": {
+    "tcfApiType": "undefined",
+    "cmpStatus": "blocked",
+    "tcStringStatus": "absent",
+    "eventStatus": "not-observed",
+    "adScriptsBeforeChoice": 0,
+    "analyticsScriptsBeforeChoice": 0
+  },
+  "scenarios": {
+    "firstVisit": {
+      "bannerVisible": true,
+      "providerRequests": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      },
+      "providerScripts": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      },
+      "cmpStatus": "blocked",
+      "cmpReason": "cmp.bootstrap-disabled",
+      "advertisingDecision": "deny",
+      "advertisingReasons": [
+        "deployment.advertising-disabled",
+        "deployment.emergency-stop",
+        "provider.site-not-ready",
+        "consent.policy-mismatch",
+        "consent.evidence-invalid",
+        "consent.advertising-not-granted",
+        "consent.timestamp-invalid",
+        "cmp.not-configured",
+        "cmp.not-certified",
+        "cmp.not-loaded",
+        "tcf.proof-missing"
+      ]
+    },
+    "rejectOptional": {
+      "categories": {
+        "analytics": false,
+        "advertising": false
+      },
+      "providerScripts": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      }
+    },
+    "acceptAllSafePreview": {
+      "categories": {
+        "analytics": true,
+        "advertising": false
+      },
+      "providerScripts": {
+        "analytics": 2,
+        "advertising": 0,
+        "cmp": 0
+      },
+      "diagnostics": {
+        "cmpStatus": "blocked",
+        "cmpReason": "cmp.bootstrap-disabled",
+        "tcfApiType": "undefined",
+        "advertisingDecision": "deny",
+        "advertisingReasons": [
+          "deployment.advertising-disabled",
+          "deployment.emergency-stop",
+          "provider.site-not-ready",
+          "consent.advertising-not-granted",
+          "cmp.not-configured",
+          "cmp.not-certified",
+          "cmp.not-loaded",
+          "tcf.proof-missing"
+        ]
+      }
+    },
+    "withdrawal": {
+      "revokedAtStatus": "present",
+      "providerScripts": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      }
+    },
+    "expiredChoice": {
+      "renewalPromptVisible": true,
+      "providerScripts": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      }
+    },
+    "policyChange": {
+      "renewalPromptVisible": true,
+      "providerScripts": {
+        "analytics": 0,
+        "advertising": 0,
+        "cmp": 0
+      }
+    },
+    "gpc": {
+      "categories": {
+        "analytics": true,
+        "advertising": false
+      },
+      "providerScripts": {
+        "analytics": 2,
+        "advertising": 0,
+        "cmp": 0
+      },
+      "advertisingDecision": "deny",
+      "privacySignalReasonObserved": true
+    },
+    "dnt": {
+      "categories": {
+        "analytics": true,
+        "advertising": false
+      },
+      "providerScripts": {
+        "analytics": 2,
+        "advertising": 0,
+        "cmp": 0
+      },
+      "advertisingDecision": "deny",
+      "privacySignalReasonObserved": true
+    }
+  }
+}
