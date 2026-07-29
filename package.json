@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:smoke",
-    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs",
+    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/security-audit-smoke.mjs",
     "test:privacy": "node scripts/privacy-smoke.mjs",
     "test:operations": "node scripts/operations-smoke.mjs",
     "release:check": "node scripts/release-check.mjs",
@@ -21,20 +21,21 @@
     "test:trust-packages": "node scripts/trust-package-snapshot-smoke.mjs",
     "test:e2e": "playwright test",
     "test:e2e:privacy": "playwright test tests/e2e/privacy.spec.mjs",
+    "audit:security": "node scripts/security-audit.mjs",
     "trust:capture-preview": "node scripts/capture-trust-preview-evidence.mjs",
     "trust:readiness": "node scripts/trust-platform-readiness.mjs"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
     "@aqua-os/advertising-authorization": "file:vendor/aqua-os/advertising-authorization",
     "@aqua-os/consent-policy": "file:vendor/aqua-os/consent-policy",
-    "@aqua-os/trust-decision-audit": "file:vendor/aqua-os/trust-decision-audit"
+    "@aqua-os/trust-decision-audit": "file:vendor/aqua-os/trust-decision-audit",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "7.18.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^6.4.3",
-    "@playwright/test": "^1.62.0"
+    "vite": "^6.4.3"
   }
 }

@@ -8,6 +8,7 @@ const requiredFiles = [
   'docs/technical-debt-register.md', 'docs/deployment-checklist.md', 'docs/operations-runbook.md',
   'docs/releases/0.1.0-review.md', 'public/_headers', 'public/_redirects', 'vercel.json',
   '.github/workflows/quality.yml', '.github/dependabot.yml',
+  'security/audit-exceptions.json', 'scripts/security-audit.mjs',
 ];
 for (const file of requiredFiles) assert.ok(fs.existsSync(file), `required release artifact missing: ${file}`);
 
@@ -70,6 +71,10 @@ assert.ok(
 assert.ok(
   qualityWorkflow.indexOf(browserInstall) < qualityWorkflow.indexOf('npm run check'),
   'quality workflow must install Chromium before running the aggregate check',
+);
+assert.ok(
+  qualityWorkflow.includes('npm run audit:security'),
+  'quality workflow must execute the governed security audit',
 );
 assert.ok(pkg.scripts?.check, 'package must expose a check command');
 console.log(JSON.stringify({ event: 'release.check.completed', version: pkg.version, status: 'candidate', artifacts: requiredFiles.length }));
