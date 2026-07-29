@@ -1,0 +1,36 @@
+{
+  "$schema": "../../Contracts/v1/advertising-authorization.schema.json",
+  "schemaVersion": 1,
+  "id": "aqua-advertising-authorization-v1",
+  "version": 1,
+  "defaultDecision": "deny",
+  "consentPolicy": {
+    "id": "aqua-web-consent-v1",
+    "version": 1,
+    "retentionDays": 180,
+    "advertisingRequiresOptIn": true
+  },
+  "supportedActions": ["bootstrap-consent", "request-ad"],
+  "supportedModes": ["personalized", "non-personalized", "limited"],
+  "regions": {
+    "tcfRequired": ["eea", "uk", "ch"],
+    "unknownUses": "tcf-required"
+  },
+  "privacySignals": {
+    "globalPrivacyControl": "deny-advertising",
+    "doNotTrack": "deny-advertising"
+  },
+  "modes": {
+    "personalized": { "enabled": false },
+    "non-personalized": { "enabled": true },
+    "limited": { "enabled": false }
+  },
+  "providers": {
+    "google-adsense": {
+      "requiresCertifiedTcfCmp": true,
+      "minimumTcfVersion": "2.3",
+      "requiresSiteApproval": true,
+      "requiresAuthorizedSellerFile": true
+    }
+  }
+}

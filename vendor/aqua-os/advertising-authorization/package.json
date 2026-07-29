@@ -1,0 +1,25 @@
+{
+  "name": "@aqua-os/advertising-authorization",
+  "version": "1.0.0",
+  "description": "Default-deny advertising authorization evaluator for AQUA products.",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "provenance": true
+  },
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  }
+}

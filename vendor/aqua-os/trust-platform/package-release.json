@@ -1,0 +1,57 @@
+{
+  "$schema": "../../Contracts/v1/trust-package-release.schema.json",
+  "schemaVersion": 1,
+  "id": "aqua-trust-packages-v1",
+  "releaseVersion": "1.0.0",
+  "status": "prepared",
+  "nodeRange": ">=20 <25",
+  "distribution": {
+    "protocol": "npm",
+    "scope": "@aqua-os",
+    "access": "restricted",
+    "provenanceRequired": true,
+    "exactConsumerVersions": true
+  },
+  "packages": [
+    {
+      "name": "@aqua-os/consent-policy",
+      "version": "1.0.0",
+      "path": "Packages/ConsentPolicy",
+      "contracts": [
+        { "id": "consent-policy-schema", "version": 1 },
+        { "id": "consent-choice-schema", "version": 1 },
+        { "id": "aqua-web-consent-v1", "version": 1 }
+      ],
+      "compatibleWith": {}
+    },
+    {
+      "name": "@aqua-os/advertising-authorization",
+      "version": "1.0.0",
+      "path": "Packages/AdvertisingAuthorization",
+      "contracts": [
+        { "id": "advertising-authorization-schema", "version": 1 },
+        { "id": "aqua-advertising-authorization-v1", "version": 1 }
+      ],
+      "compatibleWith": {
+        "@aqua-os/consent-policy": "^1.0.0"
+      }
+    },
+    {
+      "name": "@aqua-os/trust-decision-audit",
+      "version": "1.0.0",
+      "path": "Packages/TrustDecisionAudit",
+      "contracts": [
+        { "id": "trust-decision-event-schema", "version": 1 }
+      ],
+      "compatibleWith": {
+        "@aqua-os/advertising-authorization": "^1.0.0"
+      }
+    }
+  ],
+  "migration": {
+    "from": "vendor-snapshot-v1",
+    "to": "registry-exact-v1",
+    "breaking": false,
+    "guide": "Documentation/Architecture/TRUST_PACKAGE_RELEASE.md"
+  }
+}
