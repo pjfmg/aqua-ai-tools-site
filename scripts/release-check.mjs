@@ -55,5 +55,15 @@ for (const tracker of ['googletagmanager.com/gtag', 'clarity.ms/tag', 'pagead2.g
 }
 const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
 for (const route of ['/v1/health/live', '/v1/health/ready']) assert.ok(vercel.rewrites.some((item) => item.source === route), `missing ${route}`);
+const qualityWorkflow = fs.readFileSync('.github/workflows/quality.yml', 'utf8');
+const browserInstall = 'npx playwright install --with-deps chromium';
+assert.ok(
+  qualityWorkflow.includes(browserInstall),
+  'quality workflow must install the Playwright Chromium runtime',
+);
+assert.ok(
+  qualityWorkflow.indexOf(browserInstall) < qualityWorkflow.indexOf('npm run check'),
+  'quality workflow must install Chromium before running the aggregate check',
+);
 assert.ok(pkg.scripts?.check, 'package must expose a check command');
 console.log(JSON.stringify({ event: 'release.check.completed', version: pkg.version, status: 'candidate', artifacts: requiredFiles.length }));
