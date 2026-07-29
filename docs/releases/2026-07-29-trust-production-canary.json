@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "mode": "default-deny",
+  "target": "https://aqua-aitools.com",
+  "checkedAt": "2026-07-29T16:59:36.524Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000",
+      "bundlePath": "/assets/index-DejS5kGN.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "bundlePath": "/assets/index-DejS5kGN.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": true,
+      "errors": [],
+      "observedRelease": "4352e540abf2f20fbfaafef1a88724c68681aada"
+    },
+    {
+      "name": "default-deny-browser-scenarios",
+      "ok": true,
+      "errors": []
+    }
+  ]
+}
