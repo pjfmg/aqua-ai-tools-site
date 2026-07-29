@@ -121,6 +121,8 @@ test('first visit loads no optional provider before a choice', async ({ page }) 
   expect(await providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(0);
   expect(await providerScriptCount(page, 'clarity.ms/tag')).toBe(0);
   expect(await providerScriptCount(page, 'pagead2.googlesyndication.com/pagead')).toBe(0);
+  expect(await providerScriptCount(page, 'fundingchoicesmessages.google.com')).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.__aquaCmpBootstrap?.reason)).toBe('cmp.bootstrap-disabled');
 });
 
 test('decision audit events are minimized and contain no consent or TCF payload', async ({ page }) => {

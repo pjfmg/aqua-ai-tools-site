@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { CONSENT_MAX_AGE_MS, CONSENT_MAX_TIMER_MS, CONSENT_STORAGE_KEY, ConsentRenewalReason, consentRefreshDelay, createConsent, evaluateConsent, privacySignalEnabled, readConsent, readConsentState, revokeConsent, writeConsent } from '../src/privacy/consent.js';
 import { createTrustDiagnostics, emptyTcfEvidence, evidenceFromTcfData, evaluateProductAdvertising } from '../src/privacy/advertisingAuthorization.js';
+import { bootstrapCmp, resolveCmpBootstrap } from '../src/privacy/cmpBootstrap.js';
 import { advertisingAuthorizationPolicy, consentPolicy } from '../vendor/aqua-os/trust-platform/policies.js';
 
 function memoryStorage() {
@@ -48,6 +49,44 @@ const diagnostics = createTrustDiagnostics({
 }, new Date(now));
 assert.equal(diagnostics.tcf.tcStringStatus, 'missing');
 assert.equal(Object.hasOwn(diagnostics.tcf, 'tcString'), false);
+
+const topWindow = {};
+topWindow.top = topWindow;
+topWindow.self = topWindow;
+const cmpTagUrl = 'https://fundingchoicesmessages.google.com/i/pub-8295677733502537?ers=1';
+const cmpEnv = {
+  VITE_CMP_BOOTSTRAP_ENABLED: 'true',
+  VITE_CMP_PROVIDER: 'google-privacy-messaging',
+  VITE_GOOGLE_CMP_TAG_URL: cmpTagUrl,
+  VITE_CMP_MESSAGE_PUBLISHED: 'true',
+  VITE_CMP_CERTIFIED: 'true',
+};
+assert.equal(resolveCmpBootstrap({ env: {}, windowLike: topWindow }).enabled, false);
+assert.equal(resolveCmpBootstrap({
+  env: cmpEnv,
+  locationLike: { pathname: '/privacidade' },
+  windowLike: topWindow,
+}).reason, 'cmp.privacy-page-excluded');
+assert.equal(resolveCmpBootstrap({
+  env: { ...cmpEnv, VITE_GOOGLE_CMP_TAG_URL: 'https://example.test/i/pub-invalid' },
+  locationLike: { pathname: '/' },
+  windowLike: topWindow,
+}).reason, 'cmp.tag-url-not-allowed');
+const insertedScripts = [];
+const fakeDocument = {
+  head: { prepend: (script) => insertedScripts.unshift(script) },
+  createElement: () => ({}),
+  getElementById: () => null,
+};
+assert.equal(bootstrapCmp({
+  env: cmpEnv,
+  documentLike: fakeDocument,
+  locationLike: { pathname: '/' },
+  windowLike: topWindow,
+}).status, 'inserted');
+assert.equal(insertedScripts.length, 1);
+assert.equal(insertedScripts[0].src, cmpTagUrl);
+assert.equal(topWindow.__aquaCmpBootstrap.reason, 'cmp.bootstrap-authorized');
 
 const revokedStorage = memoryStorage();
 const revocable = writeConsent(createConsent({ analytics: true, advertising: true }, now), revokedStorage);
@@ -104,6 +143,9 @@ const authorization = fs.readFileSync('src/privacy/advertisingAuthorization.js',
 assert.ok(authorization.includes("action: 'request-ad'"), 'Ad requests must use the request-ad action');
 assert.ok(authorization.includes('VITE_ADSENSE_TCF_READY'), 'AdSense must fail closed until the certified CMP is ready');
 assert.ok(authorization.includes('VITE_ADVERTISING_EMERGENCY_STOP'), 'AdSense must expose an explicit emergency stop');
+const cmpBootstrap = fs.readFileSync('src/privacy/cmpBootstrap.js', 'utf8');
+assert.ok(cmpBootstrap.includes('fundingchoicesmessages.google.com'), 'Only the Google-certified CMP host may bootstrap');
+assert.ok(cmpBootstrap.includes('cmp.privacy-page-excluded'), 'The privacy policy route must not load the CMP tag');
 const headers = fs.readFileSync('public/_headers', 'utf8');
 assert.ok(headers.includes('Content-Security-Policy'));
 assert.ok(headers.includes("frame-ancestors 'none'"));

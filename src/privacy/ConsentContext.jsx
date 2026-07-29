@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { CONSENT_STORAGE_KEY, consentRefreshDelay, createConsent, evaluateConsent, privacySignalEnabled, readConsentState, removeTrackingCookies, revokeConsent, writeConsent } from './consent.js';
 import { createTrustDiagnostics, emptyTcfEvidence, evaluateConsentBootstrap, evaluateProductAdvertising, subscribeToTcfEvidence } from './advertisingAuthorization.js';
+import { bootstrapCmp } from './cmpBootstrap.js';
 import { recordTrustDecision } from './trustAudit.js';
 
 const ConsentContext = createContext(null);
@@ -69,6 +70,10 @@ export function ConsentProvider({ children }) {
   const advertisingAvailable = bootstrapDecision.decision === 'allow';
   const advertisingAllowed = advertisingDecision.decision === 'allow';
   const analyticsAllowed = consentEvaluation.status === 'valid' && consentEvaluation.grants.analytics;
+
+  useEffect(() => {
+    bootstrapCmp();
+  }, []);
 
   useEffect(() => subscribeToTcfEvidence(setTcfEvidence), []);
 

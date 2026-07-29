@@ -31,6 +31,7 @@ export default defineConfig({
     env: {
       ...process.env,
       VITE_ADSENSE_TCF_READY: 'true',
+      VITE_CMP_BOOTSTRAP_ENABLED: 'false',
       VITE_CMP_CERTIFIED: 'true',
       VITE_TCF_VERSION: '2.3',
       VITE_ADSENSE_SITE_APPROVED: 'true',
