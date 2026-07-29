@@ -1,0 +1,24 @@
+{
+  "name": "@aqua-os/consent-policy",
+  "version": "1.0.0",
+  "description": "Default-deny consent policy evaluator for AQUA products.",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "provenance": true
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../Contracts/v1/consent-policy.schema.json",
+  "schemaVersion": 1,
+  "id": "aqua-web-consent-v1",
+  "version": 1,
+  "retentionDays": 180,
+  "default": "deny_optional",
+  "honorGlobalPrivacyControl": true,
+  "categories": {
+    "necessary": { "required": true, "purposes": ["authentication", "security", "preferences"] },
+    "analytics": { "required": false, "purposes": ["audience-measurement", "product-improvement"], "vendors": ["Google Analytics", "Microsoft Clarity"] },
+    "advertising": { "required": false, "purposes": ["non-personalized-advertising"], "vendors": ["Google AdSense"], "personalizationDefault": false, "requiresCertifiedTcfCmp": true }
+  },
+  "deployment": { "advertisingStatus": "suspended_until_certified_cmp" }
+}

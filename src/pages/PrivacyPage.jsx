@@ -6,7 +6,7 @@ import { useConsent } from '../privacy/ConsentContext.jsx';
 
 export default function PrivacyPage() {
   const { isEn } = useLanguage();
-  const { consent, advertisingAvailable, advertisingAllowed, openPreferences } = useConsent();
+  const { consent, renewalReason, advertisingAvailable, advertisingAllowed, openPreferences } = useConsent();
 
   return (
     <>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <p>{isEn ? 'Necessary storage supports authentication, security and saved preferences. Google Analytics and Microsoft Clarity are analytics; Google AdSense is advertising. Optional providers remain off until you choose otherwise.' : 'O armazenamento necessário suporta autenticação, segurança e preferências. Google Analytics e Microsoft Clarity pertencem a analytics; Google AdSense pertence a publicidade. Os fornecedores opcionais permanecem desligados até escolheres o contrário.'}</p>
           {!advertisingAvailable ? <p>{isEn ? 'Advertising is currently suspended. It will only be enabled after a Google-certified consent platform with IAB TCF support is configured.' : 'A publicidade está atualmente suspensa. Só será ativada após estar configurada uma plataforma de consentimento certificada pela Google com suporte IAB TCF.'}</p> : null}
           <p>{isEn ? 'Your choice is stored in this browser for up to 180 days. You can reject or change it at any time. Global Privacy Control keeps advertising disabled.' : 'A escolha é guardada neste browser até 180 dias. Podes recusá-la ou alterá-la em qualquer momento. O Global Privacy Control mantém a publicidade desativada.'}</p>
-          <p><strong>{isEn ? 'Current choice:' : 'Escolha atual:'}</strong> {consent ? `${consent.analytics ? 'Analytics ✓' : 'Analytics ✕'} · ${advertisingAllowed ? (isEn ? 'Advertising ✓' : 'Publicidade ✓') : (isEn ? 'Advertising ✕' : 'Publicidade ✕')}` : (isEn ? 'Not decided' : 'Não decidida')}</p>
+          <p><strong>{isEn ? 'Current choice:' : 'Escolha atual:'}</strong> {consent ? `${consent.analytics ? 'Analytics ✓' : 'Analytics ✕'} · ${advertisingAllowed ? (isEn ? 'Advertising ✓' : 'Publicidade ✓') : (isEn ? 'Advertising ✕' : 'Publicidade ✕')}` : renewalReason === 'expired' ? (isEn ? 'Expired — renewal required' : 'Expirada — renovação necessária') : renewalReason === 'policy-updated' ? (isEn ? 'Policy updated — renewal required' : 'Política atualizada — renovação necessária') : renewalReason === 'revoked' ? (isEn ? 'Withdrawn' : 'Retirada') : (isEn ? 'Not decided' : 'Não decidida')}</p>
           <button className="btn btn--primary" type="button" onClick={openPreferences}>{isEn ? 'Open privacy settings' : 'Abrir definições de privacidade'}</button>
         </div></div>
       </Section>

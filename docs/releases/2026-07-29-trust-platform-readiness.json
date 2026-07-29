@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-aitools.com",
+  "checkedAt": "2026-07-29T10:26:52.145Z",
+  "ok": false,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000",
+      "bundlePath": "/assets/index-zDUXnIj0.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": false,
+      "errors": [
+        "bundle is missing Trust Platform marker: aqua-advertising-authorization-v1",
+        "bundle is missing Trust Platform marker: policy.default-deny",
+        "bundle is missing Trust Platform marker: cmp.not-configured",
+        "bundle is missing Trust Platform marker: request-ad"
+      ],
+      "status": 200,
+      "bundlePath": "/assets/index-zDUXnIj0.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": true,
+      "errors": [],
+      "observedRelease": "0.1.0-20260726.1"
+    },
+    {
+      "name": "cmp-and-tcf-browser-evidence",
+      "ok": false,
+      "errors": [
+        "__tcfapi is not available",
+        "CMP status is not loaded",
+        "TCF proof is not present",
+        "TCF event is not ready"
+      ],
+      "evidence": {
+        "schemaVersion": 1,
+        "target": "https://aqua-aitools.com/",
+        "checkedAt": "2026-07-29T10:20:53.000Z",
+        "bundlePath": "/assets/index-zDUXnIj0.js",
+        "tcfApiType": "undefined",
+        "googleFcType": "undefined",
+        "cmpStatus": "not-observed",
+        "tcStringStatus": "not-observed",
+        "eventStatus": "not-observed",
+        "adScriptsBeforeChoice": 0,
+        "analyticsScriptsBeforeChoice": 0
+      }
+    }
+  ]
+}
