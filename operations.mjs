@@ -5,7 +5,7 @@ const readinessCache = globalThis.__aquaReadinessCache || new Map();
 globalThis.__aquaReadinessCache = readinessCache;
 
 function release(env) {
-  return String(env.AQUA_RELEASE || env.VERCEL_GIT_COMMIT_SHA || 'development').slice(0, 40);
+  return String(env.VERCEL_GIT_COMMIT_SHA || env.AQUA_RELEASE || 'development').slice(0, 40);
 }
 
 async function probe(name, baseUrl, fetchImpl) {

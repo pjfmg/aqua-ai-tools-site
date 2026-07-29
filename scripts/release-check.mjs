@@ -8,7 +8,9 @@ const requiredFiles = [
   'docs/technical-debt-register.md', 'docs/deployment-checklist.md', 'docs/operations-runbook.md',
   'docs/releases/0.1.0-review.md', 'public/_headers', 'public/_redirects', 'vercel.json',
   '.github/workflows/quality.yml', '.github/dependabot.yml',
+  '.github/workflows/trust-preview-canary.yml',
   'security/audit-exceptions.json', 'scripts/security-audit.mjs',
+  'scripts/trust-default-deny-canary.mjs',
 ];
 for (const file of requiredFiles) assert.ok(fs.existsSync(file), `required release artifact missing: ${file}`);
 
@@ -75,6 +77,11 @@ assert.ok(
 assert.ok(
   qualityWorkflow.includes('npm run audit:security'),
   'quality workflow must execute the governed security audit',
+);
+const trustCanaryWorkflow = fs.readFileSync('.github/workflows/trust-preview-canary.yml', 'utf8');
+assert.ok(
+  trustCanaryWorkflow.includes('npm run trust:default-deny-canary'),
+  'Trust Preview canary workflow must execute the default-deny gate',
 );
 assert.ok(pkg.scripts?.check, 'package must expose a check command');
 console.log(JSON.stringify({ event: 'release.check.completed', version: pkg.version, status: 'candidate', artifacts: requiredFiles.length }));

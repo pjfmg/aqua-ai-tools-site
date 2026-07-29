@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:smoke",
-    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/security-audit-smoke.mjs",
+    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/trust-default-deny-canary-smoke.mjs && node scripts/security-audit-smoke.mjs",
     "test:privacy": "node scripts/privacy-smoke.mjs",
     "test:operations": "node scripts/operations-smoke.mjs",
     "release:check": "node scripts/release-check.mjs",
@@ -23,6 +23,7 @@
     "test:e2e:privacy": "playwright test tests/e2e/privacy.spec.mjs",
     "audit:security": "node scripts/security-audit.mjs",
     "trust:capture-preview": "node scripts/capture-trust-preview-evidence.mjs",
+    "trust:default-deny-canary": "node scripts/trust-default-deny-canary.mjs",
     "trust:readiness": "node scripts/trust-platform-readiness.mjs"
   },
   "dependencies": {
