@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-07-29T14:27:47Z",
+  "provider": "vercel",
+  "scope": "pjfmgs-projects",
+  "project": "aqua-ai-tools-site",
+  "environment": "preview",
+  "status": "configured-default-deny",
+  "advertisingAuthorized": false,
+  "nextDeploymentRequired": true,
+  "variables": {
+    "VITE_CMP_BOOTSTRAP_ENABLED": "false",
+    "VITE_CMP_PROVIDER": "google-privacy-messaging",
+    "VITE_CMP_MESSAGE_PUBLISHED": "false",
+    "VITE_CMP_CERTIFIED": "false",
+    "VITE_TCF_VERSION": "2.3",
+    "VITE_ADSENSE_TCF_READY": "false",
+    "VITE_ADSENSE_SITE_APPROVED": "false",
+    "VITE_ADS_TXT_AUTHORIZED": "true",
+    "VITE_ADVERTISING_EMERGENCY_STOP": "true",
+    "VITE_ADVERTISING_REGION": "unknown"
+  },
+  "intentionallyUnset": [
+    "VITE_GOOGLE_CMP_TAG_URL"
+  ],
+  "verification": {
+    "method": "Vercel API individual environment-variable endpoint",
+    "valuesAreNonSensitive": true,
+    "secretValuesRecorded": false
+  }
+}

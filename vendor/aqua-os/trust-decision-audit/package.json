@@ -1,0 +1,24 @@
+{
+  "name": "@aqua-os/trust-decision-audit",
+  "version": "1.0.0",
+  "description": "Minimized Trust decision audit events for AQUA products.",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "provenance": true
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  }
+}

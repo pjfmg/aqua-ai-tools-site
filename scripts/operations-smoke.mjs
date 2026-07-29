@@ -1,12 +1,25 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fetchAquaOs, resetAquaOsCircuitsForTests } from '../aquaOsRuntime.mjs';
-import { healthSnapshot } from '../operations.mjs';
+import { dependencyProbeResult, healthSnapshot } from '../operations.mjs';
 
 const request = { headers: { 'x-trace-id': 'trace-operations-test' } };
 const live = await healthSnapshot(request, 'live', {});
 assert.equal(live.status, 200);
 assert.equal(live.traceId, 'trace-operations-test');
+const gitRelease = await healthSnapshot(request, 'live', {
+  AQUA_RELEASE: 'stale-release',
+  VERCEL_GIT_COMMIT_SHA: 'current-git-release',
+});
+assert.equal(gitRelease.data.release, 'current-git-release');
+assert.equal(dependencyProbeResult('dependency', true, 1_499).latencySlo, 'ok');
+assert.deepEqual(dependencyProbeResult('dependency', true, 1_501), {
+  name: 'dependency',
+  status: 'ok',
+  latencyMs: 1_501,
+  latencySlo: 'breached',
+});
+assert.equal(dependencyProbeResult('dependency', false, 5_000).status, 'fail');
 
 const readyEnv = {
   AQUA_OS_DATA_URL: 'https://data.aqua.test', AQUA_OS_COMMERCE_URL: 'https://commerce.aqua.test', AQUA_OS_PRODUCT_KEY: 'product',
@@ -16,6 +29,7 @@ const probed = [];
 const ready = await healthSnapshot(request, 'ready', readyEnv, async (url) => { probed.push(String(url)); return new Response('{}', { status: 200 }); });
 assert.equal(ready.status, 200);
 assert.deepEqual(probed.sort(), ['https://commerce.aqua.test/v1/health/ready', 'https://data.aqua.test/v1/health/ready']);
+assert.ok(ready.data.checks.slice(1).every((check) => check.latencySlo === 'ok'));
 assert.equal((await healthSnapshot(request, 'ready', {}, async () => new Response('{}'))).status, 503);
 
 resetAquaOsCircuitsForTests();

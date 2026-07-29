@@ -21,7 +21,7 @@
 - [ ] Importação Airtable executada e reconciliada.
 - [ ] RLS e retenção verificadas com utilizador anon/authenticated/service_role.
 - [ ] Stripe webhook e Supabase Auth configurados com URLs de produção.
-- [ ] CMP certificada configurada ou publicidade mantida suspensa.
+- [ ] Checklist `docs/google-cmp-production-checklist.md` concluída ou publicidade mantida suspensa.
 
 ## Operação
 

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "threshold": "moderate",
+  "exceptions": [
+    {
+      "advisorySource": 1124282,
+      "advisoryUrl": "https://github.com/advisories/GHSA-qwww-vcr4-c8h2",
+      "packages": [
+        "react-router",
+        "react-router-dom"
+      ],
+      "maximumSeverity": "high",
+      "expiresAt": "2026-08-31T23:59:59Z",
+      "rationale": "The product is a BrowserRouter SPA and does not use React Router RSC mode, React Server Components or server actions. The npm registry currently offers no release outside both active React Router advisory ranges.",
+      "conditions": {
+        "applicationMode": "browser-spa",
+        "forbiddenSourcePatterns": [
+          "react-router/dom-rsc",
+          "react-router/rsc",
+          "createCallServer",
+          "decodeReply"
+        ]
+      }
+    }
+  ]
+}
