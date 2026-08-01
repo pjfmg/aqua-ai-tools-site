@@ -39,7 +39,7 @@ jobs:
             --base-url "${{ inputs.base_url }}" \
             --browser-evidence artifacts/trust-preview-browser.json \
             --evidence artifacts/trust-preview-canary.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: trust-preview-canary
