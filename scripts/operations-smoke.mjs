@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fetchAquaOs, resetAquaOsCircuitsForTests } from '../aquaOsRuntime.mjs';
-import { healthSnapshot } from '../operations.mjs';
+import { deploymentConfigurationStatus, healthSnapshot } from '../operations.mjs';
 
 const request = { headers: { 'x-trace-id': 'trace-operations-test' } };
 const live = await healthSnapshot(request, 'live', {});
@@ -10,8 +10,13 @@ assert.equal(live.traceId, 'trace-operations-test');
 
 const readyEnv = {
   AQUA_OS_DATA_URL: 'https://data.aqua.test', AQUA_OS_COMMERCE_URL: 'https://commerce.aqua.test', AQUA_OS_PRODUCT_KEY: 'product',
-  SUPABASE_URL: 'https://auth.aqua.test', SUPABASE_ANON_KEY: 'anon', AQUA_RELEASE: 'test-release',
+  SUPABASE_URL: 'https://auth.aqua.test', SUPABASE_ANON_KEY: 'anon', SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+  AQUA_RELEASE: 'test-release',
 };
+assert.deepEqual(deploymentConfigurationStatus(readyEnv), { ok: true, missing: [], invalid: [] });
+const missingGovernance = deploymentConfigurationStatus({ ...readyEnv, SUPABASE_SERVICE_ROLE_KEY: '' });
+assert.equal(missingGovernance.ok, false);
+assert.deepEqual(missingGovernance.missing, ['SUPABASE_SERVICE_ROLE_KEY']);
 const probed = [];
 const ready = await healthSnapshot(request, 'ready', readyEnv, async (url) => { probed.push(String(url)); return new Response('{}', { status: 200 }); });
 assert.equal(ready.status, 200);

@@ -16,7 +16,7 @@
 | 3 | Commerce Platform | Implementado | `aquaOsCommerceClient.mjs`; AQUA OS Commerce | Aplicar migration/configurar Stripe e webhooks |
 | 4 | API Platform | Implementado | `/v1`; OpenAPI; rate limiting; auditoria; trace IDs | Aplicar migration API Governance |
 | 5 | Data Platform | Implementado | AQUA OS Data Platform; entidades canónicas; importador | Aplicar migration e executar importação controlada |
-| 6 | Trust & Privacy | Implementado | Consent Manager; CSP; GPC; Trust Platform | Configurar CMP certificada antes de AdSense |
+| 6 | Trust & Privacy | Implementado | Consent Manager; expiração/revogação/reconsentimento; CSP; GPC; auditoria minimizada; Playwright E2E | Configurar CMP certificada antes de AdSense |
 | 7 | Observability & Resilience | Implementado | Health, RED, SLOs, circuit breaker e runbook | Aplicar migration, retenção e alertas |
 | 8 | Governance & Release | Implementado | CI, release check, changelog, policies e checklist | Obter aprovações e concluir gates externos |
 

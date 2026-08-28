@@ -5,6 +5,7 @@ import Hero from '../components/Hero.jsx';
 import {
   getHostnameFromWebsiteUrl,
   getLocalizedToolAreas,
+  getToolAreas,
   getLocalDateKey,
   getToolName,
   getToolNumber,
@@ -44,8 +45,9 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   const lang = isEn ? 'en' : 'pt';
   const [filterNome, setFilterNome] = useState(() => new URLSearchParams(location.search).get('search') || '');
   const [filterNumero, setFilterNumero] = useState('');
-  const [filterArea, setFilterArea] = useState('');
-  const [filterPreco, setFilterPreco] = useState('');
+  const [filterArea, setFilterArea] = useState(() => new URLSearchParams(location.search).get('area') || '');
+  const [filterAreaKey, setFilterAreaKey] = useState(() => new URLSearchParams(location.search).get('areaKey') || '');
+  const [filterPreco, setFilterPreco] = useState(() => new URLSearchParams(location.search).get('price') || '');
   const [filterVisitado, setFilterVisitado] = useState('');
   const [filterFavorito, setFilterFavorito] = useState('');
   const [secondaryFiltersOpen, setSecondaryFiltersOpen] = useState(false);
@@ -60,7 +62,11 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   const isInitialLoading = loading || (loadingMore && tools.length === 0);
   const secondaryFilterCount = [filterNumero, recordStatus !== 'published', filterVisitado, filterFavorito].filter(Boolean).length;
 
-  const areaOptions = useMemo(() => buildAreaOptions(tools, lang), [tools, lang]);
+  const areaOptions = useMemo(() => {
+    const options = buildAreaOptions(tools, lang);
+    if (filterArea && !options.includes(filterArea)) options.unshift(filterArea);
+    return options;
+  }, [tools, lang, filterArea]);
   const priceOptions = useMemo(() => buildPriceOptions(tools), [tools]);
 
   const dateKey = useMemo(() => getLocalDateKey(), []);
@@ -82,7 +88,8 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       if (numero && getToolNumber(t) !== numero) return false;
       if (filterArea) {
         const areas = getLocalizedToolAreas(t, lang);
-        if (!areas.includes(filterArea)) return false;
+        const rawAreas = getToolAreas(t);
+        if (!areas.includes(filterArea) && !rawAreas.includes(filterAreaKey || filterArea)) return false;
       }
       if (filterPreco && getToolPrice(t) !== filterPreco) return false;
       if (filterVisitado && String(t['Visitado'] || '') !== filterVisitado) return false;
@@ -105,6 +112,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     filterNome,
     filterNumero,
     filterArea,
+    filterAreaKey,
     filterPreco,
     filterVisitado,
     filterFavorito,
@@ -117,13 +125,13 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       setServerFilters({
         q: filterNome.trim(),
         number: filterNumero.trim(),
-        area: filterArea,
+        area: filterAreaKey || filterArea,
         price: filterPreco,
       });
     }, 300);
 
     return () => window.clearTimeout(timer);
-  }, [filterNome, filterNumero, filterArea, filterPreco]);
+  }, [filterNome, filterNumero, filterArea, filterAreaKey, filterPreco]);
 
   useEffect(() => {
     if (mode !== 'destaques') return;
@@ -152,8 +160,11 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
   }, [hoverOpen]);
 
   useEffect(() => {
-    const search = new URLSearchParams(location.search).get('search') || '';
-    setFilterNome(search);
+    const params = new URLSearchParams(location.search);
+    setFilterNome(params.get('search') || '');
+    setFilterArea(params.get('area') || '');
+    setFilterAreaKey(params.get('areaKey') || '');
+    setFilterPreco(params.get('price') || '');
   }, [location.search]);
 
   function clearHoverTimers() {
@@ -332,6 +343,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
     setFilterNome('');
     setFilterNumero('');
     setFilterArea('');
+    setFilterAreaKey('');
     setFilterPreco('');
     setFilterVisitado('');
     setFilterFavorito('');
@@ -397,7 +409,10 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
                 id="filter-area"
                 className="select"
                 value={filterArea}
-                onChange={(e) => setFilterArea(e.target.value)}
+                onChange={(e) => {
+                  setFilterArea(e.target.value);
+                  setFilterAreaKey(e.target.value);
+                }}
               >
                 <option value="">{isEn ? 'All' : 'Todas'}</option>
                 {areaOptions.map((v) => (

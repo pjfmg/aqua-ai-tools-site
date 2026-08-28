@@ -6,7 +6,17 @@ const requiredFiles = [
   'CHANGELOG.md', 'SECURITY.md', 'CONTRIBUTING.md', 'README.md', '.env.example',
   'docs/architecture.md', 'docs/api-v1.openapi.yaml', 'docs/foundation-compliance-matrix.md',
   'docs/technical-debt-register.md', 'docs/deployment-checklist.md', 'docs/operations-runbook.md',
-  'docs/releases/0.1.0-review.md', 'public/_headers', 'public/_redirects', 'vercel.json',
+  'docs/release-gate.md', 'docs/releases/0.1.0-review.md',
+  'docs/releases/2026-07-24-production-readiness.md',
+  'docs/catalog-quality.md', 'docs/releases/2026-07-24-catalog-quality.md',
+  'docs/releases/2026-07-24-pro-value.md',
+  'docs/releases/2026-07-24-surprise-resilience.md',
+  'docs/releases/2026-07-24-mobile-home-fold.md',
+  'docs/releases/2026-07-24-navigation-hierarchy.md',
+  'docs/releases/2026-07-24-seo-trust.md',
+  'docs/releases/2026-07-24-tool-details.md',
+  'docs/releases/2026-07-26-production-exception.md',
+  'public/_headers', 'public/_redirects', 'public/robots.txt', 'public/sitemap.xml', 'vercel.json',
   '.github/workflows/quality.yml', '.github/dependabot.yml',
 ];
 for (const file of requiredFiles) assert.ok(fs.existsSync(file), `required release artifact missing: ${file}`);
@@ -56,4 +66,7 @@ for (const tracker of ['googletagmanager.com/gtag', 'clarity.ms/tag', 'pagead2.g
 const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
 for (const route of ['/v1/health/live', '/v1/health/ready']) assert.ok(vercel.rewrites.some((item) => item.source === route), `missing ${route}`);
 assert.ok(pkg.scripts?.check, 'package must expose a check command');
+assert.ok(pkg.scripts?.['release:config'], 'package must expose a release configuration check');
+assert.ok(pkg.scripts?.['release:readiness'], 'package must expose a deployed release readiness check');
+assert.ok(pkg.scripts?.['catalog:quality'], 'package must expose a catalog quality check');
 console.log(JSON.stringify({ event: 'release.check.completed', version: pkg.version, status: 'candidate', artifacts: requiredFiles.length }));

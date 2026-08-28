@@ -13,27 +13,32 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:smoke",
-    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs",
+    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/release-readiness-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/catalog-quality-smoke.mjs && node scripts/pro-value-smoke.mjs && node scripts/surprise-resilience-smoke.mjs && node scripts/mobile-home-smoke.mjs && node scripts/navigation-hierarchy-smoke.mjs && node scripts/seo-trust-smoke.mjs && node scripts/tool-detail-smoke.mjs",
     "test:privacy": "node scripts/privacy-smoke.mjs",
-    "test:operations": "node scripts/operations-smoke.mjs",
-    "release:check": "node scripts/release-check.mjs",
-    "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check",
     "test:trust-packages": "node scripts/trust-package-snapshot-smoke.mjs",
     "test:e2e": "playwright test",
     "test:e2e:privacy": "playwright test tests/e2e/privacy.spec.mjs",
-    "trust:readiness": "node scripts/trust-platform-readiness.mjs"
+    "test:operations": "node scripts/operations-smoke.mjs",
+    "release:config": "node scripts/configuration-check.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "release:readiness": "node scripts/release-readiness.mjs",
+    "release:verify:production": "node scripts/release-readiness.mjs --base-url https://aqua-aitools.com",
+    "trust:readiness": "node scripts/trust-platform-readiness.mjs",
+    "catalog:quality": "node scripts/catalog-quality.mjs",
+    "catalog:quality:production": "node scripts/catalog-quality.mjs --base-url https://aqua-aitools.com",
+    "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
     "@aqua-os/advertising-authorization": "file:vendor/aqua-os/advertising-authorization",
     "@aqua-os/consent-policy": "file:vendor/aqua-os/consent-policy",
-    "@aqua-os/trust-decision-audit": "file:vendor/aqua-os/trust-decision-audit"
+    "@aqua-os/trust-decision-audit": "file:vendor/aqua-os/trust-decision-audit",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "7.18.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^6.4.3",
-    "@playwright/test": "^1.62.0"
+    "vite": "^6.4.3"
   }
 }

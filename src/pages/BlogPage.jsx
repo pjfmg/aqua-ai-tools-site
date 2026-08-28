@@ -36,7 +36,14 @@ export default function BlogPage() {
         }
       />
 
-      <Section title={isEn ? 'Articles' : 'Artigos'} subtitle={isEn ? 'Short, practical and useful posts.' : 'Publicações curtas, objetivas e úteis.'}>
+      <Section
+        title={isEn ? 'Practical guides' : 'Guias práticos'}
+        subtitle={
+          isEn
+            ? 'Original methods, checklists and decision frameworks reviewed by the AQUA editorial team.'
+            : 'Métodos, checklists e grelhas de decisão originais, revistos pela equipa editorial AQUA.'
+        }
+      >
         <div className="grid-container">
           {visiblePosts.map((p) => (
             <Link key={p.slug} to={path(`/blog/${p.slug}`)} className="blogCard">

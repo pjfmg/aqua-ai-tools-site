@@ -5,9 +5,11 @@ import Section from '../components/Section.jsx';
 import { getCategoryIconDataUrl } from '../lib/categoryIcons.js';
 import {
   getLocalizedToolAreas,
+  getToolAreas,
   getLocalDateKey,
   getToolName,
   getToolNumber,
+  getToolSlug,
   getToolSite,
   pickDailyFeaturedTools,
   pickLogoUrls,
@@ -15,6 +17,8 @@ import {
 import { useTools } from '../hooks/useTools.js';
 import { useLanguage } from '../i18n.jsx';
 import { openNewsletterSignup } from '../components/NewsletterSignup.jsx';
+import { CATALOG_EVIDENCE, formatPublishedRecords } from '../lib/catalogEvidence.js';
+import { localizePost, posts } from '../blog/posts.js';
 
 export default function HomePage() {
   const { path, isEn } = useLanguage();
@@ -25,22 +29,34 @@ export default function HomePage() {
 
   const featuredTools = useMemo(() => pickDailyFeaturedTools(tools, 6, dateKey), [tools, dateKey]);
   const isInitialLoading = loading && tools.length === 0;
+  const publishedRecords = formatPublishedRecords(isEn ? 'en-GB' : 'pt-PT');
+  const editorialGuides = useMemo(
+    () => posts.map((post) => localizePost(post, isEn ? 'en' : 'pt')),
+    [isEn],
+  );
 
   const categoryCounts = useMemo(() => {
     const counts = new Map();
     for (const t of tools) {
-      for (const a of getLocalizedToolAreas(t, lang)) {
-        counts.set(a, (counts.get(a) || 0) + 1);
+      const localized = getLocalizedToolAreas(t, lang);
+      const raw = getToolAreas(t);
+      for (const [index, label] of localized.entries()) {
+        const current = counts.get(label) || { count: 0, key: raw[index] || label };
+        counts.set(label, { ...current, count: current.count + 1 });
       }
     }
     return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 8);
   }, [tools, lang]);
 
   return (
     <>
+      <h1 className="srOnly">
+        {isEn ? 'AQUA AI Tools — AI tools directory' : 'AQUA AI Tools — diretório de ferramentas de IA'}
+      </h1>
       <Hero
+        className="hero--home"
         showMark={false}
         subtitle={
           isEn
@@ -52,7 +68,9 @@ export default function HomePage() {
             ? isEn ? 'Loading tools…' : 'A carregar ferramentas…'
             : error
               ? isEn ? 'Temporarily unavailable' : 'Temporariamente indisponível'
-              : isEn ? `${tools.length} tools to explore` : `${tools.length} ferramentas para explorar`
+              : isEn
+                ? `${publishedRecords} published records · audited 24 Jul 2026`
+                : `${publishedRecords} registos publicados · auditoria em 24 jul 2026`
         }
         right={
           <div className="hero__search">
@@ -147,7 +165,7 @@ export default function HomePage() {
                         <h2 className="heroQuickCard__title">{nome}</h2>
                       </div>
                       <div className="heroQuickCard__actions">
-                        <Link className="btn btn--ghost btn--sm" to={path('/ferramentas')}>
+                        <Link className="btn btn--ghost btn--sm" to={path(`/ferramentas/${getToolSlug(tool)}`)}>
                           {isEn ? 'Details' : 'Detalhes'}
                         </Link>
                         {site ? (
@@ -186,6 +204,7 @@ export default function HomePage() {
       </div>
 
       <Section
+        className="homeCategories"
         title={isEn ? 'Browse by category' : 'Explorar por categoria'}
         subtitle={
           isEn
@@ -195,8 +214,12 @@ export default function HomePage() {
       >
         <div className="categoryGrid">
           {categoryCounts.length ? (
-            categoryCounts.map(([name, count]) => (
-              <Link className="categoryCard" key={name} to={path('/ferramentas')}>
+            categoryCounts.map(([name, category]) => (
+              <Link
+                className="categoryCard"
+                key={name}
+                to={`${path('/ferramentas')}?area=${encodeURIComponent(name)}&areaKey=${encodeURIComponent(category.key)}`}
+              >
                 <div className="categoryCard__icon">
                   <img
                     className="categoryCard__iconImg"
@@ -207,7 +230,7 @@ export default function HomePage() {
                 </div>
                 <div className="categoryCard__name">{name}</div>
                 <div className="categoryCard__meta">
-                  {isEn ? `${count} in this selection` : `${count} nesta seleção`}
+                  {isEn ? `${category.count} in this selection` : `${category.count} nesta seleção`}
                 </div>
               </Link>
             ))
@@ -220,6 +243,66 @@ export default function HomePage() {
                   : (isEn ? 'No categories available yet.' : 'Ainda não existem categorias disponíveis.')}
             </div>
           )}
+        </div>
+      </Section>
+
+      <Section
+        className="homeTrust"
+        title={isEn ? 'How we build trust' : 'Como construímos confiança'}
+        subtitle={
+          isEn
+            ? 'Clear provenance, dated evidence and honest limits.'
+            : 'Origem clara, evidência datada e limites assumidos.'
+        }
+      >
+        <div className="trustGrid">
+          <article className="trustCard">
+            <span className="trustCard__eyebrow">{isEn ? 'Published base' : 'Base publicada'}</span>
+            <strong>{publishedRecords}</strong>
+            <p>{isEn ? 'catalogue records in the last release audit' : 'registos do catálogo na última auditoria de release'}</p>
+          </article>
+          <article className="trustCard">
+            <span className="trustCard__eyebrow">{isEn ? 'Last catalogue audit' : 'Última auditoria do catálogo'}</span>
+            <strong><time dateTime={CATALOG_EVIDENCE.auditedOn}>{isEn ? '24 Jul 2026' : '24 jul 2026'}</time></strong>
+            <p>{isEn ? 'automated checks for taxonomy, links and duplicates' : 'controlos automáticos de taxonomia, links e duplicados'}</p>
+          </article>
+          <article className="trustCard">
+            <span className="trustCard__eyebrow">{isEn ? 'Editorial status' : 'Estado editorial'}</span>
+            <strong>{isEn ? 'In review' : 'Em revisão'}</strong>
+            <p>{isEn ? 'descriptions and operational status are not presented as verified' : 'descrições e estado operacional não são apresentados como verificados'}</p>
+          </article>
+        </div>
+        <div className="trustActions">
+          <Link className="btn btn--ghost" to={path('/sobre')}>
+            {isEn ? 'Read the methodology' : 'Consultar metodologia'}
+          </Link>
+          <Link className="trustActions__link" to={path('/sugestoes')}>
+            {isEn ? 'Report a correction →' : 'Comunicar uma correção →'}
+          </Link>
+        </div>
+      </Section>
+
+      <Section
+        className="homeEditorial"
+        title={isEn ? 'Make a better decision' : 'Decide melhor, não apenas mais depressa'}
+        subtitle={
+          isEn
+            ? 'Original, step-by-step guides for selecting and evaluating AI tools with evidence.'
+            : 'Guias originais, passo a passo, para escolher e avaliar ferramentas de IA com evidência.'
+        }
+      >
+        <div className="grid-container homeEditorial__grid">
+          {editorialGuides.map((guide) => (
+            <Link key={guide.slug} className="blogCard homeEditorialCard" to={path(`/blog/${guide.slug}`)}>
+              <div className="blogCard__meta">
+                <span className="badge badge--muted">{guide.readingTime}</span>
+                <span className="badge">{guide.tags?.[0]}</span>
+              </div>
+              <h2 className="blogCard__title">{guide.title}</h2>
+              <p className="blogCard__excerpt">{guide.excerpt}</p>
+              <span className="homeEditorialCard__link">{isEn ? 'Read the guide →' : 'Ler o guia →'}</span>
+            </Link>
+          ))}
         </div>
       </Section>
 

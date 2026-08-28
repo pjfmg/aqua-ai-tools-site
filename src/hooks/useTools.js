@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { loadToolsPage, normalizeRecordStatus, normalizeToolFilters } from '../lib/tools.js';
+import {
+  getToolCanonicalWebsiteKey,
+  loadToolsPage,
+  normalizeRecordStatus,
+  normalizeToolFilters,
+} from '../lib/tools.js';
 import { applyUserLists } from '../lib/userLists.js';
 import { useAuth } from '../auth/auth.jsx';
 
@@ -78,10 +83,13 @@ function toolIdentity(tool, index) {
 function mergeTools(current, incoming) {
   const merged = [...current];
   const known = new Set(current.map(toolIdentity));
+  const knownWebsites = new Set(current.map(getToolCanonicalWebsiteKey).filter(Boolean));
   for (const tool of incoming) {
     const identity = toolIdentity(tool, merged.length);
-    if (known.has(identity)) continue;
+    const website = getToolCanonicalWebsiteKey(tool);
+    if (known.has(identity) || (website && knownWebsites.has(website))) continue;
     known.add(identity);
+    if (website) knownWebsites.add(website);
     merged.push(tool);
   }
   return merged;

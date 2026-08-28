@@ -20,7 +20,9 @@ import BlogPage from './pages/BlogPage.jsx';
 import BlogPostPage from './pages/BlogPostPage.jsx';
 import ProPage from './pages/ProPage.jsx';
 import ReviewsPage from './pages/ReviewsPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import RequirePro from './components/RequirePro.jsx';
+import ToolDetailPage from './pages/ToolDetailPage.jsx';
 
 export default function App() {
   return (
@@ -30,6 +32,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
 
           <Route path="/ferramentas" element={<ToolsPage title="AQUA AI Tools" mode="all" />} />
+          <Route path="/ferramentas/:toolSlug" element={<ToolDetailPage />} />
           <Route path="/surpreende-me" element={<SurpreendeMePage />} />
           <Route path="/submeter" element={<SubmitPage />} />
           <Route path="/signup" element={<SignUpPage />} />
@@ -63,6 +66,7 @@ export default function App() {
             }
           />
           <Route path="/sugestoes" element={<SuggestionsPage />} />
+          <Route path="/definicoes" element={<SettingsPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="/pro" element={<ProPage />} />
@@ -77,6 +81,7 @@ export default function App() {
 
           <Route path="/en" element={<HomePage />} />
           <Route path="/en/tools" element={<ToolsPage title="AQUA AI Tools" mode="all" />} />
+          <Route path="/en/tools/:toolSlug" element={<ToolDetailPage />} />
           <Route path="/en/featured" element={<ToolsPage title="Featured" mode="destaques" />} />
           <Route path="/en/surprise-me" element={<SurpreendeMePage />} />
           <Route path="/en/submit" element={<SubmitPage />} />
@@ -108,6 +113,7 @@ export default function App() {
             }
           />
           <Route path="/en/suggestions" element={<SuggestionsPage />} />
+          <Route path="/en/settings" element={<SettingsPage />} />
           <Route path="/en/blog" element={<BlogPage />} />
           <Route path="/en/blog/:slug" element={<BlogPostPage />} />
           <Route path="/en/pro" element={<ProPage />} />

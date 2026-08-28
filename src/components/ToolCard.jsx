@@ -1,10 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   normalizeFuncoes,
   getToolDescription,
   getLocalizedToolAreas,
   getToolName,
   getToolNumber,
+  getToolSlug,
   getToolSite,
   pickLogoUrls,
 } from '../lib/tools.js';
@@ -33,7 +35,7 @@ function shouldOpenExternalInNewTab() {
 }
 
 export default function ToolCard({ tool }) {
-  const { isEn } = useLanguage();
+  const { isEn, path } = useLanguage();
   const { isAuthed, hasProAccess, user } = useAuth();
   const { ratings } = useRatings();
   const { ratingsByToolKey, setRatingLocal } = useMyRatings();
@@ -169,10 +171,15 @@ export default function ToolCard({ tool }) {
       {desc ? (
         <p className="toolCard__desc">{desc}</p>
       ) : (
-        <p className="toolCard__desc toolCard__desc--muted">{isEn ? 'No description.' : 'Sem descrição.'}</p>
+        <p className="toolCard__desc toolCard__desc--muted">
+          {isEn ? 'Editorial description under review.' : 'Descrição editorial em revisão.'}
+        </p>
       )}
 
       <div className="toolCard__bottom">
+        <Link className="btn btn--ghost btn--block" to={path(`/ferramentas/${getToolSlug(tool)}`)}>
+          {isEn ? 'Details' : 'Detalhes'}
+        </Link>
         {site ? (
           <a
             className="btn btn--primary btn--block"
