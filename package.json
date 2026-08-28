@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20 <25"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -34,7 +34,7 @@
     "@aqua-os/trust-decision-audit": "file:vendor/aqua-os/trust-decision-audit",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "7.18.1"
+    "react-router-dom": "7.18.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",

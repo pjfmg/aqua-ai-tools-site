@@ -20,7 +20,7 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 
 - O catálogo deixou de usar Airtable como persistência runtime.
 - Billing, dados, trust e observabilidade passaram a capacidades governadas pelo AQUA OS.
-- Toolchain atualizado para Vite 6.4.3 e React Router 7.18.1 após dependency audit.
+- Toolchain atualizado para Vite 6.4.3 e React Router 7.18.3 após dependency audit.
 - Descrições editoriais ausentes deixaram de ser substituídas por texto genérico; taxonomia bilingue e deduplicação por website foram reforçadas.
 - A página Pro passou a comunicar shortlist, memória de pesquisa e avaliação pessoal como um fluxo, separando a subscrição dos serviços Creator e Business.
 - “Surpreende-me” passou a ocultar códigos internos, oferecer retry e alternativas, e evitar repetições imediatas.
@@ -37,7 +37,7 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 - A publicidade respeita consentimento, Global Privacy Control e um interruptor explícito de suspensão.
 - Tokens, emails e bodies foram excluídos da telemetria operacional.
 - Dependências auditadas sem vulnerabilidades conhecidas no momento da revisão.
-- Exceção temporária documentada para `GHSA-qwww-vcr4-c8h2`: a aplicação não usa RSC e aguarda uma versão corrigida publicada no npm.
+- React Router atualizado para resolver `GHSA-qwww-vcr4-c8h2`; a exceção temporária foi encerrada.
 
 ## [0.1.0] - 2026-07-18
 
