@@ -1311,6 +1311,21 @@ textarea {
   margin-top: auto;
 }
 
+.toolCard__disclosure {
+  margin: 0 0 .65rem;
+  color: var(--muted, #617484);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.toolCard__linkStatus {
+  display: block;
+  margin-top: .45rem;
+  color: var(--muted, #617484);
+  font-size: .78rem;
+  text-align: center;
+}
+
 .pricingGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
