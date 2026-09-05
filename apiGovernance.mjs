@@ -13,6 +13,8 @@ export const API_POLICIES = Object.freeze({
   entitlements: { limit: 120, windowSeconds: 3600, auth: true },
   'billing-portal': { limit: 5, windowSeconds: 3600, auth: true },
   'newsletter-subscriptions': { limit: 5, windowSeconds: 3600, auth: false },
+  'revenue-link-status': { limit: 120, windowSeconds: 60, auth: false },
+  'revenue-link-redirect': { limit: 60, windowSeconds: 60, auth: false },
 });
 
 function header(request, name) {
