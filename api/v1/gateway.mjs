@@ -9,8 +9,7 @@ import sessionStatusHandler from '../billing/session-status.mjs';
 import subscriptionHandler from '../billing/subscription.mjs';
 import portalHandler from '../billing/portal.mjs';
 import newsletterHandler from '../../newsletterHandler.mjs';
-import revenueLinkStatusHandler from '../revenue-link-status.mjs';
-import revenueLinkRedirectHandler from '../revenue-link-redirect.mjs';
+import { readToolKey, resolveRevenuePilotRedirect, revenuePilotStatus } from '../../revenuePilot.mjs';
 import { authenticateRequest } from '../../authSession.mjs';
 import { apiEnvelope, auditApiEvent, enforceApiGovernance } from '../../apiGovernance.mjs';
 
@@ -26,8 +25,27 @@ const ROUTES = {
   entitlements: { operation: 'entitlements', handler: subscriptionHandler },
   'billing-portal': { operation: 'billing-portal', handler: portalHandler, auth: true },
   'newsletter-subscriptions': { operation: 'newsletter-subscriptions', handler: newsletterHandler },
-  'revenue-link-status': { operation: 'revenue-link-status', handler: revenueLinkStatusHandler },
-  'revenue-link-redirect': { operation: 'revenue-link-redirect', handler: revenueLinkRedirectHandler, binary: true },
+  'revenue-link-status': {
+    operation: 'revenue-link-status',
+    handler: async (req, res) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'private, max-age=60');
+      res.end(JSON.stringify(revenuePilotStatus(readToolKey(req))));
+    },
+  },
+  'revenue-link-redirect': {
+    operation: 'revenue-link-redirect', binary: true,
+    handler: async (req, res) => {
+      const result = await resolveRevenuePilotRedirect(readToolKey(req), req);
+      if (!result.location) { res.statusCode = 404; res.setHeader('Cache-Control', 'no-store'); return res.end(); }
+      res.statusCode = result.status;
+      res.setHeader('Location', result.location);
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-AQUA-Revenue-Outcome', result.outcome);
+      return res.end();
+    },
+  },
 };
 
 function capturedResponse() {
