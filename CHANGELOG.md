@@ -6,6 +6,8 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 
 ### Added
 
+- Identidade visual alinhada com a prancha 47 do AQUA Brand System, incluindo tokens, lockup, ícones e favicons canónicos.
+- Toolchain local fixada em Node.js 20 através de `.nvmrc`.
 - Gate automático de readiness para deployments, com evidência JSON redigida.
 - Validação de configuração de produção sem exposição de valores ou segredos.
 - Auditoria paginada da qualidade do catálogo, com evidência JSON e modo de enforcement.
@@ -33,6 +35,7 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 
 ### Security
 
+- Dependências transitivas Browserslist atualizadas para eliminar as vulnerabilidades `high` e `moderate` conhecidas em 2026-10-04.
 - O portal de billing permanece suspenso até cumprir os respetivos controlos externos.
 - A publicidade respeita consentimento, Global Privacy Control e um interruptor explícito de suspensão.
 - Tokens, emails e bodies foram excluídos da telemetria operacional.

@@ -15,3 +15,10 @@ test-results/
 
 # Operating-system metadata
 .DS_Store
+
+# Redundant root-level copies emitted by the AQUA Brand installer.
+# Vite serves the canonical runtime assets from public/.
+/apple-touch-icon.png
+/favicon-16x16.png
+/favicon-32x32.png
+/favicon.svg

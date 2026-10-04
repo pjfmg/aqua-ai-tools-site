@@ -13,7 +13,7 @@ A identidade utiliza **Supabase Auth**. Billing pertence ao **AQUA OS Commerce**
 Terminal 1 (proxy local para os serviços AQUA OS):
 
 ```bash
-cd "/Users/paulogoncalves/Desktop/04-AQUA Apps/AQUA AI Tools Site"
+cd "/Volumes/AQUA SSD/04-AQUA Apps/APPS/Tech/AQUA AI Tools Site/Web"
 export VITE_SUPABASE_URL="https://<project-ref>.supabase.co"
 export VITE_SUPABASE_ANON_KEY="..."
 export SUPABASE_URL="$VITE_SUPABASE_URL"

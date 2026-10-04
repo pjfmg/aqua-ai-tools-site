@@ -49,6 +49,13 @@ Procedimento e formato de evidência: [`release-gate.md`](release-gate.md).
 
 Nenhum item marcado por suposição. Evidência e responsável devem acompanhar a aprovação.
 
+## Evidência local mais recente
+
+Em 2026-10-04, com Node.js 22.17.0, `npm ci`, `npm audit
+--audit-level=high` e `npm run check` concluíram com sucesso. A execução incluiu
+13 smoke suites, 11 testes Playwright, build Vite e validação dos 30 artefactos
+da release candidate. Evidência: [`releases/2026-10-04-local-release-gate.md`](releases/2026-10-04-local-release-gate.md).
+
 ## Estado público observado
 
 Em 2026-07-24, liveness estava verde mas readiness devolvia HTTP 503 devido a configuração e Commerce. Evidência: [`releases/2026-07-24-production-readiness.md`](releases/2026-07-24-production-readiness.md). Este estado bloqueia a release.
@@ -60,3 +67,9 @@ Trust Platform e CMP/TCF não eram observáveis. A publicidade permanece
 `default-deny`; a configuração conservadora foi preparada para o próximo
 deployment. Evidência:
 [`releases/2026-07-29-trust-platform-readiness.md`](releases/2026-07-29-trust-platform-readiness.md).
+
+Em 2026-10-04, liveness e catálogo continuavam acessíveis, mas readiness
+devolvia HTTP 503 porque a dependência Commerce estava em `fail`. A auditoria
+do catálogo com enforcement encontrou cinco problemas críticos e 13 369
+lacunas editoriais. A release pública observada não corresponde à candidate
+local. Evidência: [`releases/2026-10-04-local-release-gate.md`](releases/2026-10-04-local-release-gate.md).

@@ -9,17 +9,17 @@
   --pad: 20px;
 
   /* AQUA AI Tools — brand primitives */
-  --aqua-black: #050914;
-  --aqua-navy: #071225;
-  --aqua-deep: #070f35;
-  --aqua-purple: #6d26ff;
-  --aqua-orchid: #a935e8;
-  --aqua-blue: #1267ff;
-  --aqua-cyan: #08d7ff;
-  --aqua-teal: #00c6e8;
+  --aqua-black: #152025;
+  --aqua-navy: #152025;
+  --aqua-deep: #152025;
+  --aqua-purple: #a96bfb;
+  --aqua-orchid: #b03d79;
+  --aqua-blue: #ab8af9;
+  --aqua-cyan: #00bdaa;
+  --aqua-teal: #00bdaa;
   --aqua-white: #ffffff;
-  --aqua-cloud: #f4f7ff;
-  --aqua-sun: #ffe37a;
+  --aqua-cloud: #f3f6fb;
+  --aqua-sun: #ffd058;
 
   /* Semantic tokens */
   --ink: var(--aqua-navy);
@@ -194,8 +194,8 @@ a {
   padding: 0 16px;
   border-radius: 999px;
   color: #fff;
-  background: linear-gradient(135deg, #5f21ff, #8f34ff 46%, #1267ff 100%);
-  box-shadow: 0 10px 22px rgba(18, 103, 255, 0.2);
+  background: linear-gradient(135deg, #ab8af9, #a96bfb 52%, #b03d79 100%);
+  box-shadow: 0 10px 22px rgba(169, 107, 251, 0.22);
   font-size: clamp(0.9rem, 1.4vw, 1.2rem);
   letter-spacing: -0.02em;
 }
@@ -1169,8 +1169,8 @@ a {
   border-radius: 20px;
   color: #fff;
   background:
-    radial-gradient(420px 210px at 88% 30%, rgba(8, 215, 255, 0.38), transparent 64%),
-    linear-gradient(120deg, #130344, #6d26ff 48%, #1267ff);
+    radial-gradient(420px 210px at 88% 30%, rgba(0, 189, 170, 0.26), transparent 64%),
+    linear-gradient(120deg, #152025, #a96bfb 54%, #b03d79);
   box-shadow: var(--shadow);
 }
 
@@ -1255,13 +1255,13 @@ a {
   padding: 38px 24px;
   color: #fff;
   background:
-    radial-gradient(280px 260px at 70% 32%, rgba(8, 215, 255, 0.48), transparent 64%),
-    linear-gradient(150deg, #130344, #6d26ff 58%, #1267ff);
+    radial-gradient(280px 260px at 70% 32%, rgba(0, 189, 170, 0.34), transparent 64%),
+    linear-gradient(150deg, #152025, #a96bfb 58%, #b03d79);
 }
 
 .newsletterDialog__spark {
   margin-bottom: 18px;
-  color: #ffe37a;
+  color: #ffd058;
   font-size: 2.2rem;
 }
 
@@ -1300,7 +1300,7 @@ a {
   padding: 38px;
 }
 
-.newsletterDialog__content .newsletterDialog__eyebrow { color: #1267ff; }
+.newsletterDialog__content .newsletterDialog__eyebrow { color: #7041a8; }
 
 .newsletterDialog__content h2 {
   margin: 8px 42px 10px 0;
@@ -3158,12 +3158,12 @@ a {
 }
 
 .aquaLoginPage {
-  --login-bg: #061a2e;
+  --login-bg: #152025;
   --login-panel: #09213a;
   --login-border: #27527a;
   --login-muted: #9eb3cc;
   --login-text: #f6f9ff;
-  --login-blue: #3c8dff;
+  --login-blue: #a96bfb;
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
@@ -3396,7 +3396,7 @@ a {
   border: 1px solid var(--login-blue);
   border-radius: 12px;
   color: #fff;
-  background: #1267ff;
+  background: #a96bfb;
   font-weight: 850;
   cursor: pointer;
 }
