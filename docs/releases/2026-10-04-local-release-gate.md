@@ -49,3 +49,16 @@ uma variável `AQUA_RELEASE` antiga tinha precedência sobre o SHA fornecido pel
 host. O gate rejeitou corretamente o preview. Foi preparada uma correção para
 privilegiar `VERCEL_GIT_COMMIT_SHA` e `CF_PAGES_COMMIT_SHA`; a validação deve ser
 repetida no preview seguinte.
+
+O preview seguinte anunciou corretamente o commit
+`e1042bb6537451110742a1568dacf7d0372434f4`. Liveness e catálogo passaram;
+readiness continuou em HTTP 503 por Commerce. A recolha browser redigida provou
+zero scripts de publicidade e analytics antes da escolha, mas não observou
+`__tcfapi`, CMP carregada ou prova TCF. Evidência:
+[`2026-10-04-preview-trust-browser-evidence.json`](2026-10-04-preview-trust-browser-evidence.json)
+e [`2026-10-04-preview-trust-readiness.json`](2026-10-04-preview-trust-readiness.json).
+
+Capturas completas em Chromium confirmaram renderização desktop e mobile sem
+quebras estruturais aparentes. A abertura do preview no `iPhone 17 de Paulo`
+foi tentada, mas o SpringBoard recusou o lançamento do Safari porque o aparelho
+estava bloqueado. Isto não constitui prova de renderização no dispositivo.

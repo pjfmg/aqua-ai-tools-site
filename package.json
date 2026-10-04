@@ -24,6 +24,7 @@
     "release:readiness": "node scripts/release-readiness.mjs",
     "release:verify:production": "node scripts/release-readiness.mjs --base-url https://aqua-aitools.com",
     "trust:readiness": "node scripts/trust-platform-readiness.mjs",
+    "trust:evidence": "node scripts/collect-trust-browser-evidence.mjs",
     "catalog:quality": "node scripts/catalog-quality.mjs",
     "catalog:quality:production": "node scripts/catalog-quality.mjs --base-url https://aqua-aitools.com",
     "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check"
