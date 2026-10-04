@@ -17,10 +17,12 @@ autoriza promoção para produção.
 - Build: 103 módulos transformados.
 - Release check: estado `candidate`, 30 artefactos validados.
 
-Uma tentativa anterior com Node.js 26.4.0, fora do intervalo suportado pelo
-projeto, terminou por timeout num teste de eventos de auditoria. O teste passou
-isoladamente e voltou a passar na suite completa sob Node.js 22. Não foi
-necessária uma alteração ao contrato de privacidade.
+Uma tentativa com Node.js 26.4.0, fora do intervalo suportado pelo projeto,
+terminou por timeout num teste de eventos de auditoria. Repetições posteriores
+sob carga elevada do host também excederam o timeout durante a criação da página
+ou navegação, sem falha nas asserções do contrato. A navegação passou a esperar
+`domcontentloaded` e o orçamento da infraestrutura E2E foi aumentado para 60
+segundos. Não foi alterado o contrato de privacidade.
 
 ## Estado público observado
 
@@ -38,3 +40,12 @@ necessária uma alteração ao contrato de privacidade.
 Gate local verde. Promoção para produção permanece bloqueada por Commerce,
 qualidade do catálogo, evidência Trust atual, controlos operacionais e
 aprovações formais.
+
+## Preview da candidate
+
+O primeiro preview Vercel do commit `9641540a6688022856f1950a71ebe3c697ded1e7`
+foi publicado com HTTP 200, mas anunciou a release histórica `0934f91` porque
+uma variável `AQUA_RELEASE` antiga tinha precedência sobre o SHA fornecido pelo
+host. O gate rejeitou corretamente o preview. Foi preparada uma correção para
+privilegiar `VERCEL_GIT_COMMIT_SHA` e `CF_PAGES_COMMIT_SHA`; a validação deve ser
+repetida no preview seguinte.

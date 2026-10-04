@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
   workers: 1,
-  timeout: 20_000,
+  timeout: 60_000,
   expect: {
     timeout: 7_000,
   },
@@ -27,7 +27,7 @@ export default defineConfig({
     command: 'npm run dev:vite -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    timeout: 60_000,
     env: {
       ...process.env,
       VITE_ADSENSE_TCF_READY: 'true',

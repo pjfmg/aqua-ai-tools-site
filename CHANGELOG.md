@@ -20,6 +20,7 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 
 ### Changed
 
+- Testes E2E de privacidade passaram a esperar o DOM necessário e a tolerar arranque lento do browser sem depender do evento `load` de recursos externos.
 - O catálogo deixou de usar Airtable como persistência runtime.
 - Billing, dados, trust e observabilidade passaram a capacidades governadas pelo AQUA OS.
 - Toolchain atualizado para Vite 6.4.3 e React Router 7.18.3 após dependency audit.

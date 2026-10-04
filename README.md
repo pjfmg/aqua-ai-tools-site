@@ -87,6 +87,7 @@ Este projeto pode correr em **Cloudflare Pages** através da Function catch-all 
 - `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no ambiente de build
 - `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente runtime das Functions
 - `SUPABASE_SERVICE_ROLE_KEY` no runtime das Functions, nunca no build do frontend
+- `CF_PAGES_COMMIT_SHA` é usado automaticamente para identificar a release publicada
 - (Opcional) `VITE_ADSENSE_CLIENT`
 - (Opcional) `VITE_ADSENSE_SLOT`
 - Flags da Trust Platform acima; todas as provas operacionais são explícitas e `false`/`unknown` por defeito

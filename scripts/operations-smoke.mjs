@@ -14,6 +14,18 @@ const readyEnv = {
   AQUA_RELEASE: 'test-release',
 };
 assert.deepEqual(deploymentConfigurationStatus(readyEnv), { ok: true, missing: [], invalid: [] });
+const hostedOnVercel = await healthSnapshot(request, 'live', {
+  ...readyEnv,
+  VERCEL_GIT_COMMIT_SHA: 'vercel-commit',
+  CF_PAGES_COMMIT_SHA: 'cloudflare-commit',
+});
+assert.equal(hostedOnVercel.data.release, 'vercel-commit');
+const hostedOnCloudflare = await healthSnapshot(request, 'live', {
+  ...readyEnv,
+  AQUA_RELEASE: 'stale-manual-release',
+  CF_PAGES_COMMIT_SHA: 'cloudflare-commit',
+});
+assert.equal(hostedOnCloudflare.data.release, 'cloudflare-commit');
 const missingGovernance = deploymentConfigurationStatus({ ...readyEnv, SUPABASE_SERVICE_ROLE_KEY: '' });
 assert.equal(missingGovernance.ok, false);
 assert.deepEqual(missingGovernance.missing, ['SUPABASE_SERVICE_ROLE_KEY']);

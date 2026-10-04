@@ -37,7 +37,11 @@ O comando apenas publica os nomes de configurações ausentes ou inválidas; nun
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `AQUA_RELEASE` ou `VERCEL_GIT_COMMIT_SHA`
+- `VERCEL_GIT_COMMIT_SHA`, `CF_PAGES_COMMIT_SHA` ou `AQUA_RELEASE`
+
+Os identificadores imutáveis fornecidos pelo host têm precedência sobre um
+`AQUA_RELEASE` configurado manualmente, evitando que uma variável antiga faça
+uma nova publicação anunciar a release errada.
 
 URLs externas têm de usar HTTPS. HTTP é permitido apenas para serviços locais.
 
