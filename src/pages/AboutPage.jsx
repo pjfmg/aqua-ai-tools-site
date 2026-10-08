@@ -3,17 +3,19 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/Hero.jsx';
 import Section from '../components/Section.jsx';
 import { useLanguage } from '../i18n.jsx';
+import { CATALOG_EVIDENCE, formatPublishedRecords } from '../lib/catalogEvidence.js';
 
 export default function AboutPage() {
   const { path, isEn } = useLanguage();
+  const publishedRecords = formatPublishedRecords(isEn ? 'en-GB' : 'pt-PT');
   return (
     <>
       <Hero
         title={isEn ? 'About' : 'Sobre'}
         subtitle={
           isEn
-            ? 'AQUA AI Tools is a curated directory for discovering and comparing AI tools.'
-            : 'O AQUA AI Tools é um diretório curado para descobrir e comparar ferramentas de IA.'
+            ? 'A transparent catalogue and an editorial library for making better decisions about AI tools.'
+            : 'Um catálogo transparente e uma biblioteca editorial para decidir melhor sobre ferramentas de IA.'
         }
         badge="AQUA"
         right={
@@ -58,6 +60,36 @@ export default function AboutPage() {
               </>
             )}
           </div>
+        </div>
+      </Section>
+
+      <Section
+        title={isEn ? 'Editorial method' : 'Método editorial'}
+        subtitle={
+          isEn
+            ? 'What the AQUA team writes, verifies and deliberately leaves unclaimed.'
+            : 'O que a equipa AQUA escreve, verifica e escolhe não afirmar sem evidência.'
+        }
+      >
+        <div className="grid-container">
+          <article className="page"><div className="page__body">
+            <h3 style={{ marginTop: 0 }}>{isEn ? 'Original guides' : 'Guias originais'}</h3>
+            <p>{isEn
+              ? 'Our guides are written as repeatable methods: tasks, checklists, scoring rules and decision criteria. They are reviewed by the AQUA editorial team and carry a visible review date.'
+              : 'Os nossos guias são escritos como métodos repetíveis: tarefas, checklists, grelhas de pontuação e critérios de decisão. São revistos pela equipa editorial AQUA e apresentam uma data de revisão visível.'}</p>
+          </div></article>
+          <article className="page"><div className="page__body">
+            <h3 style={{ marginTop: 0 }}>{isEn ? 'Catalogue records' : 'Registos do catálogo'}</h3>
+            <p>{isEn
+              ? 'A catalogue record is not a recommendation. Records without a substantive manual assessment are excluded from search indexing and advertising, even when they remain available for discovery.'
+              : 'Um registo do catálogo não é uma recomendação. Registos sem uma avaliação manual substantiva ficam fora da indexação e da publicidade, mesmo quando continuam disponíveis para descoberta.'}</p>
+          </div></article>
+          <article className="page"><div className="page__body">
+            <h3 style={{ marginTop: 0 }}>{isEn ? 'Corrections and independence' : 'Correções e independência'}</h3>
+            <p>{isEn
+              ? 'We distinguish automated catalogue checks from editorial verification, date the evidence we publish and provide a correction channel. Commercial contact does not turn an unverified record into an editorial endorsement.'
+              : 'Distinguimos controlos automáticos do catálogo de verificação editorial, datamos a evidência publicada e disponibilizamos um canal de correção. Um contacto comercial não transforma um registo não verificado numa recomendação editorial.'}</p>
+          </div></article>
         </div>
       </Section>
 
@@ -115,10 +147,29 @@ export default function AboutPage() {
         <div className="page">
           <div className="page__body">
             <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 8 }}>
-              <li>{isEn ? 'Links and logos can change; we try to keep everything current.' : 'Links e logos podem mudar; tentamos manter tudo atualizado.'}</li>
-              <li>{isEn ? 'Prices and plans may not reflect the latest offer from each product.' : 'Preços/planos podem não refletir a oferta mais recente de cada produto.'}</li>
-              <li>{isEn ? 'Some pages are still evolving and will be improved gradually.' : 'Algumas páginas estão em desenvolvimento e serão melhoradas gradualmente.'}</li>
+              <li>
+                {isEn
+                  ? `${publishedRecords} records were present in the automated catalogue audit dated 24 July 2026.`
+                  : `${publishedRecords} registos estavam presentes na auditoria automática do catálogo de 24 de julho de 2026.`}
+              </li>
+              <li>
+                {isEn
+                  ? 'The audit checks taxonomy coverage, valid links and exact website duplicates; it does not certify that every tool is operational.'
+                  : 'A auditoria controla cobertura taxonómica, links válidos e websites exatamente duplicados; não certifica que todas as ferramentas estejam operacionais.'}
+              </li>
+              <li>
+                {isEn
+                  ? 'Missing editorial descriptions remain clearly marked for review instead of being filled with invented generic copy.'
+                  : 'Descrições editoriais em falta ficam claramente marcadas para revisão, em vez de serem preenchidas com texto genérico inventado.'}
+              </li>
+              <li>{isEn ? 'Links, prices and plans can change after the audit date.' : 'Links, preços e planos podem mudar depois da data da auditoria.'}</li>
             </ul>
+            <p style={{ marginBottom: 0 }}>
+              <time dateTime={CATALOG_EVIDENCE.auditedOn}>
+                {isEn ? 'Evidence date: 24 July 2026.' : 'Data da evidência: 24 de julho de 2026.'}
+              </time>{' '}
+              <Link to={path('/sugestoes')}>{isEn ? 'Report a correction.' : 'Comunicar uma correção.'}</Link>
+            </p>
           </div>
         </div>
       </Section>

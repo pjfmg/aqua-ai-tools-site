@@ -34,7 +34,7 @@ async function preparePage(page, {
     const url = route.request().url();
     const parsedUrl = new URL(url);
     if (
-      parsedUrl.origin === 'http://127.0.0.1:4173'
+      parsedUrl.hostname === '127.0.0.1'
       && parsedUrl.pathname === '/v1/tools'
     ) {
       await route.fulfill({
@@ -112,9 +112,13 @@ async function providerScriptCount(page, fragment) {
   return page.locator(`script[src*="${fragment}"]`).count();
 }
 
+async function gotoApp(page, path = '/') {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+}
+
 test('first visit loads no optional provider before a choice', async ({ page }) => {
   const requests = await preparePage(page);
-  await page.goto('/');
+  await gotoApp(page);
 
   await expect(page.getByRole('region', { name: 'As tuas escolhas de privacidade' })).toBeVisible();
   expect(requests).toEqual([]);
@@ -127,7 +131,7 @@ test('first visit loads no optional provider before a choice', async ({ page }) 
 
 test('decision audit events are minimized and contain no consent or TCF payload', async ({ page }) => {
   await preparePage(page);
-  await page.goto('/');
+  await gotoApp(page);
 
   await expect.poll(() => page.evaluate(
     () => window.__aquaTrustDecisionEvents.length,
@@ -158,7 +162,7 @@ test('decision audit events are minimized and contain no consent or TCF payload'
 
 test('rejecting optional storage persists a denied choice without providers', async ({ page }) => {
   const requests = await preparePage(page);
-  await page.goto('/');
+  await gotoApp(page);
   await page.getByRole('button', { name: 'Recusar cookies opcionais' }).click();
 
   await expect(page.getByRole('region', { name: 'As tuas escolhas de privacidade' })).toBeHidden();
@@ -169,7 +173,7 @@ test('rejecting optional storage persists a denied choice without providers', as
 
 test('accepting enables providers only after a valid TCF decision', async ({ page }) => {
   await preparePage(page);
-  await page.goto('/');
+  await gotoApp(page);
   await page.getByRole('button', { name: 'Aceitar todos os cookies' }).click();
 
   await expect.poll(() => providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(1);
@@ -182,12 +186,12 @@ test('accepting enables providers only after a valid TCF decision', async ({ pag
 
 test('withdrawal persists revokedAt and immediately unloads optional providers', async ({ page }) => {
   await preparePage(page);
-  await page.goto('/');
+  await gotoApp(page);
   await page.getByRole('button', { name: 'Aceitar todos os cookies' }).click();
   await expect.poll(() => providerScriptCount(page, 'pagead2.googlesyndication.com/pagead')).toBe(1);
   await page.evaluate(() => { document.cookie = '_ga_e2e=value; Path=/; SameSite=Lax'; });
 
-  await page.goto('/privacidade');
+  await gotoApp(page, '/privacidade');
   await page.getByRole('button', { name: 'Abrir definições de privacidade' }).click();
   const dialog = page.getByRole('dialog', { name: 'Preferências de privacidade' });
   await expect(dialog).toBeVisible();
@@ -208,7 +212,7 @@ test('a choice expires during an open session and requires renewal', async ({ pa
     decidedAt: new Date(Date.now() - RETENTION_MS + 4_000).toISOString(),
   });
   await preparePage(page, { choice: expiresSoon });
-  await page.goto('/');
+  await gotoApp(page);
 
   await expect.poll(() => providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(1);
   await expect(page.getByRole('region', { name: 'As tuas escolhas de privacidade' })).toContainText('A tua escolha anterior expirou após 180 dias. Escolhe novamente.', { timeout: 8_000 });
@@ -220,7 +224,7 @@ test('a policy version change requires a new explicit choice', async ({ page }) 
   await preparePage(page, {
     choice: consentChoice({ analytics: true, advertising: true, policyVersion: 2 }),
   });
-  await page.goto('/');
+  await gotoApp(page);
 
   await expect(page.getByRole('region', { name: 'As tuas escolhas de privacidade' })).toContainText('A política de consentimento mudou. Revê e renova a tua escolha.');
   expect(await providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(0);
@@ -233,7 +237,7 @@ for (const signal of ['GPC', 'DNT']) {
       globalPrivacyControl: signal === 'GPC',
       doNotTrack: signal === 'DNT',
     });
-    await page.goto('/');
+    await gotoApp(page);
     await page.getByRole('button', { name: 'Aceitar todos os cookies' }).click();
 
     const choice = await storedChoice(page);
@@ -249,7 +253,7 @@ test('unknown region applies strict TCF proof requirements', async ({ page }) =>
     cmp: 'incomplete',
     choice: consentChoice({ advertising: true }),
   });
-  await page.goto('/');
+  await gotoApp(page);
 
   await expect.poll(() => page.evaluate(() => window.__aquaTrustDiagnostics?.advertising?.reasons || [])).toContain('tcf.proof-missing');
   expect(await providerScriptCount(page, 'pagead2.googlesyndication.com/pagead')).toBe(0);
@@ -257,7 +261,7 @@ test('unknown region applies strict TCF proof requirements', async ({ page }) =>
 
 test('missing CMP fails closed even when the deployment interlock is enabled', async ({ page }) => {
   await preparePage(page, { cmp: 'missing' });
-  await page.goto('/');
+  await gotoApp(page);
   await page.getByRole('button', { name: 'Aceitar todos os cookies' }).click();
 
   const choice = await storedChoice(page);

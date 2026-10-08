@@ -1,12 +1,12 @@
 import { fetchWithTimeout } from './http.js';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 40;
 const FIRST_PAGE_SIZE = 20;
 const FETCH_TIMEOUT_MS = 20000;
 
 export function normalizeRecordStatus(value) {
-  const mode = String(value || 'eligible').trim().toLowerCase();
-  return ['published', 'eligible', 'all'].includes(mode) ? mode : 'eligible';
+  const mode = String(value || 'published').trim().toLowerCase();
+  return ['published', 'eligible', 'all'].includes(mode) ? mode : 'published';
 }
 
 export function normalizeToolFilters(filters = {}) {
@@ -90,7 +90,7 @@ async function readUpstreamError(res) {
   }
 }
 
-async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'eligible', filters = {} } = {}) {
+async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatus = 'published', filters = {} } = {}) {
   const url = new URL('/v1/tools', window.location.origin);
   const normalizedFilters = normalizeToolFilters(filters);
   url.searchParams.set('pageSize', String(pageSize));
@@ -100,11 +100,7 @@ async function fetchToolsPage({ offset = null, pageSize = PAGE_SIZE, recordStatu
   if (normalizedFilters.area) url.searchParams.set('area', normalizedFilters.area);
   if (normalizedFilters.price) url.searchParams.set('price', normalizedFilters.price);
   if (offset) url.searchParams.set('offset', offset);
-  // Extra cache-buster for the first page to avoid a stale pagination cursor.
-  if (!offset) url.searchParams.set('_ts', String(Date.now()));
-
-  // iOS Safari/WebViews can be aggressive with caching; avoid replaying an old cursor.
-  const res = await fetchWithTimeout(url.toString(), { cache: 'no-store' }, FETCH_TIMEOUT_MS);
+  const res = await fetchWithTimeout(url.toString(), { cache: 'default' }, FETCH_TIMEOUT_MS);
   if (!res.ok) {
     const details = await readUpstreamError(res);
     throw new Error(`API /v1/tools falhou (${res.status})${details ? `: ${details}` : ''}`);
@@ -215,31 +211,139 @@ export function getToolNumber(tool) {
   return String(value ?? '').trim();
 }
 
+export function slugifyToolValue(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 90);
+}
+
+export function getToolSlug(tool) {
+  const name = slugifyToolValue(getToolName(tool)) || 'ferramenta';
+  const number = slugifyToolValue(getToolNumber(tool));
+  const fallbackId = slugifyToolValue(tool?.ID_Unico || tool?.id || '');
+  const identifier = number || fallbackId;
+  return identifier ? `${identifier}--${name}` : name;
+}
+
+export function parseToolSlug(value) {
+  const raw = String(value || '').toLowerCase();
+  const [rawIdentifier = '', ...rawNameParts] = raw.split('--');
+  const hasIdentifier = rawNameParts.length > 0;
+  const identifier = hasIdentifier ? slugifyToolValue(rawIdentifier) : '';
+  const nameSlug = slugifyToolValue(hasIdentifier ? rawNameParts.join('--') : raw);
+  const slug = identifier ? `${identifier}--${nameSlug}` : nameSlug;
+  return {
+    slug,
+    identifier,
+    number: /^\d+$/.test(identifier) ? identifier : '',
+    nameQuery: nameSlug.replace(/-/g, ' ').trim(),
+  };
+}
+
+export function getToolOperationalStatus(tool) {
+  const value = String(
+    tool?.['Operational Status'] ??
+      tool?.['Site Status'] ??
+      tool?.OperationalStatus ??
+      '',
+  ).trim();
+  if (!value || /^(unknown|desconhecido|n\/a|na)$/i.test(value)) return '';
+  return value;
+}
+
 export function getToolSite(tool) {
   return normalizeWebsiteUrl(tool?.['Site'] ?? tool?.Site ?? tool?.['Final URL'] ?? tool?.['URL'] ?? tool?.URL ?? '');
 }
 
-const CATEGORY_PT = new Map([
-  ['automation', 'Automação'],
-  ['business', 'Negócios'],
-  ['chatbots', 'Chatbots'],
-  ['comparison', 'Comparação'],
-  ['design', 'Design'],
-  ['directory', 'Diretório'],
-  ['education', 'Educação'],
-  ['evaluation', 'Avaliação'],
-  ['finance', 'Finanças'],
-  ['guides', 'Guias'],
-  ['image', 'Imagem'],
-  ['machine learning', 'Machine Learning'],
-  ['marketing', 'Marketing'],
-  ['productivity', 'Produtividade'],
-  ['prompts', 'Prompts'],
-  ['security', 'Segurança'],
-  ['social media', 'Redes sociais'],
-  ['text', 'Texto'],
-  ['video', 'Vídeo'],
-  ['writing assistant', 'Assistente de escrita'],
+export function getToolCanonicalWebsiteKey(tool) {
+  const website = getToolSite(tool);
+  if (!website) return '';
+  try {
+    const url = new URL(website);
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, '');
+    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+    return `${hostname}${pathname}`.toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+export function dedupeTools(tools = []) {
+  const unique = [];
+  const identities = new Set();
+  const websites = new Set();
+
+  for (const tool of Array.isArray(tools) ? tools : []) {
+    const identity = String(tool?.ID_Unico || tool?.id || tool?.Número || '').trim();
+    const website = getToolCanonicalWebsiteKey(tool);
+    if ((identity && identities.has(identity)) || (website && websites.has(website))) continue;
+    if (identity) identities.add(identity);
+    if (website) websites.add(website);
+    unique.push(tool);
+  }
+
+  return unique;
+}
+
+const CATEGORY_LABELS = new Map([
+  ['aplicações de ia', { pt: 'Aplicações de IA', en: 'AI applications' }],
+  ['ai applications', { pt: 'Aplicações de IA', en: 'AI applications' }],
+  ['automation', { pt: 'Automação', en: 'Automation' }],
+  ['automação', { pt: 'Automação', en: 'Automation' }],
+  ['business', { pt: 'Negócios', en: 'Business' }],
+  ['negócios', { pt: 'Negócios', en: 'Business' }],
+  ['chatbot integration', { pt: 'Chatbots', en: 'Chatbots' }],
+  ['chatbots', { pt: 'Chatbots', en: 'Chatbots' }],
+  ['comparison', { pt: 'Comparação', en: 'Comparison' }],
+  ['comparação', { pt: 'Comparação', en: 'Comparison' }],
+  ['content detection', { pt: 'Deteção de conteúdo', en: 'Content detection' }],
+  ['deteção de conteúdo', { pt: 'Deteção de conteúdo', en: 'Content detection' }],
+  ['customer support', { pt: 'Apoio ao cliente', en: 'Customer support' }],
+  ['apoio ao cliente', { pt: 'Apoio ao cliente', en: 'Customer support' }],
+  ['design', { pt: 'Design', en: 'Design' }],
+  ['directory', { pt: 'Diretório', en: 'Directory' }],
+  ['diretório', { pt: 'Diretório', en: 'Directory' }],
+  ['education', { pt: 'Educação', en: 'Education' }],
+  ['educação', { pt: 'Educação', en: 'Education' }],
+  ['evaluation', { pt: 'Avaliação', en: 'Evaluation' }],
+  ['avaliação', { pt: 'Avaliação', en: 'Evaluation' }],
+  ['finance', { pt: 'Finanças', en: 'Finance' }],
+  ['finanças', { pt: 'Finanças', en: 'Finance' }],
+  ['guides', { pt: 'Guias', en: 'Guides' }],
+  ['guias', { pt: 'Guias', en: 'Guides' }],
+  ['image', { pt: 'Imagem', en: 'Image' }],
+  ['imagem', { pt: 'Imagem', en: 'Image' }],
+  ['llm', { pt: 'Modelos de linguagem', en: 'LLMs' }],
+  ['llms', { pt: 'Modelos de linguagem', en: 'LLMs' }],
+  ["llm's", { pt: 'Modelos de linguagem', en: 'LLMs' }],
+  ['modelos de linguagem', { pt: 'Modelos de linguagem', en: 'LLMs' }],
+  ['machine learning', { pt: 'Aprendizagem automática', en: 'Machine learning' }],
+  ['aprendizagem automática', { pt: 'Aprendizagem automática', en: 'Machine learning' }],
+  ['marketing', { pt: 'Marketing', en: 'Marketing' }],
+  ['copywriting tools', { pt: 'Copywriting', en: 'Copywriting' }],
+  ['ai influencers', { pt: 'Influenciadores virtuais', en: 'AI influencers' }],
+  ['productivity', { pt: 'Produtividade', en: 'Productivity' }],
+  ['produtividade', { pt: 'Produtividade', en: 'Productivity' }],
+  ['prompts', { pt: 'Prompts', en: 'Prompts' }],
+  ['research', { pt: 'Pesquisa', en: 'Research' }],
+  ['pesquisa', { pt: 'Pesquisa', en: 'Research' }],
+  ['security', { pt: 'Segurança', en: 'Security' }],
+  ['segurança', { pt: 'Segurança', en: 'Security' }],
+  ['seo', { pt: 'SEO', en: 'SEO' }],
+  ['social media', { pt: 'Redes sociais', en: 'Social media' }],
+  ['social media management', { pt: 'Gestão de redes sociais', en: 'Social media management' }],
+  ['redes sociais', { pt: 'Redes sociais', en: 'Social media' }],
+  ['text', { pt: 'Texto', en: 'Text' }],
+  ['texto', { pt: 'Texto', en: 'Text' }],
+  ['textos chatgpt', { pt: 'Texto', en: 'Text' }],
+  ['video', { pt: 'Vídeo', en: 'Video' }],
+  ['vídeo', { pt: 'Vídeo', en: 'Video' }],
+  ['writing assistant', { pt: 'Assistente de escrita', en: 'Writing assistant' }],
+  ['assistente de escrita', { pt: 'Assistente de escrita', en: 'Writing assistant' }],
 ]);
 
 const DESCRIPTION_PT_EXACT = new Map([
@@ -307,8 +411,9 @@ function translateDescriptionToPt(value) {
 
 export function localizeCategory(value, lang = 'pt') {
   const text = String(value || '').trim();
-  if (!text || lang === 'en') return text;
-  return CATEGORY_PT.get(text.toLowerCase()) || text;
+  if (!text) return '';
+  const labels = CATEGORY_LABELS.get(text.toLowerCase());
+  return labels?.[lang === 'en' ? 'en' : 'pt'] || text;
 }
 
 export function getToolDescription(tool, lang = 'pt') {
@@ -327,17 +432,18 @@ export function getToolDescription(tool, lang = 'pt') {
   );
   const fallback = normalizeDescricao(tool?.['Descrição'] ?? tool?.Descricao ?? '');
 
-  if (lang === 'en') return en || pt || fallback;
+  if (lang === 'en') {
+    if (en) return en;
+    const candidate = pt || fallback;
+    return isLikelyEnglish(candidate) ? candidate : '';
+  }
 
   if (pt && !isLikelyEnglish(pt)) return pt;
 
   const translated = translateDescriptionToPt(pt || en || fallback);
   if (translated) return translated;
 
-  const category = getLocalizedToolAreas(tool, 'pt')[0];
-  return category
-    ? `Ferramenta digital na categoria ${category}, pensada para apoiar tarefas e fluxos de trabalho.`
-    : 'Ferramenta digital para apoiar tarefas, produtividade e fluxos de trabalho.';
+  return '';
 }
 
 export function getToolPrice(tool) {
@@ -553,7 +659,51 @@ export function pickDailyFeaturedTools(tools, count = 20, dateKey = getLocalDate
   return shuffled.slice(0, Math.max(0, count));
 }
 
-export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordStatus = 'eligible', filters = {} } = {}) {
+export async function loadToolsPage({
+  offset = null,
+  pageSize = PAGE_SIZE,
+  recordStatus = 'published',
+  filters = {},
+} = {}) {
+  try {
+    const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
+    const normalizedFilters = normalizeToolFilters(filters);
+    const page = await fetchToolsPage({
+      offset,
+      pageSize: Math.max(1, Math.min(100, Number(pageSize) || PAGE_SIZE)),
+      recordStatus: normalizedRecordStatus,
+      filters: normalizedFilters,
+    });
+    const sourceRecords =
+      normalizedRecordStatus === 'all'
+        ? page.records
+        : page.records.filter((record) => !isDuplicateRecord(record?.fields) && !isInoperationalRecord(record?.fields));
+    const eligibleTools = sourceRecords.map(extractToolFromRecord);
+    const publishedTools = sourceRecords
+      .filter((record) => isPublishedRecord(record?.fields))
+      .map(extractToolFromRecord);
+    const tools = dedupeTools(
+      normalizedRecordStatus === 'published' && publishedTools.length > 0
+        ? publishedTools
+        : eligibleTools,
+    );
+
+    return {
+      tools,
+      nextOffset: page.offset || null,
+      warning:
+        normalizedRecordStatus === 'published' && eligibleTools.length > 0 && publishedTools.length === 0
+          ? 'Aviso: esta página não continha registos marcados como publicados.'
+          : '',
+      source: 'data-platform',
+    };
+  } catch (err) {
+    if (isAuthFailureMessage(err?.message)) throw new Error('AUTH_REQUIRED');
+    throw err;
+  }
+}
+
+export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordStatus = 'published', filters = {} } = {}) {
   try {
     const normalizedRecordStatus = normalizeRecordStatus(recordStatus);
     const normalizedFilters = normalizeToolFilters(filters);
@@ -595,20 +745,20 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
     }
 
     if (normalizedRecordStatus === 'all' && out.length > 0) {
-      return { tools: out, warning: '', source: 'data-platform' };
+      return { tools: dedupeTools(out), warning: '', source: 'data-platform' };
     }
 
     if (normalizedRecordStatus === 'eligible' && out.length > 0) {
-      return { tools: out, warning: '', source: 'data-platform' };
+      return { tools: dedupeTools(out), warning: '', source: 'data-platform' };
     }
 
     if (publishedOut.length > 0) {
-      return { tools: publishedOut, warning: '', source: 'data-platform' };
+      return { tools: dedupeTools(publishedOut), warning: '', source: 'data-platform' };
     }
 
     if (out.length > 0) {
       return {
-        tools: out,
+        tools: dedupeTools(out),
         warning: hasToolFilters(normalizedFilters)
           ? 'Aviso: nenhum registo publicado correspondeu aos filtros no servidor. A mostrar registos elegíveis recebidos.'
           : 'Aviso: nenhum registo com Published ativo foi detetado. A mostrar todos os registos elegíveis recebidos.',
@@ -633,7 +783,7 @@ export async function loadToolsPhased({ onChunk, initialPageSize = 40, recordSta
     }
 
     return {
-      tools: allRecordsOut,
+      tools: dedupeTools(allRecordsOut),
       warning: 'Aviso: filtros automáticos removeram todos os registos. A mostrar todos os registos recebidos.',
       source: 'data-platform',
     };

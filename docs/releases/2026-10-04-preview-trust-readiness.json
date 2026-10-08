@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-ai-tools-site-kc3cmgex4-pjfmgs-projects.vercel.app",
+  "checkedAt": "2026-10-04T01:01:07.186Z",
+  "ok": false,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000; includeSubDomains; preload",
+      "bundlePath": "/assets/index-CvNajYOK.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "bundlePath": "/assets/index-CvNajYOK.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": false,
+      "errors": [
+        "readiness returned HTTP 503",
+        "readiness status is not ready",
+        "commerce is fail"
+      ],
+      "observedRelease": "e1042bb6537451110742a1568dacf7d0372434f4"
+    },
+    {
+      "name": "cmp-and-tcf-browser-evidence",
+      "ok": false,
+      "errors": [
+        "__tcfapi is not available",
+        "CMP status is not loaded",
+        "TCF proof is not present",
+        "TCF event is not ready"
+      ],
+      "evidence": {
+        "schemaVersion": 1,
+        "target": "https://aqua-ai-tools-site-kc3cmgex4-pjfmgs-projects.vercel.app/",
+        "checkedAt": "2026-10-04T01:01:02.155Z",
+        "bundlePath": "/assets/index-CvNajYOK.js",
+        "tcfApiType": "undefined",
+        "googleFcType": "undefined",
+        "cmpStatus": "not-observed",
+        "tcStringStatus": "not-observed",
+        "eventStatus": "not-observed",
+        "adScriptsBeforeChoice": 0,
+        "analyticsScriptsBeforeChoice": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUA AI Tools — Auditoria UX e Acessibilidade</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1280px;
+        background: #eef1fb;
+        color: #11162a;
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .board { padding: 48px; }
+      .header {
+        width: 1184px;
+        padding: 42px 48px;
+        border-radius: 32px;
+        background: linear-gradient(115deg, #27006f, #5236ff 52%, #34c8ef);
+        color: white;
+        box-shadow: 0 24px 70px rgba(35, 31, 89, .2);
+      }
+      .eyebrow { font-weight: 800; letter-spacing: .16em; text-transform: uppercase; opacity: .78; }
+      h1 { margin: 14px 0 12px; font-size: 52px; line-height: 1; }
+      .verdict { margin: 0; width: 1088px; font-size: 22px; line-height: 1.45; }
+      .priority {
+        margin-top: 38px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+      .priority div {
+        padding: 22px 26px;
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 18px;
+        background: rgba(255,255,255,.12);
+        font-size: 20px;
+        line-height: 1.35;
+      }
+      .flow { display: flex; flex-direction: column; gap: 60px; margin-top: 60px; align-items: flex-start; }
+      .card {
+        width: 1184px;
+        min-height: 0;
+        padding: 34px;
+        border: 1px solid #d9def2;
+        border-radius: 28px;
+        background: white;
+        box-shadow: 0 18px 60px rgba(35, 31, 89, .12);
+      }
+      .step {
+        display: inline-flex;
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: #ede9ff;
+        color: #4c2bd9;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+      }
+      .status { float: right; padding: 9px 14px; border-radius: 999px; font-size: 17px; font-weight: 800; }
+      .critical { background: #ffe3e8; color: #a51738; }
+      .risk { background: #fff1d6; color: #8a4b00; }
+      .mixed { background: #e0f3ff; color: #075d8b; }
+      h2 { margin: 22px 0 18px; font-size: 34px; }
+      .shot {
+        width: 100%;
+        max-height: 1010px;
+        object-fit: contain;
+        object-position: top;
+        border: 1px solid #e1e5f2;
+        border-radius: 18px;
+        background: #f7f8fc;
+      }
+      .notes { margin-top: 26px; font-size: 21px; line-height: 1.48; }
+      .notes p { margin: 14px 0; }
+      .label { font-weight: 850; }
+      .limit {
+        margin-top: 70px;
+        width: 1184px;
+        padding: 34px 42px;
+        border: 1px solid #d9def2;
+        border-radius: 24px;
+        background: white;
+        font-size: 21px;
+        line-height: 1.48;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="board">
+      <header class="header">
+        <div class="eyebrow">Auditoria combinada · UX + acessibilidade · 22 julho 2026</div>
+        <h1>AQUA AI Tools — percurso de descoberta</h1>
+        <p class="verdict">A identidade visual é forte e consistente, mas a promessa central não se completa: o catálogo falha, o utilizador vê estados contraditórios e um erro técnico expõe detalhes internos. A newsletter é visualmente sólida, porém interrompe cedo demais o objetivo principal.</p>
+        <div class="priority">
+          <div><strong>P0</strong><br />Substituir o erro técnico por recuperação útil e telemetria invisível.</div>
+          <div><strong>P0</strong><br />Distinguir claramente carregar, vazio e indisponível.</div>
+          <div><strong>P1</strong><br />Adiar a newsletter até existir valor ou intenção explícita.</div>
+          <div><strong>P1</strong><br />Simplificar navegação e filtros para a tarefa principal.</div>
+        </div>
+      </header>
+
+      <section class="flow">
+        <article class="card">
+          <span class="step">Passo 1</span><span class="status critical">Crítico</span>
+          <h2>Entrada na homepage</h2>
+          <img class="shot" src="01-home.png" alt="Homepage AQUA AI Tools com zero ferramentas e estados de carregamento" />
+          <div class="notes">
+            <p><span class="label">Força:</span> proposta de valor e ação principal são visíveis; a linguagem visual é coerente.</p>
+            <p><span class="label">Risco UX:</span> “0 ferramentas disponíveis”, skeletons e “A carregar” aparecem juntos. O sistema não explica se o catálogo está vazio, a carregar ou indisponível.</p>
+            <p><span class="label">Acessibilidade:</span> estados assíncronos precisam de mensagem clara e anúncio programático; o screenshot não confirma live regions.</p>
+            <p><span class="label">Recomendação:</span> apresentar um único estado por vez, com retry e explicação humana quando o serviço falhar.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="step">Passo 2</span><span class="status risk">Risco alto</span>
+          <h2>Convite automático da newsletter</h2>
+          <img class="shot" src="02-newsletter.png" alt="Modal de newsletter AQUA Weekly sobre a homepage" />
+          <div class="notes">
+            <p><span class="label">Força:</span> composição, hierarquia, temas e consentimento são compreensíveis; existe fecho visível.</p>
+            <p><span class="label">Risco UX:</span> o modal domina o ecrã imediatamente após a escolha de privacidade, antes do utilizador obter valor do diretório.</p>
+            <p><span class="label">Acessibilidade:</span> checkbox e botão dependem de contraste baixo em algumas zonas; foco preso, Escape e retorno de foco exigem teste manual.</p>
+            <p><span class="label">Recomendação:</span> disparar após intenção explícita ou depois de exploração significativa; manter preferências vazias por defeito.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="step">Passo 3</span><span class="status critical">Crítico</span>
+          <h2>Diretório e filtros</h2>
+          <img class="shot" src="03-tools.png" alt="Diretório AQUA AI Tools vazio com filtros" />
+          <div class="notes">
+            <p><span class="label">Força:</span> pesquisa e filtros estão agrupados numa área consistente; os controlos têm labels no DOM.</p>
+            <p><span class="label">Risco UX:</span> “0 resultados”, “A carregar” e “Nenhuma ferramenta” são redundantes e contraditórios. O filtro por defeito “Elegíveis” não corresponde ao modelo mental público.</p>
+            <p><span class="label">Acessibilidade:</span> hierarquia usa dois elementos main; controlos pequenos e densos podem reduzir conforto de toque.</p>
+            <p><span class="label">Recomendação:</span> usar “Publicadas” por defeito, reduzir filtros iniciais e mover opções avançadas para expansão.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="step">Passo 4</span><span class="status critical">Crítico</span>
+          <h2>Pesquisa sem serviço disponível</h2>
+          <img class="shot" src="04-search-empty.png" alt="Pesquisa ChatGPT com erro técnico exposto" />
+          <div class="notes">
+            <p><span class="label">Força:</span> o campo mantém a consulta e o foco visual é evidente.</p>
+            <p><span class="label">Risco UX:</span> a interface expõe HTTP 503, traceId e código interno. Isto reduz confiança e não oferece saída.</p>
+            <p><span class="label">Acessibilidade:</span> a mensagem longa tem baixa legibilidade e pode não ser anunciada quando muda; não há ação de retry utilizável.</p>
+            <p><span class="label">Recomendação:</span> mostrar “Não foi possível carregar as ferramentas” + “Tentar novamente”; guardar traceId apenas para suporte/logs.</p>
+          </div>
+        </article>
+      </section>
+
+      <aside class="limit"><strong>Limites de evidência:</strong> auditoria feita no ambiente local, com o serviço AQUA OS Data não configurado. Os screenshots confirmam hierarquia visual, estados e mensagens. Contraste exato, navegação completa por teclado, leitor de ecrã, zoom/reflow e comportamento mobile precisam de validação dedicada.</aside>
+    </main>
+  </body>
+</html>

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { CONSENT_MAX_AGE_MS, CONSENT_MAX_TIMER_MS, CONSENT_STORAGE_KEY, ConsentRenewalReason, consentRefreshDelay, createConsent, evaluateConsent, privacySignalEnabled, readConsent, readConsentState, revokeConsent, writeConsent } from '../src/privacy/consent.js';
 import { createTrustDiagnostics, emptyTcfEvidence, evidenceFromTcfData, evaluateProductAdvertising } from '../src/privacy/advertisingAuthorization.js';
-import { bootstrapCmp, resolveCmpBootstrap } from '../src/privacy/cmpBootstrap.js';
+import { bootstrapCmp, evaluateCmpBootstrap, resolveCmpBootstrap } from '../src/privacy/cmpBootstrap.js';
 import { advertisingAuthorizationPolicy, consentPolicy } from '../vendor/aqua-os/trust-platform/policies.js';
 
 function memoryStorage() {
@@ -50,10 +50,36 @@ const diagnostics = createTrustDiagnostics({
 assert.equal(diagnostics.tcf.tcStringStatus, 'missing');
 assert.equal(Object.hasOwn(diagnostics.tcf, 'tcString'), false);
 
+const cmpTagUrl = 'https://fundingchoicesmessages.google.com/i/pub-8295677733502537?ers=1';
+assert.equal(evaluateCmpBootstrap({ env: {} }).enabled, false, 'CMP bootstrap must default to denied');
+assert.deepEqual(evaluateCmpBootstrap({
+  env: {
+    VITE_CMP_BOOTSTRAP_ENABLED: 'true',
+    VITE_CMP_PROVIDER: 'google-privacy-messaging',
+    VITE_CMP_CERTIFIED: 'true',
+    VITE_CMP_MESSAGE_PUBLISHED: 'true',
+    VITE_GOOGLE_CMP_TAG_URL: cmpTagUrl,
+  },
+  locationLike: { pathname: '/' },
+  windowLike: { top: null, self: null },
+}), {
+  enabled: true,
+  provider: 'google-privacy-messaging',
+  reason: 'cmp.bootstrap-authorized',
+  tagUrl: cmpTagUrl,
+});
+assert.equal(evaluateCmpBootstrap({
+  env: {
+    VITE_CMP_BOOTSTRAP_ENABLED: 'true',
+    VITE_CMP_PROVIDER: 'google-privacy-messaging',
+    VITE_CMP_CERTIFIED: 'true',
+    VITE_CMP_MESSAGE_PUBLISHED: 'true',
+    VITE_GOOGLE_CMP_TAG_URL: 'https://example.com/i/pub-8295677733502537',
+  },
+}).reason, 'cmp.tag-url-not-allowed');
 const topWindow = {};
 topWindow.top = topWindow;
 topWindow.self = topWindow;
-const cmpTagUrl = 'https://fundingchoicesmessages.google.com/i/pub-8295677733502537?ers=1';
 const cmpEnv = {
   VITE_CMP_BOOTSTRAP_ENABLED: 'true',
   VITE_CMP_PROVIDER: 'google-privacy-messaging',
@@ -129,6 +155,7 @@ const context = fs.readFileSync('src/privacy/ConsentContext.jsx', 'utf8');
 assert.ok(context.includes("analytics_storage: 'denied'"), 'Google consent must default to denied');
 assert.ok(context.includes('evaluateProductAdvertising'), 'AdSense must use the Trust Platform decision');
 assert.ok(context.includes('subscribeToTcfEvidence'), 'AdSense must require live TCF evidence');
+assert.ok(context.includes('bootstrapCmp'), 'The certified CMP must bootstrap before TCF discovery');
 assert.ok(context.includes("window.addEventListener('storage'"), 'Consent changes must synchronize between browser tabs');
 assert.ok(context.includes('consentRefreshDelay'), 'Consent must expire while the current page remains open');
 assert.ok(context.includes('recordTrustDecision'), 'Trust decisions must emit minimized audit events');
@@ -148,5 +175,9 @@ assert.ok(cmpBootstrap.includes('fundingchoicesmessages.google.com'), 'Only the 
 assert.ok(cmpBootstrap.includes('cmp.privacy-page-excluded'), 'The privacy policy route must not load the CMP tag');
 const headers = fs.readFileSync('public/_headers', 'utf8');
 assert.ok(headers.includes('Content-Security-Policy'));
+assert.ok(headers.includes('Strict-Transport-Security: max-age=63072000; includeSubDomains; preload'));
 assert.ok(headers.includes("frame-ancestors 'none'"));
+const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+const globalHeaders = vercel.headers?.find((entry) => entry.source === '/(.*)')?.headers || [];
+assert.ok(globalHeaders.some((entry) => entry.key === 'Strict-Transport-Security' && entry.value.includes('max-age=63072000')));
 console.log('Privacy smoke tests passed');

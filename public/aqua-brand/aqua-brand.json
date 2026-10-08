@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "product": "ai-tools",
+  "brandVersion": "1.0.0",
+  "assets": {
+    "lockup": "aqua-brand/lockup.svg",
+    "favicon": "aqua-brand/favicon.svg",
+    "launcherIcon": "aqua-brand/app-icon.png",
+    "tokens": "aqua-brand/tokens.css"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "target": "https://codex-trust-platform.aqua-ai-tools.pages.dev",
+  "checkedAt": "2026-10-08T06:55:21.319Z",
+  "expectedRelease": "0a04b060cfb299cd89aa885f5efef5b28a9a953a",
+  "observedRelease": "0a04b060cfb299cd89aa885f5efef5b28a9a953a",
+  "ok": false,
+  "checks": [
+    {
+      "name": "liveness",
+      "ok": true,
+      "status": 200,
+      "traceId": "0c50f462-6ef7-4aa6-b109-ecebe14c8324",
+      "errors": [],
+      "release": "0a04b060cfb299cd89aa885f5efef5b28a9a953a"
+    },
+    {
+      "name": "readiness",
+      "ok": false,
+      "status": 503,
+      "traceId": "feb9b699-293d-4d75-ab49-a0cc49604e6a",
+      "errors": [
+        "expected HTTP 200, received 503",
+        "readiness status is not ready",
+        "configuration is fail",
+        "data-platform is fail",
+        "commerce is fail"
+      ],
+      "dependencies": [
+        {
+          "name": "configuration",
+          "status": "fail"
+        },
+        {
+          "name": "data-platform",
+          "status": "fail",
+          "latencyMs": 0,
+          "latencySlo": "ok"
+        },
+        {
+          "name": "commerce",
+          "status": "fail",
+          "latencyMs": 0,
+          "latencySlo": "ok"
+        }
+      ]
+    },
+    {
+      "name": "catalog",
+      "ok": false,
+      "status": 503,
+      "traceId": "7a1a612f-876a-4546-be70-f5bb19b84ded",
+      "errors": [
+        "expected HTTP 200, received 503",
+        "catalog did not return at least one published record"
+      ],
+      "recordCount": 0
+    }
+  ]
+}

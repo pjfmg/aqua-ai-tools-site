@@ -13,7 +13,7 @@ export default function Footer() {
       <div className="footer__inner">
         <Link className="footer__brand" to={path('/')} aria-label={isEn ? 'AQUA AI Tools home' : 'Início do AQUA AI Tools'}>
           <img src="/assets/branding/aqua-ai-tools-inline.svg" alt="" aria-hidden="true" />
-          <span>{isEn ? 'A curated directory for discovering AI tools.' : 'Um diretório curado para descobrir ferramentas de IA.'}</span>
+          <span>{isEn ? 'A transparent catalogue with practical AI decision guides.' : 'Um catálogo transparente com guias práticos para decidir sobre IA.'}</span>
         </Link>
         <nav className="footer__links" aria-label={isEn ? 'Footer navigation' : 'Navegação de rodapé'}>
           <Link to={path('/sobre')}>{isEn ? 'About' : 'Sobre'}</Link>
@@ -21,6 +21,7 @@ export default function Footer() {
           <Link to={path('/consultoria')}>{isEn ? 'Consulting' : 'Consultoria'}</Link>
           <Link to={path('/privacidade')}>{isEn ? 'Privacy' : 'Privacidade'}</Link>
           <Link to={path('/termos')}>{isEn ? 'Terms' : 'Termos'}</Link>
+          <Link to={path('/definicoes')}>{isEn ? 'Settings' : 'Definições'}</Link>
           <button className="footer__privacyButton" type="button" onClick={openNewsletterSignup}>Newsletter</button>
           <button className="footer__privacyButton" type="button" onClick={openPreferences}>{isEn ? 'Privacy settings' : 'Definições de privacidade'}</button>
         </nav>

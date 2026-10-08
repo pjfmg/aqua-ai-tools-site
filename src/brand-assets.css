@@ -1,11 +1,11 @@
 :root {
-  --aqua-brand-atlantic: #061a2e;
+  --aqua-brand-atlantic: #152025;
 }
 
 .topnav .topnav__logo {
   box-sizing: border-box;
-  border-radius: 12px;
-  background: var(--aqua-brand-atlantic);
+  border-radius: 0;
+  background: transparent;
 }
 
 .footer .footer__inner {
@@ -27,8 +27,8 @@
   width: min(230px, 100%);
   height: auto;
   box-sizing: border-box;
-  border-radius: 8px;
-  background: var(--aqua-brand-atlantic);
+  border-radius: 0;
+  background: transparent;
 }
 
 .footer .footer__brand span {
