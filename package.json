@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:smoke",
-    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/release-readiness-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/catalog-quality-smoke.mjs && node scripts/pro-value-smoke.mjs && node scripts/surprise-resilience-smoke.mjs && node scripts/mobile-home-smoke.mjs && node scripts/navigation-hierarchy-smoke.mjs && node scripts/seo-trust-smoke.mjs && node scripts/tool-detail-smoke.mjs",
+    "test:smoke": "node scripts/smoke.mjs && node scripts/privacy-smoke.mjs && node scripts/trust-package-snapshot-smoke.mjs && node scripts/operations-smoke.mjs && node scripts/release-readiness-smoke.mjs && node scripts/trust-platform-readiness-smoke.mjs && node scripts/trust-default-deny-canary-smoke.mjs && node scripts/security-audit-smoke.mjs && node scripts/catalog-quality-smoke.mjs && node scripts/pro-value-smoke.mjs && node scripts/surprise-resilience-smoke.mjs && node scripts/mobile-home-smoke.mjs && node scripts/navigation-hierarchy-smoke.mjs && node scripts/seo-trust-smoke.mjs && node scripts/tool-detail-smoke.mjs",
     "test:privacy": "node scripts/privacy-smoke.mjs",
     "test:trust-packages": "node scripts/trust-package-snapshot-smoke.mjs",
     "test:e2e": "playwright test",
@@ -27,7 +27,10 @@
     "trust:evidence": "node scripts/collect-trust-browser-evidence.mjs",
     "catalog:quality": "node scripts/catalog-quality.mjs",
     "catalog:quality:production": "node scripts/catalog-quality.mjs --base-url https://aqua-aitools.com",
-    "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check"
+    "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check",
+    "audit:security": "node scripts/security-audit.mjs",
+    "trust:capture-preview": "node scripts/capture-trust-preview-evidence.mjs",
+    "trust:default-deny-canary": "node scripts/trust-default-deny-canary.mjs"
   },
   "dependencies": {
     "@aqua-os/advertising-authorization": "file:vendor/aqua-os/advertising-authorization",

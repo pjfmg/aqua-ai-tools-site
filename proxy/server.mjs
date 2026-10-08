@@ -35,6 +35,7 @@ const versioned = {
   '/v1/billing/checkout-sessions': 'billing-checkout', '/v1/billing/checkout-sessions/status': 'billing-status',
   '/v1/entitlements/me': 'entitlements', '/v1/billing/portal-sessions': 'billing-portal',
   '/v1/newsletter-subscriptions': 'newsletter-subscriptions',
+  '/v1/revenue-link-status': 'revenue-link-status', '/v1/revenue-link-redirect': 'revenue-link-redirect',
 };
 const legacy = {
   '/airtable': toolsHandler, '/img': imageHandler, '/submit': submitHandler, '/rate': rateHandler, '/ratings': ratingsHandler,

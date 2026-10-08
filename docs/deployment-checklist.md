@@ -30,6 +30,7 @@ Procedimento e formato de evidência: [`release-gate.md`](release-gate.md).
 - [ ] `__tcfapi` observado em produção com evento `tcloaded` ou `useractioncomplete` e string TCF presente.
 - [ ] Pedido real de publicidade confirmado apenas após decisão `request-ad: allow`.
 - [ ] Emergency stop testado; `VITE_ADSENSE_TCF_READY` confirmado apenas como interlock.
+- [ ] Checklist `docs/google-cmp-production-checklist.md` concluída ou publicidade mantida suspensa.
 
 ## Operação
 

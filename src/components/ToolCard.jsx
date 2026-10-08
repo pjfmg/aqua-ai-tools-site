@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   normalizeFuncoes,
@@ -16,6 +16,8 @@ import { useRatings } from '../ratings/RatingsContext.jsx';
 import { useMyRatings } from '../ratings/MyRatingsContext.jsx';
 import { submitMyRating } from '../lib/ratings.js';
 import { useLanguage } from '../i18n.jsx';
+import { useConsent } from '../privacy/ConsentContext.jsx';
+import { getRevenuePilotRedirectUrl, loadRevenuePilotStatus } from '../lib/revenuePilot.js';
 
 function shouldOpenExternalInNewTab() {
   if (typeof window === 'undefined') return true;
@@ -39,6 +41,7 @@ export default function ToolCard({ tool }) {
   const { isAuthed, hasProAccess, user } = useAuth();
   const { ratings } = useRatings();
   const { ratingsByToolKey, setRatingLocal } = useMyRatings();
+  const { advertisingAllowed } = useConsent();
 
   const logoUrls = pickLogoUrls(tool);
   const nome = getToolName(tool);
@@ -51,6 +54,7 @@ export default function ToolCard({ tool }) {
   const openInNewTab = shouldOpenExternalInNewTab();
 
   const toolKey = getToolKey(tool);
+  const [revenueStatus, setRevenueStatus] = useState({ loading: true, commercial: false, disclosureRequired: false });
   const summary = toolKey ? ratings?.[toolKey] : null;
   const avg = summary && typeof summary.avg === 'number' ? summary.avg : null;
   const count = summary && typeof summary.count === 'number' ? summary.count : null;
@@ -63,6 +67,22 @@ export default function ToolCard({ tool }) {
     if (!setRatingLocal({ toolKey, rating: v })) return;
     await submitMyRating({ tool, rating: v });
   }
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!toolKey) {
+      setRevenueStatus({ loading: false, commercial: false, disclosureRequired: false });
+      return undefined;
+    }
+    setRevenueStatus({ loading: true, commercial: false, disclosureRequired: false });
+    loadRevenuePilotStatus(toolKey)
+      .then((status) => { if (!cancelled) setRevenueStatus({ loading: false, ...status }); })
+      .catch(() => { if (!cancelled) setRevenueStatus({ loading: false, commercial: false, disclosureRequired: false }); });
+    return () => { cancelled = true; };
+  }, [toolKey]);
+
+  const useCommercialRedirect = Boolean(site && revenueStatus.commercial && advertisingAllowed);
+  const href = useCommercialRedirect ? getRevenuePilotRedirectUrl(toolKey) : site;
 
   return (
     <article className="toolCard">
@@ -177,15 +197,20 @@ export default function ToolCard({ tool }) {
       )}
 
       <div className="toolCard__bottom">
+        {revenueStatus.disclosureRequired ? (
+          <p className="toolCard__disclosure">
+            {isEn ? 'AQUA may receive compensation from this link.' : 'A AQUA pode receber uma compensação por este link.'}
+          </p>
+        ) : null}
         <Link className="btn btn--ghost btn--block" to={path(`/ferramentas/${getToolSlug(tool)}`)}>
           {isEn ? 'Details' : 'Detalhes'}
         </Link>
-        {site ? (
+        {href ? (
           <a
             className="btn btn--primary btn--block"
-            href={site}
+            href={href}
             target={openInNewTab ? '_blank' : undefined}
-            rel={openInNewTab ? 'noopener noreferrer' : undefined}
+            rel={openInNewTab ? (useCommercialRedirect ? 'noopener noreferrer sponsored' : 'noopener noreferrer') : undefined}
             onClick={() => {
               // Never let local list bookkeeping interfere with navigation.
               try {
@@ -202,6 +227,7 @@ export default function ToolCard({ tool }) {
             {isEn ? 'No link' : 'Sem link'}
           </button>
         )}
+        {revenueStatus.loading ? <span className="toolCard__linkStatus">{isEn ? 'Checking link…' : 'A verificar link…'}</span> : null}
       </div>
     </article>
   );

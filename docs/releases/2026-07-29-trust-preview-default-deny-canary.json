@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "mode": "default-deny",
+  "target": "https://aqua-ai-tools-site-git-codex-trust-platform-pr-pjfmgs-projects.vercel.app",
+  "checkedAt": "2026-07-29T16:04:16.265Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000; includeSubDomains; preload",
+      "bundlePath": "/assets/index-MwtX9LnZ.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "bundlePath": "/assets/index-MwtX9LnZ.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": true,
+      "errors": [],
+      "observedRelease": "93097eab0e3233aa04d114fb3c61a9dd42c8e7ee"
+    },
+    {
+      "name": "default-deny-browser-scenarios",
+      "ok": true,
+      "errors": []
+    }
+  ]
+}

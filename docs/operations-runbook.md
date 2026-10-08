@@ -22,6 +22,10 @@ Alertar quando o erro consumir 10% do budget mensal numa hora, p95 exceder 1 500
 5. Confirmar a release (`AQUA_RELEASE`) e alterações recentes.
 
 O readiness mantém o resultado durante cinco segundos para evitar amplificação de carga sobre as dependências.
+Cada probe dispõe de até cinco segundos para distinguir indisponibilidade de
+cold start. `latencySlo: breached` preserva a disponibilidade quando a
+dependência responde 2xx, mas deve alimentar os alertas de latência; apenas
+timeout, erro de rede ou resposta não-2xx tornam o check `fail`.
 
 ## Recuperação
 

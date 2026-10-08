@@ -13,6 +13,8 @@ export const API_POLICIES = Object.freeze({
   entitlements: { limit: 120, windowSeconds: 3600, auth: true },
   'billing-portal': { limit: 5, windowSeconds: 3600, auth: true },
   'newsletter-subscriptions': { limit: 5, windowSeconds: 3600, auth: false },
+  'revenue-link-status': { limit: 120, windowSeconds: 60, auth: false },
+  'revenue-link-redirect': { limit: 60, windowSeconds: 60, auth: false },
 });
 
 function header(request, name) {
@@ -139,7 +141,7 @@ export async function auditApiEvent({ request, env = process.env, operation, tra
     level: Number(status) >= 500 ? 'error' : Number(status) >= 400 ? 'warn' : 'info',
     event: 'api.request.completed',
     service: 'aqua-ai-tools-site',
-    release: String(env.AQUA_RELEASE || env.VERCEL_GIT_COMMIT_SHA || 'development').slice(0, 40),
+    release: String(env.VERCEL_GIT_COMMIT_SHA || env.AQUA_RELEASE || 'development').slice(0, 40),
     traceId,
     operation,
     principal,

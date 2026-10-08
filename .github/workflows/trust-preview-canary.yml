@@ -1,0 +1,48 @@
+name: Trust Preview Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Public HTTPS URL of the Preview deployment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trust-preview-canary
+  cancel-in-progress: true
+
+jobs:
+  default-deny:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture minimized browser evidence
+        run: |
+          npm run trust:capture-preview -- \
+            --base-url "${{ inputs.base_url }}" \
+            --output artifacts/trust-preview-browser.json
+      - name: Enforce default-deny canary
+        run: |
+          npm run trust:default-deny-canary -- \
+            --base-url "${{ inputs.base_url }}" \
+            --browser-evidence artifacts/trust-preview-browser.json \
+            --evidence artifacts/trust-preview-canary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trust-preview-canary
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14

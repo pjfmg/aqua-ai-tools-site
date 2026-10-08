@@ -18,6 +18,9 @@ const requiredFiles = [
   'docs/releases/2026-07-26-production-exception.md',
   'public/_headers', 'public/_redirects', 'public/robots.txt', 'public/sitemap.xml', 'vercel.json',
   '.github/workflows/quality.yml', '.github/dependabot.yml',
+  '.github/workflows/trust-preview-canary.yml',
+  'security/audit-exceptions.json', 'scripts/security-audit.mjs',
+  'scripts/trust-default-deny-canary.mjs',
 ];
 for (const file of requiredFiles) assert.ok(fs.existsSync(file), `required release artifact missing: ${file}`);
 
@@ -38,7 +41,13 @@ for (const line of envExample.split(/\r?\n/)) {
   if (/(KEY|SECRET|TOKEN|PASSWORD)/i.test(key)) assert.equal(value, '', `${key} must be empty in .env.example`);
 }
 
-const ignored = new Set(['node_modules', 'dist', '.git']);
+const ignored = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  'playwright-report',
+  'test-results',
+]);
 function sourceFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (ignored.has(entry.name)) return [];
@@ -65,6 +74,25 @@ for (const tracker of ['googletagmanager.com/gtag', 'clarity.ms/tag', 'pagead2.g
 }
 const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
 for (const route of ['/v1/health/live', '/v1/health/ready']) assert.ok(vercel.rewrites.some((item) => item.source === route), `missing ${route}`);
+const qualityWorkflow = fs.readFileSync('.github/workflows/quality.yml', 'utf8');
+const browserInstall = 'npx playwright install --with-deps chromium';
+assert.ok(
+  qualityWorkflow.includes(browserInstall),
+  'quality workflow must install the Playwright Chromium runtime',
+);
+assert.ok(
+  qualityWorkflow.indexOf(browserInstall) < qualityWorkflow.indexOf('npm run check'),
+  'quality workflow must install Chromium before running the aggregate check',
+);
+assert.ok(
+  qualityWorkflow.includes('npm run audit:security'),
+  'quality workflow must execute the governed security audit',
+);
+const trustCanaryWorkflow = fs.readFileSync('.github/workflows/trust-preview-canary.yml', 'utf8');
+assert.ok(
+  trustCanaryWorkflow.includes('npm run trust:default-deny-canary'),
+  'Trust Preview canary workflow must execute the default-deny gate',
+);
 assert.ok(pkg.scripts?.check, 'package must expose a check command');
 assert.ok(pkg.scripts?.['release:config'], 'package must expose a release configuration check');
 assert.ok(pkg.scripts?.['release:readiness'], 'package must expose a deployed release readiness check');
