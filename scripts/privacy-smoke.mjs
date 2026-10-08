@@ -175,5 +175,9 @@ assert.ok(cmpBootstrap.includes('fundingchoicesmessages.google.com'), 'Only the 
 assert.ok(cmpBootstrap.includes('cmp.privacy-page-excluded'), 'The privacy policy route must not load the CMP tag');
 const headers = fs.readFileSync('public/_headers', 'utf8');
 assert.ok(headers.includes('Content-Security-Policy'));
+assert.ok(headers.includes('Strict-Transport-Security: max-age=63072000; includeSubDomains; preload'));
 assert.ok(headers.includes("frame-ancestors 'none'"));
+const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+const globalHeaders = vercel.headers?.find((entry) => entry.source === '/(.*)')?.headers || [];
+assert.ok(globalHeaders.some((entry) => entry.key === 'Strict-Transport-Security' && entry.value.includes('max-age=63072000')));
 console.log('Privacy smoke tests passed');
