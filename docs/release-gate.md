@@ -56,6 +56,14 @@ npm run release:readiness -- \
   --evidence /caminho/seguro/release-readiness.json
 ```
 
+O runtime Vercel é o alvo canónico para os gates server-side de preview e
+produção, porque recebe a configuração privada das dependências. O deployment
+Cloudflare Pages é um canary público de frontend, headers e comportamento
+default-deny; enquanto não tiver a mesma configuração privada, um `503` nesse
+host é esperado e não pode ser usado como prova de readiness nem como motivo
+para ignorar o resultado do Vercel. A evidência deve registar sempre o URL e o
+commit exatos que foram medidos.
+
 O gate exige:
 
 - `/v1/health/live` com HTTP 200, identidade correta e release não-development;
@@ -90,7 +98,7 @@ Cada ação exige evidência própria, sem copiar segredos:
 | Importação | contagem origem/destino, duplicados, rejeitados e reconciliação |
 | RLS/retenção | casos anon/authenticated/service_role e resultado |
 | Supabase Auth | redirect URLs, confirmação de email e login/logout testados |
-| Stripe | webhook assinado, evento de teste, idempotência e entitlement resultante |
+| Shopify | webhook assinado, evento de teste, idempotência e entitlement resultante |
 | Backup/restore | backup identificado, restore isolado e validação de integridade |
 | Trust Platform | versão de política, bundle, CMP/certificação, TCF redigido, `ads.txt`, site approval e emergency stop |
 

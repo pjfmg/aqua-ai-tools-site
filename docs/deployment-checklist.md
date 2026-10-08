@@ -24,7 +24,7 @@ Procedimento e formato de evidência: [`release-gate.md`](release-gate.md).
 - [ ] Migrations Commerce, API Platform, Data Platform e Observability aplicadas em staging.
 - [ ] Importação Airtable executada e reconciliada.
 - [ ] RLS e retenção verificadas com utilizador anon/authenticated/service_role.
-- [ ] Stripe webhook e Supabase Auth configurados com URLs de produção.
+- [ ] Shopify Storefront/webhooks e Supabase Auth configurados com URLs de produção.
 - [ ] Snapshot dos packages/políticas da Trust Platform reconciliado com o AQUA OS.
 - [ ] `VITE_CMP_CERTIFIED`, `VITE_TCF_VERSION`, aprovação do site e `ads.txt` sustentados por evidência atual.
 - [ ] `__tcfapi` observado em produção com evento `tcloaded` ou `useractioncomplete` e string TCF presente.
@@ -34,6 +34,7 @@ Procedimento e formato de evidência: [`release-gate.md`](release-gate.md).
 
 ## Operação
 
+- [ ] Gate server-side executado no runtime Vercel canónico; Cloudflare tratado apenas como canary público enquanto não tiver configuração privada equivalente.
 - [ ] `/v1/health/live` e `/v1/health/ready` verdes.
 - [ ] Dashboard RED e alertas de burn rate ativos.
 - [ ] Rollback testado para código e migrations.
