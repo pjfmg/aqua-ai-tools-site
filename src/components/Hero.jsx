@@ -1,11 +1,12 @@
 import React from 'react';
 
-export default function Hero({ title, subtitle, badge, right, children, showMark = true, className = '' }) {
+export default function Hero({ title, subtitle, badge, right, children, showMark = true, brand, className = '' }) {
   const isMinimal = !showMark && !title;
 
   return (
     <section className={`hero${className ? ` ${className}` : ''}`}>
       <div className={`hero__content${isMinimal ? ' hero__content--minimal' : ''}`}>
+        {brand ? <div className="hero__brand">{brand}</div> : null}
         {showMark ? <span className="hero__spark" aria-hidden="true">AQUA / AI TOOLS</span> : null}
         {title ? <h1>{title}</h1> : null}
         {subtitle ? <p>{subtitle}</p> : null}

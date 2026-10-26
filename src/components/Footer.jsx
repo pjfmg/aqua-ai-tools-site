@@ -11,8 +11,13 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer__inner">
-        <Link className="footer__brand" to={path('/')} aria-label={isEn ? 'AQUA AI Tools home' : 'Início do AQUA AI Tools'}>
-          <img src="/assets/branding/aqua-ai-tools-inline.svg" alt="" aria-hidden="true" />
+        <Link className="footer__brand" to={path('/')}>
+          <img
+            src="/assets/branding/aqua-ai-tools-inline.svg"
+            alt="AQUA AI Tools"
+            width="1024"
+            height="128"
+          />
           <span>{isEn ? 'A transparent catalogue with practical AI decision guides.' : 'Um catálogo transparente com guias práticos para decidir sobre IA.'}</span>
         </Link>
         <nav className="footer__links" aria-label={isEn ? 'Footer navigation' : 'Navegação de rodapé'}>

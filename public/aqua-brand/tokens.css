@@ -2,7 +2,8 @@
   --aqua-product-light: #AB8AF9;
   --aqua-product: #A96BFB;
   --aqua-product-deep: #B03D79;
-  --aqua-wave-accent: #FFD058;
+  --aqua-wave-accent: #A96BFB;
   --aqua-ink: #152025;
   --aqua-surface: #F3F6FB;
+  --aqua-product-gradient: linear-gradient(135deg, #D1AFFD 0%, #A96BFB 45%, #9762E1 100%);
 }

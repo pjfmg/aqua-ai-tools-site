@@ -83,7 +83,13 @@ export default function TopNav() {
       <div className="topnav__inner">
         <div className="topnav__row">
           <Link className="topnav__brand" to={path('/')}>
-            <img className="topnav__logo" src="/assets/branding/aqua-ai-tools-inline.svg" alt="AQUA AI Tools" />
+            <img
+              className="topnav__logo"
+              src="/assets/branding/aqua-ai-tools-inline.svg"
+              alt="AQUA AI Tools"
+              width="1024"
+              height="128"
+            />
           </Link>
 
           <nav
@@ -118,7 +124,7 @@ export default function TopNav() {
             <Link
               className="btn btn--ghost btn--small topnav__language"
               to={languagePath}
-              aria-label={isEn ? 'Mudar idioma para português' : 'Switch language to English'}
+              aria-label={isEn ? 'PT — Mudar idioma para português' : 'EN — Switch language to English'}
             >
               {isEn ? 'PT' : 'EN'}
             </Link>

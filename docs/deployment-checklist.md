@@ -53,6 +53,14 @@ Nenhum item marcado por suposição. Evidência e responsável devem acompanhar 
 
 ## Evidência local mais recente
 
+Em 2026-10-26, `npm ci`, `npm audit --audit-level=high` e `npm run check`
+passaram com Node.js 24.19.0 após a atualização do Vite para 6.4.5. O
+service worker e o fallback offline passaram no build local. A produção
+continua com readiness HTTP 503 por Commerce; o gate PWA público não encontra
+o conteúdo esperado de `/sw.js` e `/offline.html`. A auditoria do catálogo
+continua a falhar. Evidência:
+[`releases/2026-10-26-pwa-candidate-progress.md`](releases/2026-10-26-pwa-candidate-progress.md).
+
 Em 2026-10-04, com Node.js 22.17.0, `npm ci`, `npm audit
 --audit-level=high` e `npm run check` concluíram com sucesso. A execução incluiu
 13 smoke suites, 11 testes Playwright, build Vite e validação dos 30 artefactos

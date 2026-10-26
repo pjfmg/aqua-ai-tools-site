@@ -58,6 +58,12 @@ export default function HomePage() {
       <Hero
         className="hero--home"
         showMark={false}
+        brand={
+          <div className="heroBrand" aria-hidden="true">
+            <img className="heroBrand__icon" src="/icons/icon-152.png" alt="" width="152" height="152" />
+            <img className="heroBrand__signature" src="/aqua-brand/lockup-white.svg" alt="" width="1024" height="128" />
+          </div>
+        }
         subtitle={
           isEn
             ? 'Find the right AI tool for every need.'
