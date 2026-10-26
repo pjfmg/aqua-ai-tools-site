@@ -44,12 +44,32 @@ de produção foi alterado nesta validação.
   sessão Admin apta a criar as credenciais e registar os webhooks exigidos
   pelo Commerce.
 
+## Diagnóstico adicional em 2026-10-26
+
+- A listagem de nomes das variáveis Vercel confirmou que os projetos
+  `aqua-os-commerce` e `aqua-os-commerce-staging` não têm
+  `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_STOREFRONT_ACCESS_TOKEN` nem
+  `SHOPIFY_WEBHOOK_SECRET` nos respetivos ambientes Production. Nenhum valor
+  secreto foi lido ou copiado.
+- O endpoint de readiness do Commerce staging respondeu HTTP 200, mas anunciou
+  contratos `v1`/`v2`, enquanto o código atual exige o contrato Shopify. Esse
+  200 corresponde a uma versão anterior e não valida a integração atual.
+- A auditoria pública foi guardada em
+  [2026-10-26-catalog-quality.json](2026-10-26-catalog-quality.json). As
+  propostas por registo e a divergência Airtable → Data Platform estão em
+  [2026-10-26-catalog-critical-remediation.md](2026-10-26-catalog-critical-remediation.md).
+- Quatro registos de websites repetidos já estão despublicados no Airtable,
+  mas permanecem publicados no catálogo público. O importador atual não
+  oferece um modo pontual seguro para reconciliar esses estados; falta um
+  destino Data Platform staging verificado.
+
 ## Próximos gates
 
 1. Configurar e validar Shopify/Commerce em staging e obter readiness HTTP 200
    no host canónico antes de considerar a promoção da candidate.
-2. Corrigir os dados críticos do catálogo na Data Platform e repetir a
-   auditoria com `--enforce`.
+2. Reconciliar em staging os quatro estados de publicação divergentes, decidir
+   o URL inválido na origem, fechar a revisão editorial e repetir a auditoria
+   com `--enforce`.
 3. Validar preview, dispositivos, Trust/CMP (ou manter publicidade suspensa),
    alertas, backup/restore, rollback e aprovações de release.
 4. Depois de uma publicação aprovada, repetir os gates de readiness e PWA
