@@ -207,14 +207,17 @@ test('withdrawal persists revokedAt and immediately unloads optional providers',
 });
 
 test('a choice expires during an open session and requires renewal', async ({ page }) => {
+  const now = new Date();
+  await page.clock.install({ time: now });
   const expiresSoon = consentChoice({
     analytics: true,
-    decidedAt: new Date(Date.now() - RETENTION_MS + 4_000).toISOString(),
+    decidedAt: new Date(now.getTime() - RETENTION_MS + 60_000).toISOString(),
   });
   await preparePage(page, { choice: expiresSoon });
   await gotoApp(page);
 
   await expect.poll(() => providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(1);
+  await page.clock.fastForward(61_000);
   await expect(page.getByRole('region', { name: 'As tuas escolhas de privacidade' })).toContainText('A tua escolha anterior expirou após 180 dias. Escolhe novamente.', { timeout: 8_000 });
   expect(await providerScriptCount(page, 'googletagmanager.com/gtag')).toBe(0);
   await expect.poll(() => page.evaluate(() => window.__aquaTrustDiagnostics?.advertising?.decision)).toBe('deny');

@@ -63,6 +63,31 @@ de produção foi alterado nesta validação.
   oferece um modo pontual seguro para reconciliar esses estados; falta um
   destino Data Platform staging verificado.
 
+## Seguimento local e público em 2026-10-26
+
+- Com Node.js 24.20.0, as 15 suites smoke, o build de 105 módulos,
+  `release:check` e `audit:security` passaram. O teste E2E de expiração de
+  consentimento passou isoladamente após usar o relógio controlado do
+  Playwright; a janela anterior de quatro segundos expirava antes de o browser
+  carregar em execuções lentas.
+- O E2E agregado **não está verde nesta execução**. A primeira tentativa teve
+  10/11 testes aprovados; as seguintes sofreram timeouts intermitentes em
+  operações básicas do browser, incluindo `page.evaluate`, `locator.count` e
+  `page.goto`. Os traces ficaram em `test-results/`; `npm run check` não foi
+  concluído com sucesso após a alteração do teste.
+- A verificação pública voltou a confirmar release `f5f94367a3096d775b3117deedd9e6e4dcd99a6b`,
+  liveness e catálogo HTTP 200, readiness HTTP 503 (`commerce: fail`), e
+  `/sw.js` e `/offline.html` a responderem HTML em vez dos recursos PWA.
+- A auditoria pública repetiu 4 344 publicados, cinco problemas críticos e
+  13 369 lacunas editoriais. Commerce staging continua a anunciar `v1`/`v2`
+  antigo; Commerce produção devolve 503. As variáveis Shopify requeridas
+  continuam ausentes nos dois projetos Vercel verificados.
+- Os testes locais do Commerce passaram (29/29). Uma reconciliação de
+  despublicação limitada ao campo `status` foi adicionada à Data Platform no
+  commit local `9ed46b7` e passou 12/12 testes. A listagem de projetos Vercel
+  não mostrou um projeto Data Platform staging; nenhum comando de
+  reconciliação foi executado contra uma base remota.
+
 ## Próximos gates
 
 1. Configurar e validar Shopify/Commerce em staging e obter readiness HTTP 200

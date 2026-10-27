@@ -46,6 +46,12 @@ catálogo público permanece **NO-GO**. Uma alteração isolada na base também
 tem de ser incorporada num mecanismo de sincronização que mantenha o estado
 da origem, para não regressar a uma divergência.
 
+Seguimento: a Data Platform recebeu no commit local `9ed46b7` o comando
+`reconcile:airtable:publication`, que compara os IDs e estados nos dois lados
+antes de propor uma alteração limitada a `status`. Os 12 testes locais passaram.
+O comando continua por executar em staging porque não existe um destino
+isolado verificado nesta sessão.
+
 ## Dimensão editorial
 
 A auditoria contabilizou 4 344 registos publicados, cinco problemas críticos
