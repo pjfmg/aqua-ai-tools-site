@@ -228,3 +228,29 @@ Estado: **staging Shopify isolado disponível; release continua Review / NO-GO**
 Nenhuma migration, configuração Vercel, credencial Shopify ou deployment foi
 alterado nesta pré-verificação. **Commerce staging ainda não está validado para
 o contrato Shopify; o estado de release permanece Review / NO-GO**.
+
+## Consulta Vercel e cadeia SQL em 2026-10-29
+
+- A sessão CLI Vercel existente confirmou acesso em leitura aos projetos
+  `aqua-os-commerce-staging` e `aqua-os-commerce`. No ambiente Production do
+  projeto staging há 12 nomes de variáveis; no projeto de produção, 10. Em
+  ambos faltam `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_STOREFRONT_ACCESS_TOKEN` e
+  `SHOPIFY_WEBHOOK_SECRET`. Nenhuma variável foi alterada.
+- `SUPABASE_URL` está marcada como Secret nos dois projetos. O comando de
+  exportação devolveu apenas o marcador `[SENSITIVE]`, pelo que **não foi
+  possível comparar as referências Supabase** nem confirmar que staging está
+  isolado. Os ficheiros temporários da tentativa foram apagados. O valor de
+  `AQUA_RELEASE` também não ficou verificável por esta via.
+- O agregado `Supabase/migrations/` contém as alterações Shopify posteriores,
+  mas não contém a criação das tabelas base `aqua_commerce_orders` e
+  `aqua_subscriptions`. A migration Shopify agregada usa
+  `aqua_commerce_orders`; portanto, uma base vazia exige a reconciliação das
+  migrations Commerce 001–002 antes dessa etapa. A migration Commerce 005
+  também não tem correspondência integral no agregado; a tabela
+  `aqua_application_usage_events` não aparece nesse conjunto. Isto é uma
+  análise do código, não uma afirmação sobre o schema remoto.
+
+Próximo gate: obter por via administrativa a referência Supabase efetiva do
+runtime staging e o ledger/schema do destino, sem expor chaves; demonstrar
+isolamento, backup, restauro e ordem SQL antes de aplicar migrations. **NO_APPLY
+e Review / NO-GO mantidos**.
