@@ -137,3 +137,38 @@ Estado: **Review / NO-GO para nova publicação de produção**.
 Estado após esta execução: **Review / NO-GO**. O primeiro desbloqueio necessário
 continua a ser a sessão Shopify Admin; não houve deployment, alteração de
 segredos, criação de webhooks ou promoção de produção.
+
+## Shopify Admin desbloqueado em 2026-10-29
+
+- O Safari abriu uma sessão autenticada em `admin.shopify.com/store/aquaticus`.
+  A ligação Shopify confirmou novamente a loja `AQUA Store`. O bloqueio de
+  acesso ao Admin registado acima deixou de se aplicar.
+- No Dev Dashboard aberto a partir desta loja, a lista de apps mostrou apenas
+  duas entradas `AQUA HMP Studio`; não apareceu `AQUA OS Commerce`. A lista de
+  aplicações personalizadas legadas também não mostrou essa app. A página
+  `Lojas` desse Dashboard indicou que ainda não havia lojas no portefólio;
+  isto não prova ausência de lojas de teste noutras organizações.
+- A lista de canais de vendas instalados da `AQUA Store` não incluiu
+  `Headless`. O formulário atual de criação de app no Dev Dashboard foi apenas
+  inspecionado, sem submissão.
+- Segundo a [documentação Shopify de criação de apps](https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard),
+  apps novas exigem versão, instalação e aprovação dos âmbitos. Para o
+  Storefront API, o [canal Headless](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api)
+  fornece tokens públicos ou privados; o Commerce atual usa o cabeçalho de
+  token público `X-Shopify-Storefront-Access-Token`. Os tópicos
+  `orders/paid`, `orders/cancelled` e `refunds/create` exigem pelo menos
+  `read_orders` segundo a [referência dos webhooks](https://shopify.dev/docs/api/admin-graphql/latest/enums/WebhookSubscriptionTopic).
+- Antes de instalar uma app com `read_orders` ou associar webhooks, confirmar
+  uma loja de teste isolada e o destino staging atualizado. Usar a loja real
+  para subscrições dirigidas a staging entregaria eventos reais de encomendas
+  nesse ambiente. A criação/instalação da app e do canal Headless requerem
+  autorização específica no momento da ação.
+- O botão `Criar loja` do Dev Dashboard abriu um formulário identificado como
+  `Create a dev store`, com plano `Basic` disponível e opção de gerar dados de
+  teste com gateway fictício. A [documentação de dev stores](https://shopify.dev/docs/apps/build/stores/development-stores)
+  confirma que não processam transações reais. O formulário ficou por
+  submeter; a proposta para staging é `AQUA OS Commerce Staging`, plano
+  `Basic`, com dados de teste, sujeito a aprovação específica antes da criação.
+
+Nenhuma app, canal, token, âmbito, webhook ou variável Vercel foi criado ou
+alterado nesta verificação. O estado de release permanece **Review / NO-GO**.
