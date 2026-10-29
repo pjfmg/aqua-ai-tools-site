@@ -192,3 +192,39 @@ alterado nesta verificação. O estado de release permanece **Review / NO-GO**.
   pendentes de decisão própria.
 
 Estado: **staging Shopify isolado disponível; release continua Review / NO-GO**.
+
+## Pré-verificação Commerce em 2026-10-29
+
+- O checkout `AQUA OS Console Readiness` está na revisão `dab9662`. Em
+  `Services/Commerce`, a única diferença face a `origin/main` são duas entradas
+  de exemplo (`AQUA_SALES_URL` e `AQUA_SALES_COMMERCE_KEY`); não há alterações
+  de trabalho nesse serviço. Uma cópia temporária dos ficheiros versionados de
+  `HEAD` compilou com Node.js 24 e passou os 29 testes Commerce. As alterações
+  preexistentes noutros módulos do Console ficaram intactas.
+- O projeto local `Services/Commerce/.vercel/project.json` identifica
+  `aqua-os-commerce-staging`; a resposta pública atual de
+  `/v1/health/ready` continua HTTP 200 com `contracts: {v1: false, v2: true}`.
+  É uma versão anterior: o código candidato anuncia `contracts.shopify` e
+  exige catálogo, chaves de produto, domínio, token Storefront e segredo de
+  webhook para readiness HTTP 200.
+- A auditoria local de migrations encontrou 82 ficheiros de serviço e 59 no
+  agregado. Para Commerce, `001_aqua_subscriptions.sql`,
+  `002_portfolio_commerce.sql` e `005_store_pilot_correlation.sql` não tiveram
+  correspondência exata normalizada no agregado. Isto exige reconciliação com
+  o ledger e o schema do destino; a auditoria assinala ambos, bem como
+  backup/restore, como `UNKNOWN` e decide `NO_APPLY`.
+- Os relatórios anteriores do Console registam que previews Commerce e Data
+  Platform partilharam referências Supabase de produção. Essa observação
+  histórica não prova a configuração atual do projeto staging. A inspeção do
+  Dashboard ficou indisponível porque o Mac estava bloqueado; a sessão CLI
+  local também não forneceu autenticação verificável. Antes de qualquer
+  migration ou teste que escreva dados, confirmar a referência Supabase
+  efetiva, o isolamento de produção, o ledger, o backup e um restauro de prova.
+- O `Services/Commerce/README.md` descrevia checkout Stripe e apenas as
+  migrations 001–002, enquanto o código atual exige Shopify e tem migrations
+  001–008. O README foi atualizado no commit local `370603d` para Shopify e
+  para a reconciliação da cadeia 001–008; ainda não é prova de deployment.
+
+Nenhuma migration, configuração Vercel, credencial Shopify ou deployment foi
+alterado nesta pré-verificação. **Commerce staging ainda não está validado para
+o contrato Shopify; o estado de release permanece Review / NO-GO**.
