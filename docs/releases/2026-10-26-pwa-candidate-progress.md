@@ -172,3 +172,23 @@ segredos, criação de webhooks ou promoção de produção.
 
 Nenhuma app, canal, token, âmbito, webhook ou variável Vercel foi criado ou
 alterado nesta verificação. O estado de release permanece **Review / NO-GO**.
+
+## Loja Shopify de desenvolvimento criada em 2026-10-29
+
+- Após aprovação específica do utilizador, foi criada `AQUA OS Commerce
+  Staging` na organização `AQUA Store`, com plano de teste `Basic`, a opção
+  `Generate test data for store` ativada e nenhuma feature preview ativada.
+- O Admin abriu em `admin.shopify.com/store/aqua-os-commerce-staging`. A página
+  Geral identificou-a como `Loja em desenvolvimento`; a página Plano mostrou
+  `Basic`; Domínios mostrou `aqua-os-commerce-staging.myshopify.com` como
+  domínio principal ligado. Produtos mostrou 17 itens fictícios na primeira
+  página, incluindo snowboards de exemplo. Em Pagamentos, o `Gateway de
+  pagamento de teste` apresentou estado `Ativo`; isto não prova ainda o
+  ciclo checkout/webhook do Commerce.
+- Esta loja é isolada da `aquaticus.myshopify.com`. Nenhuma app Commerce,
+  canal Headless, token, webhook, variável Vercel ou migration foi criada ou
+  alterada. A próxima integração deve apontar primeiro para esta loja e para
+  um serviço Commerce staging atualizado; os acessos à loja real continuam
+  pendentes de decisão própria.
+
+Estado: **staging Shopify isolado disponível; release continua Review / NO-GO**.
