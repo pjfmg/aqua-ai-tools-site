@@ -108,3 +108,32 @@ Estado: **Review / NO-GO para nova publicação de produção**.
 - Depois de instalar apenas o Chromium de teste correspondente, `npm run check` passou integralmente: 15 suites smoke, 11/11 testes Playwright, build Vite com 105 módulos e `release:check` com estado `candidate` e 44 artefactos.
 - Não foi necessária qualquer alteração de código para fechar este gate.
 - A configuração Shopify continua sem poder avançar porque o Mac permaneceu bloqueado durante a tentativa de retomar o Shopify Admin. Não foram criadas credenciais, scopes, webhooks ou alterações Vercel.
+
+## Execução dos gates em 2026-10-29
+
+- A ligação Shopify voltou a confirmar a loja `AQUA Store`, domínio público
+  `www.aqua-store.eu`, plano Basic, moeda USD e país Portugal. Esta leitura não
+  criou nem revelou credenciais.
+- A tentativa de retomar o Shopify Admin no Safari voltou a ser bloqueada pelo
+  ecrã bloqueado do Mac. A criação/instalação da app privada `AQUA OS Commerce`
+  e a geração de acesso persistente continuam pendentes de sessão Admin
+  autenticada e confirmação no momento da ação.
+- O código Commerce continua a exigir `SHOPIFY_STORE_DOMAIN`,
+  `SHOPIFY_STOREFRONT_ACCESS_TOKEN` e `SHOPIFY_WEBHOOK_SECRET`, e expõe os três
+  destinos previstos: `orders-paid`, `orders-cancelled` e `refunds-create`.
+- `release:verify:production` repetiu liveness e catálogo HTTP 200, mas
+  readiness HTTP 503: Data Platform `ok` e Commerce `fail`. A release pública
+  continua em `f5f94367a3096d775b3117deedd9e6e4dcd99a6b`.
+- `pwa:verify:production` repetiu o resultado anterior: os ícones, assinatura
+  e manifest coincidem, mas `/sw.js` e `/offline.html` continuam a responder
+  `text/html` sem os marcadores da candidate.
+- `catalog:quality:production -- --enforce` repetiu 4 344 registos, cinco
+  problemas críticos e 13 369 lacunas editoriais; o gate continua vermelho.
+- A Web App do iMac continua instalada em `~/Applications/AQUA AI Tools.app`,
+  com nome, start URL e ícones do manifest esperados. A toolchain ativa é
+  apenas Command Line Tools e não existe Xcode descoberto, pelo que
+  `devicectl` não ficou disponível para repetir o inventário iPhone/iPad.
+
+Estado após esta execução: **Review / NO-GO**. O primeiro desbloqueio necessário
+continua a ser a sessão Shopify Admin; não houve deployment, alteração de
+segredos, criação de webhooks ou promoção de produção.
