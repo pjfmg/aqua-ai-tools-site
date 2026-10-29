@@ -254,3 +254,23 @@ Próximo gate: obter por via administrativa a referência Supabase efetiva do
 runtime staging e o ledger/schema do destino, sem expor chaves; demonstrar
 isolamento, backup, restauro e ordem SQL antes de aplicar migrations. **NO_APPLY
 e Review / NO-GO mantidos**.
+
+## Smoke SQL descartável em 2026-10-29
+
+- O Mac continuou bloqueado, pelo que a referência Supabase efetiva de
+  Commerce staging não pôde ser confirmada no painel.
+- Uma instância PostgreSQL 17 local e descartável recebeu um stub mínimo de
+  `auth.users` sem utilizadores, a migration IdentityAccess 001, as migrations
+  Commerce 001–002 e depois a migration Shopify agregada
+  `20260821100023_phase2_shopify_primary_checkout.sql`. Todas executaram sem
+  erro. A consulta de metadados confirmou `aqua_commerce_orders`,
+  `aqua_subscriptions`, `aqua_commerce_webhook_events`, as colunas
+  `checkout_provider`/`shopify_order_id` e a chave primária de webhooks por
+  `(provider, provider_event_id)`.
+- O teste confirma apenas esta ordem mínima num schema vazio simulado.
+  Migrations Commerce 004–008, dependências CRM/Finance, ledger remoto,
+  backup/restauro e isolamento staging continuam sem validação. A instância
+  local foi encerrada e apagada; nenhuma base remota foi alterada.
+
+Estado: **bootstrap mínimo local PASS; aplicação remota NO_APPLY; release
+Review / NO-GO**.
