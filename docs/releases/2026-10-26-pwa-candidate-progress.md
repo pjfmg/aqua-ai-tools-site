@@ -101,3 +101,10 @@ de produção foi alterado nesta validação.
    contra a release e o commit exatos.
 
 Estado: **Review / NO-GO para nova publicação de produção**.
+
+## Revalidação local em 2026-10-29
+
+- A primeira execução de `npm run check` ficou bloqueada porque o executável Chromium esperado pela versão instalada do Playwright já não existia na cache local; não foi uma falha funcional da aplicação.
+- Depois de instalar apenas o Chromium de teste correspondente, `npm run check` passou integralmente: 15 suites smoke, 11/11 testes Playwright, build Vite com 105 módulos e `release:check` com estado `candidate` e 44 artefactos.
+- Não foi necessária qualquer alteração de código para fechar este gate.
+- A configuração Shopify continua sem poder avançar porque o Mac permaneceu bloqueado durante a tentativa de retomar o Shopify Admin. Não foram criadas credenciais, scopes, webhooks ou alterações Vercel.
