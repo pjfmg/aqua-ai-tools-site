@@ -479,3 +479,36 @@ As dez tabelas e as 26 funções visíveis reforçam a correspondência de
 esquema com as fontes Raffles, mas não reconstituem o SQL que falta no
 histórico. **NO_APPLY** mantém-se até confirmar o destino Vercel e o plano
 de backup/restauro Commerce.
+
+## Mapa da cadeia SQL Commerce em 2026-10-30
+
+- As migrations de serviço `003_shopify_primary_checkout`,
+  `004_sales_commerce_integration`, `006_commerce_domain_boundary`,
+  `007_product_offer_provisioning` e `008_revenue_center_read_model`
+  coincidem **byte a byte** com as versões agregadas
+  `20260821100023`, `20260821100024`, `20260821100025`,
+  `20260821100026` e `20260821120001`, respetivamente. Essas cinco
+  versões constam das 58 versões comuns já comparadas com o SQL recuperado
+  do histórico staging; a diferença para o histórico, quando existe, é
+  apenas de quebras de linha.
+- `005_store_pilot_correlation` coincide byte a byte com a cópia histórica
+  `20260828133000_store_pilot_correlation.sql` do outro checkout AQUA OS.
+  A versão está no ledger staging, e o SQL recuperado para ela difere dessa
+  cópia apenas em quebras de linha. A cópia desse checkout está não
+  versionada, pelo que a fonte de serviço e o objeto histórico Git
+  continuam a ser as referências de origem.
+- `001_aqua_subscriptions` e `002_portfolio_commerce` não têm versão
+  agregada equivalente identificada. As tabelas base existem no esquema
+  staging: a geração de tipos atual confirmou as cinco tabelas criadas por
+  essas fontes (`aqua_subscriptions`, `aqua_commerce_orders`,
+  `aqua_commerce_subscriptions`, `aqua_commerce_entitlements` e
+  `aqua_commerce_webhook_events`). A presença delas não prova a ordem, o
+  conteúdo SQL ou as constraints dessas duas migrations. Não foram
+  reaplicadas.
+
+Resultado: seis das oito migrations Commerce têm correspondência textual
+com versões do histórico staging; as duas baselines exigem comparação de
+esquema e proveniência antes de qualquer decisão SQL. O painel Supabase da
+sessão Safari respondeu `You do not have access to this project`, e o
+Colima local tem um symlink para uma pasta inexistente; essas vias não
+forneceram inspeção adicional. **NO_APPLY / Review / NO-GO**.
