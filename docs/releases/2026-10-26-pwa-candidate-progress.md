@@ -319,3 +319,26 @@ SHA-256 com `Services/Commerce/migrations/005_store_pilot_correlation.sql` e
 a sua versão aparece no ledger remoto. A versão no ledger, por si só, não
 prova o hash do SQL executado; faltam ainda as outras proveniências e a
 verificação da configuração Vercel.
+
+## Proteção de destino Commerce em 2026-10-30
+
+- O Commerce passou a exigir `AQUA_EXPECTED_SUPABASE_PROJECT_REF` em
+  deployments. Se estiver ausente ou não coincidir com o host de
+  `SUPABASE_URL`, as rotas além de liveness devolvem 503 antes de qualquer
+  acesso à base. O código, teste e runbook ficaram no commit local `02cdaa2`;
+  `npm test` passou 31/31, incluindo um pedido de staging com referências
+  sintéticas diferentes e zero pedidos de rede.
+- No projeto Vercel `aqua-os-commerce-staging`, ambiente Production desse
+  projeto, foi adicionada como Config a referência esperada
+  `afgdmshizxlvswvojthf`. A CLI confirmou a adição e a listagem confirmou o
+  nome; não foi feito deployment. `SUPABASE_URL` e as chaves existentes não
+  foram alteradas. O projeto `aqua-os-commerce` de produção não foi alterado.
+- Uma tentativa de confirmar o valor por exportação de variáveis foi recusada
+  pela revisão automática porque esse comando exportaria também credenciais
+  Secret. Não se contornou a recusa e não se descarregaram segredos. Assim, a
+  listagem confirma a presença da nova variável, mas não é leitura
+  independente do seu valor nem prova da referência efetiva de
+  `SUPABASE_URL`.
+
+Estado: **proteção local PASS e variável esperada preparada em staging;
+associação efetiva da base, restauro e deployment pendentes; Review / NO-GO**.
