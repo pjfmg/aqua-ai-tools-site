@@ -379,10 +379,37 @@ associação efetiva da base, restauro e deployment pendentes; Review / NO-GO**.
 - Assim, há agora uma fonte local candidata para cada uma das 15 versões que
   existem apenas no ledger remoto relativamente ao agregado do Console:
   oito cópias já localizadas em AQUA OS, seis migrations Raffles de outubro
-  e a migration Raffles de agosto inferida pelo esquema. O ledger devolve
-  apenas números de versão; não devolve nomes, hashes nem conteúdo do SQL.
-  A reconciliação do SQL efetivamente aplicado continua **pendente**.
+  e a migration Raffles de agosto inferida pelo esquema. A listagem simples
+  do ledger devolve apenas números de versão. A reconciliação do SQL
+  efetivamente aplicado continuava **pendente** nesta etapa.
 
 Nenhum SQL remoto foi aplicado. A referência Supabase efetiva da Vercel
 staging, o restauro de prova e o deployment Commerce continuam pendentes;
 **NO_APPLY / Review / NO-GO**.
+
+## Leitura dos ficheiros do histórico remoto em 2026-10-30
+
+- `supabase migration fetch --project-ref afgdmshizxlvswvojthf` recuperou 73
+  nomes de ficheiros numa pasta temporária protegida, apagada após a
+  comparação. Os nomes das 15 versões ausentes do agregado do Console
+  coincidem com as fontes locais candidatas. Em particular,
+  `202608280001` é `raffles_campaign_governance`, e as seis versões de outubro
+  têm os nomes correspondentes de AQUA Raffles. A colisão de número com World
+  e Experiences fica resolvida **quanto ao nome registado**.
+- Para `20260823193000` e as sete versões `20260828` seguintes, o SQL
+  recuperado tem o mesmo conteúdo das cópias em `AQUA OS/Web/Supabase/migrations/`
+  quando se ignoram apenas quebras de linha adicionais nas cópias locais.
+  Uma dessas oito (`20260828131000`) coincide também byte a byte. Esta
+  comparação verifica o texto guardado no histórico para essas oito versões;
+  não substitui uma inspeção do esquema resultante nem um restauro.
+- Para `202608280001` e as seis versões de outubro, cada ficheiro recuperado
+  contém apenas `;` e uma quebra de linha. O histórico confirma os nomes,
+  mas **não disponibiliza o SQL** dessas sete migrations para comparação com
+  as fontes Raffles. Não se deve interpretar o placeholder como uma migration
+  vazia: o esquema staging mostra objetos Raffles. Continua por comprovar a
+  equivalência exata do SQL executado nessas sete versões.
+
+Resultado: **oito textos históricos reconciliados, sete nomes confirmados com
+SQL não recuperável**. A identidade efetiva de `SUPABASE_URL` na Vercel
+staging, o restauro de prova e o deployment Commerce permanecem pendentes;
+nenhum SQL ou dado remoto foi alterado. **NO_APPLY / Review / NO-GO**.
