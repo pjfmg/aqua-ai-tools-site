@@ -461,3 +461,21 @@ Estado: proveniência de nomes e presença das dez tabelas Raffles **PASS**;
 SQL exato das sete versões e restauro Commerce atual **pendentes**. A
 confirmação das três variáveis Supabase da Vercel staging continua a ser o
 primeiro bloqueio operacional. **NO_APPLY / Review / NO-GO**.
+
+### Funções declaradas nas sete fontes Raffles
+
+Uma comparação somente de leitura entre as sete fontes locais e os tipos
+gerados **agora** de `public,raffles` no staging encontrou 30 nomes distintos
+de funções declaradas. Vinte e seis aparecem nos tipos remotos. Os quatro
+nomes que não aparecem (`protect_closed_eligibility`,
+`protect_confirmed_draw_regulatory_evidence`,
+`protect_started_campaign_capacity` e
+`reject_regulatory_evidence_mutation`) são funções `returns trigger` nas
+fontes SQL; a geração de tipos não comprova a presença ou ausência dessas
+funções internas. As 26 correspondências verificam nomes expostos, não
+assinaturas completas, corpos, grants, policies ou triggers atuais.
+
+As dez tabelas e as 26 funções visíveis reforçam a correspondência de
+esquema com as fontes Raffles, mas não reconstituem o SQL que falta no
+histórico. **NO_APPLY** mantém-se até confirmar o destino Vercel e o plano
+de backup/restauro Commerce.
