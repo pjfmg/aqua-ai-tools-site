@@ -305,3 +305,17 @@ Review / NO-GO**.
 
 Estado: **schema base staging observado e backup disponível; ligação Vercel,
 restauro e reconciliação do ledger pendentes; NO_APPLY / Review / NO-GO**.
+
+### Proveniência local de parte do ledger
+
+O histórico Git do Console contém seis ficheiros agregados de `20260828`
+cujo conteúdo é exatamente igual às migrations de serviço atuais: registry
+v2 (`PortfolioPlatform/008`), operational state (`PortfolioPlatform/009`),
+official health monitor (`Observability/005`), registry entity metrics
+(`PortfolioPlatform/010`), auditable portfolio valuation
+(`PortfolioPlatform/011`) e store pilot correlation (`Commerce/005`). O
+ficheiro histórico `20260828133000_store_pilot_correlation.sql` coincide por
+SHA-256 com `Services/Commerce/migrations/005_store_pilot_correlation.sql` e
+a sua versão aparece no ledger remoto. A versão no ledger, por si só, não
+prova o hash do SQL executado; faltam ainda as outras proveniências e a
+verificação da configuração Vercel.
