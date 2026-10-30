@@ -353,3 +353,36 @@ remoto sem reconciliar fonte, ledger e schema.
 
 Estado: **proteção local PASS e variável esperada preparada em staging;
 associação efetiva da base, restauro e deployment pendentes; Review / NO-GO**.
+
+## Proveniência adicional do ledger staging em 2026-10-30
+
+- Foram localizados os seis ficheiros `202610030001`–`004`, `202610180001`
+  e `202610190001` em `AQUA Raffles/supabase/migrations/` no checkout
+  Documents. Os SHA-256 locais, pela mesma ordem, são
+  `409719d389f19710a8d4c3539193946f70997affb6c39e5f3c153033a0423b11`,
+  `d53d6ac9bceedddd6b54d9c61a3895c3250c212c7961243cea877ad20cd11215`,
+  `6bfdaf52cda0bb6e55839fcde2481d6803f92bd35c10cb2d5395ebe800d6188e`,
+  `74aea641fc56ce7c0139717606542d48d16a951c48d542e4f6301d6d72b346f0`,
+  `21d693f8b67bb3891cfce5d39ce0724f5b20dc3b1364d476a669327531815201`
+  e `8f5654ddda6412235ee664f9eb1317d4c6090f1f5eb9dfcac738bec1039ffd74`.
+- A versão `202608280001` existe em três produtos diferentes: Raffles
+  (`raffles_campaign_governance.sql`), World (`world_foundations.sql`) e
+  Experiences (`rent_hold_hardening.sql`). A geração de tipos do projeto
+  staging para `public,raffles` encontrou `campaign_governance_records`,
+  `campaign_governance_documents` e `campaign_governance_revisions`, que a
+  migration Raffles define. Não encontrou `world_zones`, `hotspots`,
+  `land_parcels`, `development_slots` nem `rent_reservations`, os objetos
+  indicativos das outras duas fontes. Isto favorece a atribuição da versão
+  remota a Raffles, mas não prova qual SQL exato foi executado. O SHA-256 da
+  cópia Raffles é
+  `8ca31153ef735f28747d2de57da7e0e598c21f675d77948381a493cb2ef2`.
+- Assim, há agora uma fonte local candidata para cada uma das 15 versões que
+  existem apenas no ledger remoto relativamente ao agregado do Console:
+  oito cópias já localizadas em AQUA OS, seis migrations Raffles de outubro
+  e a migration Raffles de agosto inferida pelo esquema. O ledger devolve
+  apenas números de versão; não devolve nomes, hashes nem conteúdo do SQL.
+  A reconciliação do SQL efetivamente aplicado continua **pendente**.
+
+Nenhum SQL remoto foi aplicado. A referência Supabase efetiva da Vercel
+staging, o restauro de prova e o deployment Commerce continuam pendentes;
+**NO_APPLY / Review / NO-GO**.
