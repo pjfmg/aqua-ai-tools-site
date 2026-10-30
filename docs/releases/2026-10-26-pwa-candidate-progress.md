@@ -433,3 +433,31 @@ correspondente, incluindo o teste Funding arquivado. As sete versões Raffles
 com placeholders continuam sem comparação de SQL. Isto é reconciliação do
 histórico, **não** prova de restauro, de equivalência integral do esquema ou
 de identidade da base usada pelo runtime Vercel. **NO_APPLY** mantido.
+
+## Âmbito Raffles e prova de restauro existente em 2026-10-30
+
+- A geração de tipos **atual** do esquema `raffles` no projeto staging
+  `afgdmshizxlvswvojthf` encontrou as dez tabelas `raffles` criadas pelas
+  sete fontes locais cujo histórico remoto só conserva `;` e quebra de
+  linha. Isto confirma presença de objetos, não equivalência de funções,
+  policies, triggers ou do SQL que os criou.
+- O dossier AQUA Raffles contém um recibo de 2026-10-23 para esse mesmo
+  projeto: backup concluído, restauro verificado num PostgreSQL 17 local
+  isolado, 25 tabelas sem linhas, 64 funções/ACLs correspondentes, sete
+  verificadores SQL e 13 cenários de capacidade aprovados. O âmbito do
+  backup foi `raffles`, o ledger de migrations e funções públicas Raffles.
+  Evidência em `docs/operations/evidence/STAGING_CAPACITY_BACKUP_2026-10-23.json`,
+  `STAGING_CAPACITY_RESTORE_2026-10-23.json` e
+  `STAGING_CAPACITY_PROMOTION_2026-10-23.json` no checkout AQUA Raffles.
+  Auth/Identity real, cron e o domínio Commerce não fizeram parte dessa
+  cópia; portanto, **não é um restauro integral atual de Commerce**.
+- Uma tentativa de dump somente do esquema `raffles` pela CLI Supabase
+  falhou porque Docker não está disponível. O `pg_dump` direto pela ligação
+  PostgreSQL local confirmou a referência staging na configuração, mas
+  recusou a ligação por falta de palavra-passe nesta sessão. Nenhum segredo
+  foi fornecido, extraído ou gravado; não houve dump nem escrita remota.
+
+Estado: proveniência de nomes e presença das dez tabelas Raffles **PASS**;
+SQL exato das sete versões e restauro Commerce atual **pendentes**. A
+confirmação das três variáveis Supabase da Vercel staging continua a ser o
+primeiro bloqueio operacional. **NO_APPLY / Review / NO-GO**.
