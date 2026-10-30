@@ -274,3 +274,34 @@ e Review / NO-GO mantidos**.
 
 Estado: **bootstrap mínimo local PASS; aplicação remota NO_APPLY; release
 Review / NO-GO**.
+
+## Supabase staging: preflight remoto de leitura em 2026-10-30
+
+- A conta Supabase acessível confirmou `afgdmshizxlvswvojthf` (staging
+  histórico do Console) e `rjtzmdxdrfumcifztyvr` (produção histórica), ambos
+  `ACTIVE_HEALTHY`. Isto confirma dois projetos distintos na conta, **não**
+  qual deles está configurado em `aqua-os-commerce-staging` na Vercel: o valor
+  de `SUPABASE_URL` nesse runtime permanece oculto como Secret.
+- O ledger do projeto staging contém 73 versões remotas. O agregado local
+  `Supabase/migrations/` contém 59 versões: `202610080001` existe só no
+  agregado local e 15 versões existem só no ledger remoto (`20260823193000`,
+  `202608280001`, `20260828100000`, `20260828110000`, `20260828120000`,
+  `20260828131000`, `20260828132000`, `20260828133000`, `20260828140000`,
+  `202610030001`–`202610030004`, `202610180001` e `202610190001`). A
+  proveniência dessas versões tem de ser reconciliada antes de nova aplicação.
+- A inspeção remota de metadados confirmou a presença das tabelas
+  `aqua_identities`, `aqua_organizations`, `aqua_subscriptions`,
+  `aqua_commerce_orders`, `aqua_commerce_webhook_events`,
+  `aqua_application_usage_events`, `aqua_commerce_payments`,
+  `crm_opportunities` e `finance_transactions`. A geração de tipos confirmou
+  `checkout_provider`, `shopify_order_id`, `provider_checkout_id` e
+  `provider_order_id` em orders; `provider` e `provider_event_id` no inbox;
+  `application_registry_id` e `source_entity_id` em usage events. Isto não
+  verifica constraints, triggers, dados nem a proveniência das migrations.
+- A listagem de backups mostra oito backups, sendo o mais recente físico e
+  `COMPLETED` em `2026-10-30T01:06:30.840Z`; WAL-G está ativo e PITR está
+  desativado. Não houve restauro de prova. Nenhuma migration ou dado de negócio
+  foi alterado nesta consulta.
+
+Estado: **schema base staging observado e backup disponível; ligação Vercel,
+restauro e reconciliação do ledger pendentes; NO_APPLY / Review / NO-GO**.
