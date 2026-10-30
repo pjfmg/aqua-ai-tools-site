@@ -320,6 +320,17 @@ a sua versão aparece no ledger remoto. A versão no ledger, por si só, não
 prova o hash do SQL executado; faltam ainda as outras proveniências e a
 verificação da configuração Vercel.
 
+Uma procura adicional encontrou `20260823193000_product_cost_control.sql` e
+as sete migrations `20260828` nas pastas `Web`, `iOS` e `macOS` de outro
+checkout AQUA OS; as três cópias de cada versão são idênticas. Essas pastas
+estão **não versionadas** nesse checkout e, por isso, não bastam como fonte
+canónica. O histórico Git do Console contém também
+`20260828140000_application_audits.sql`, mas não há migration de serviço
+atual com conteúdo exatamente igual. As versões `202610030001`–`004`,
+`202610180001` e `202610190001` ainda não foram localizadas nas migrations
+dos checkouts Tech inspecionados. Nenhum desses achados autoriza aplicar SQL
+remoto sem reconciliar fonte, ledger e schema.
+
 ## Proteção de destino Commerce em 2026-10-30
 
 - O Commerce passou a exigir `AQUA_EXPECTED_SUPABASE_PROJECT_REF` em
