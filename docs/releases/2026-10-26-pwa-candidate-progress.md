@@ -413,3 +413,23 @@ Resultado: **oito textos históricos reconciliados, sete nomes confirmados com
 SQL não recuperável**. A identidade efetiva de `SUPABASE_URL` na Vercel
 staging, o restauro de prova e o deployment Commerce permanecem pendentes;
 nenhum SQL ou dado remoto foi alterado. **NO_APPLY / Review / NO-GO**.
+
+### Comparação das 58 versões comuns ao agregado
+
+O mesmo `migration fetch` permitiu comparar as 58 versões presentes tanto no
+histórico staging como em `AQUA OS Console Readiness/Supabase/migrations/`:
+18 ficheiros são idênticos byte a byte, 39 diferem apenas em quebras de linha
+e um tem uma alteração deliberada de função. Nesta última versão,
+`20260813040000_verify_funding_platform.sql`, o histórico remoto contém o
+SQL de verificação Funding (7 143 bytes); o agregado atual contém um marcador
+que encaminha esse teste para
+`Services/FundingPlatform/tests/verify_funding_platform.sql`. O texto remoto
+e esse ficheiro de teste são iguais após remover apenas quebras de linha.
+Não se deve voltar a executar o teste como migration: ele exige um
+administrador de organização existente, como explica o marcador local.
+
+Assim, as 66 versões do histórico com SQL recuperável têm uma fonte local
+correspondente, incluindo o teste Funding arquivado. As sete versões Raffles
+com placeholders continuam sem comparação de SQL. Isto é reconciliação do
+histórico, **não** prova de restauro, de equivalência integral do esquema ou
+de identidade da base usada pelo runtime Vercel. **NO_APPLY** mantido.
