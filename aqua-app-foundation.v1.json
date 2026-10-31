@@ -1,0 +1,53 @@
+{
+  "$schema": "../../../AQUA OS/Contracts/v1/aqua-app-foundation-config.schema.json",
+  "schemaVersion": 1,
+  "application": {
+    "id": "aqua:ai-tools",
+    "name": "AQUA AI Tools",
+    "version": "0.1.0",
+    "defaultLocale": "pt-PT",
+    "supportedLocales": ["pt-PT", "en"]
+  },
+  "launch": {
+    "mode": "system-native"
+  },
+  "settings": {
+    "enabled": true
+  },
+  "support": {
+    "url": "https://aqua-console.vercel.app/products/aqua-ai-tools/support",
+    "email": "aquaticus@mail.telepac.pt",
+    "emailMode": "shared-routing",
+    "routingLabel": "AQUA AI Tools"
+  },
+  "feedback": {
+    "mode": "web-form",
+    "url": "https://aqua-console.vercel.app/products/aqua-ai-tools/support#suggestions"
+  },
+  "ratings": {
+    "mode": "disabled"
+  },
+  "privacy": {
+    "policyURL": "https://aqua-console.vercel.app/products/aqua-ai-tools/privacy",
+    "choicesURL": "https://aqua-console.vercel.app/products/aqua-ai-tools/privacy#rights"
+  },
+  "commerce": {
+    "model": "subscription",
+    "managementURL": "https://aqua-console.vercel.app/products/aqua-ai-tools/support#billing",
+    "entitlementRecovery": "account"
+  },
+  "capabilities": {
+    "photos": {
+      "mode": "disabled"
+    },
+    "ai": {
+      "mode": "disabled"
+    }
+  },
+  "publishing": {
+    "appStore": {
+      "enabled": false,
+      "locales": []
+    }
+  }
+}

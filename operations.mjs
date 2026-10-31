@@ -7,7 +7,43 @@ const readinessCache = globalThis.__aquaReadinessCache || new Map();
 globalThis.__aquaReadinessCache = readinessCache;
 
 function release(env) {
-  return String(env.VERCEL_GIT_COMMIT_SHA || env.AQUA_RELEASE || 'development').slice(0, 40);
+  return String(
+    env.VERCEL_GIT_COMMIT_SHA
+    || env.CF_PAGES_COMMIT_SHA
+    || env.AQUA_RELEASE
+    || 'development',
+  ).slice(0, 40);
+}
+
+function validServiceUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    const local = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+    return url.protocol === 'https:' || (local && url.protocol === 'http:');
+  } catch {
+    return false;
+  }
+}
+
+export function deploymentConfigurationStatus(env = process.env) {
+  const values = {
+    AQUA_OS_DATA_URL: String(env.AQUA_OS_DATA_URL || '').trim(),
+    AQUA_OS_COMMERCE_URL: String(env.AQUA_OS_COMMERCE_URL || '').trim(),
+    AQUA_OS_PRODUCT_KEY: String(env.AQUA_OS_PRODUCT_KEY || '').trim(),
+    SUPABASE_URL: String(env.SUPABASE_URL || '').trim(),
+    SUPABASE_ANON_KEY: String(env.SUPABASE_ANON_KEY || '').trim(),
+    SUPABASE_SERVICE_ROLE_KEY: String(env.SUPABASE_SERVICE_ROLE_KEY || '').trim(),
+    AQUA_RELEASE: release(env),
+  };
+  const missing = Object.entries(values)
+    .filter(([, value]) => !value || value === 'development')
+    .map(([name]) => name);
+  const invalid = [
+    ['AQUA_OS_DATA_URL', values.AQUA_OS_DATA_URL],
+    ['AQUA_OS_COMMERCE_URL', values.AQUA_OS_COMMERCE_URL],
+    ['SUPABASE_URL', values.SUPABASE_URL],
+  ].filter(([, value]) => value && !validServiceUrl(value)).map(([name]) => name);
+  return { ok: missing.length === 0 && invalid.length === 0, missing, invalid };
 }
 
 export function dependencyProbeResult(name, available, latencyMs) {
@@ -37,7 +73,7 @@ export async function healthSnapshot(request, mode = 'live', env = process.env, 
   const base = { service: SERVICE, release: release(env), checkedAt: new Date().toISOString() };
   if (mode === 'live') return { status: 200, traceId, data: { ...base, status: 'ok' } };
 
-  const configurationOk = Boolean(env.AQUA_OS_DATA_URL && env.AQUA_OS_COMMERCE_URL && env.AQUA_OS_PRODUCT_KEY && env.SUPABASE_URL && env.SUPABASE_ANON_KEY);
+  const configurationOk = deploymentConfigurationStatus(env).ok;
   const cacheKey = `${String(env.AQUA_OS_DATA_URL || '')}|${String(env.AQUA_OS_COMMERCE_URL || '')}|${configurationOk}`;
   const cached = readinessCache.get(cacheKey);
   if (cached?.expiresAt > Date.now()) return { status: cached.status, traceId, data: cached.data };

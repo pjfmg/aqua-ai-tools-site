@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import { useConsent } from "../privacy/ConsentContext.jsx";
+import { getRouteSeo } from "../lib/seo.js";
 
 const ADSENSE_SCRIPT_SRC = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 const DEFAULT_AD_CLIENT =
@@ -40,6 +42,7 @@ export default function AdStrip({
   format = "auto",
 }) {
   const { isEn } = useLanguage();
+  const { pathname } = useLocation();
   const { advertisingAvailable, advertisingAllowed, openPreferences } = useConsent();
   const adRef = useRef(null);
   const adClient = useMemo(() => String(client || "").trim(), [client]);
@@ -52,9 +55,10 @@ export default function AdStrip({
     if (typeof window === "undefined") return false;
     return isLocalHost(String(window.location?.hostname || "").toLowerCase());
   }, []);
+  const isMonetizableRoute = getRouteSeo(pathname).robots === 'index, follow';
 
   useEffect(() => {
-    if (typeof window === "undefined" || !advertisingAllowed || !adClient || !adSlot) return;
+    if (typeof window === "undefined" || !isMonetizableRoute || !advertisingAllowed || !adClient || !adSlot) return;
 
     loadAdSenseScript(adClient);
 
@@ -73,8 +77,9 @@ export default function AdStrip({
         }
       }
     }, 0);
-  }, [advertisingAllowed, adClient, adSlot, adFormat]);
+  }, [advertisingAllowed, adClient, adSlot, adFormat, isMonetizableRoute]);
 
+  if (!isMonetizableRoute) return null;
   if (!adClient || !adSlot) return null;
   if (!advertisingAllowed) {
     const message = !advertisingAvailable

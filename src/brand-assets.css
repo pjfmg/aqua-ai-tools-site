@@ -1,11 +1,34 @@
 :root {
-  --aqua-brand-atlantic: #061a2e;
+  --aqua-brand-atlantic: #152025;
+}
+
+.hero__brand {
+  margin-bottom: 14px;
+}
+
+.heroBrand {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.heroBrand__icon {
+  width: clamp(76px, 8vw, 112px);
+  height: clamp(76px, 8vw, 112px);
+  flex: 0 0 auto;
+  border-radius: 24%;
+  box-shadow: 0 18px 42px rgba(21, 32, 37, 0.2);
+}
+
+.heroBrand__signature {
+  width: min(470px, 52vw);
+  height: auto;
 }
 
 .topnav .topnav__logo {
   box-sizing: border-box;
-  border-radius: 12px;
-  background: var(--aqua-brand-atlantic);
+  border-radius: 0;
+  background: transparent;
 }
 
 .footer .footer__inner {
@@ -27,8 +50,8 @@
   width: min(230px, 100%);
   height: auto;
   box-sizing: border-box;
-  border-radius: 8px;
-  background: var(--aqua-brand-atlantic);
+  border-radius: 0;
+  background: transparent;
 }
 
 .footer .footer__brand span {
@@ -62,6 +85,10 @@
 }
 
 @media (max-width: 900px) {
+  .heroBrand__signature {
+    width: min(420px, 66vw);
+  }
+
   .footer .footer__inner {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -74,5 +101,25 @@
 
   .footer .footer__meta {
     text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero__brand {
+    margin-bottom: 10px;
+  }
+
+  .heroBrand {
+    gap: 11px;
+  }
+
+  .heroBrand__icon {
+    width: 66px;
+    height: 66px;
+    border-radius: 18px;
+  }
+
+  .heroBrand__signature {
+    width: min(100%, 270px);
   }
 }

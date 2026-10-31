@@ -13,6 +13,7 @@ const EN_ROUTES = new Map([
   ['/reviews', '/en/reviews'],
   ['/submeter', '/en/submit'],
   ['/sugestoes', '/en/suggestions'],
+  ['/definicoes', '/en/settings'],
   ['/blog', '/en/blog'],
   ['/pro', '/en/pro'],
   ['/sobre', '/en/about'],
@@ -37,8 +38,16 @@ export function localizePath(to, lang = 'pt') {
 
   const [pathOnly, ...suffixParts] = to.split(/(?=[?#])/);
   const suffix = suffixParts.join('');
-  if (lang === 'en') return `${EN_ROUTES.get(pathOnly) || (pathOnly === '/' ? '/en' : `/en${pathOnly}`)}${suffix}`;
-  return `${PT_ROUTES.get(pathOnly) || pathOnly.replace(/^\/en(?=\/|$)/, '') || '/'}${suffix}`;
+  if (lang === 'en') {
+    const dynamicToolPath = pathOnly.startsWith('/ferramentas/')
+      ? `/en/tools/${pathOnly.slice('/ferramentas/'.length)}`
+      : '';
+    return `${EN_ROUTES.get(pathOnly) || dynamicToolPath || (pathOnly === '/' ? '/en' : `/en${pathOnly}`)}${suffix}`;
+  }
+  const dynamicToolPath = pathOnly.startsWith('/en/tools/')
+    ? `/ferramentas/${pathOnly.slice('/en/tools/'.length)}`
+    : '';
+  return `${PT_ROUTES.get(pathOnly) || dynamicToolPath || pathOnly.replace(/^\/en(?=\/|$)/, '') || '/'}${suffix}`;
 }
 
 export function getLanguageSwitchPath(pathname, targetLang) {

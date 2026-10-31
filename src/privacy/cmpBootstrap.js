@@ -1,3 +1,4 @@
+const DEFAULT_ENV = import.meta.env || {};
 const GOOGLE_CMP_PROVIDER = 'google-privacy-messaging';
 const GOOGLE_CMP_HOST = 'fundingchoicesmessages.google.com';
 const GOOGLE_CMP_SCRIPT_ID = 'aqua-google-privacy-messaging';
@@ -8,12 +9,11 @@ function enabled(value) {
 }
 
 function normalizedPath(locationLike) {
-  const path = String(locationLike?.pathname || '/').replace(/\/+$/, '');
-  return path || '/';
+  return String(locationLike?.pathname || '/').replace(/\/+$/, '') || '/';
 }
 
 export function resolveCmpBootstrap({
-  env = import.meta.env || {},
+  env = DEFAULT_ENV,
   locationLike = globalThis.location,
   windowLike = globalThis.window,
 } = {}) {
@@ -69,8 +69,12 @@ export function resolveCmpBootstrap({
   };
 }
 
+// Backwards-compatible name retained for release evidence created before the
+// main-branch CMP bootstrap landed.
+export const evaluateCmpBootstrap = resolveCmpBootstrap;
+
 export function bootstrapCmp({
-  env = import.meta.env || {},
+  env = DEFAULT_ENV,
   documentLike = globalThis.document,
   locationLike = globalThis.location,
   windowLike = globalThis.window,

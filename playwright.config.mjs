@@ -1,10 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const testPort = Number(process.env.AQUA_E2E_PORT || 43917);
+const testBaseUrl = `http://127.0.0.1:${testPort}`;
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
   workers: 1,
-  timeout: 20_000,
+  timeout: 60_000,
   expect: {
     timeout: 7_000,
   },
@@ -13,7 +16,7 @@ export default defineConfig({
     ['html', { open: 'never' }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: testBaseUrl,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -24,10 +27,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev:vite -- --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    command: `npm run dev:vite -- --host 127.0.0.1 --port ${testPort} --strictPort`,
+    url: testBaseUrl,
+    reuseExistingServer: false,
+    timeout: 60_000,
     env: {
       ...process.env,
       VITE_ADSENSE_TCF_READY: 'true',

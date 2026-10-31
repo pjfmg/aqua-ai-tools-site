@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "mode": "default-deny",
+  "target": "https://codex-trust-platform.aqua-ai-tools.pages.dev",
+  "checkedAt": "2026-10-08T06:55:28.785Z",
+  "ok": false,
+  "checks": [
+    {
+      "name": "https-and-security-headers",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "hsts": "max-age=63072000; includeSubDomains; preload",
+      "bundlePath": "/assets/index-DEcs4VrF.js"
+    },
+    {
+      "name": "deployed-trust-platform-bundle",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "bundlePath": "/assets/index-DEcs4VrF.js"
+    },
+    {
+      "name": "ads.txt",
+      "ok": true,
+      "errors": [],
+      "status": 200,
+      "seller": "google.com/pub-8295677733502537"
+    },
+    {
+      "name": "platform-readiness",
+      "ok": false,
+      "errors": [
+        "readiness returned HTTP 503",
+        "readiness status is not ready",
+        "configuration is fail",
+        "data-platform is fail",
+        "commerce is fail"
+      ],
+      "observedRelease": "0a04b060cfb299cd89aa885f5efef5b28a9a953a"
+    },
+    {
+      "name": "default-deny-browser-scenarios",
+      "ok": true,
+      "errors": []
+    }
+  ]
+}

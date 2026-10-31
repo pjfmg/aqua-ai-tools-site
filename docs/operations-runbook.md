@@ -15,11 +15,12 @@ Alertar quando o erro consumir 10% do budget mensal numa hora, p95 exceder 1 500
 
 ## Diagnóstico
 
-1. Consultar `/v1/health/live`. Se falhar, validar deployment/runtime.
-2. Consultar `/v1/health/ready`. Um `503` identifica apenas a dependência afetada, sem expor configuração.
-3. Pesquisar `traceId` nos logs estruturados e em `aqua_api_audit_events`.
-4. Comparar taxa, erros e duração na view `aqua_api_red_metrics_5m`.
-5. Confirmar a release (`AQUA_RELEASE`) e alterações recentes.
+1. Confirmar o URL e commit do runtime Vercel canónico; não usar o canary Cloudflare como substituto da readiness privada.
+2. Consultar `/v1/health/live`. Se falhar, validar deployment/runtime.
+3. Consultar `/v1/health/ready`. Um `503` identifica apenas a dependência afetada, sem expor configuração.
+4. Pesquisar `traceId` nos logs estruturados e em `aqua_api_audit_events`.
+5. Comparar taxa, erros e duração na view `aqua_api_red_metrics_5m`.
+6. Confirmar a release (`AQUA_RELEASE`) e alterações recentes.
 
 O readiness mantém o resultado durante cinco segundos para evitar amplificação de carga sobre as dependências.
 Cada probe dispõe de até cinco segundos para distinguir indisponibilidade de

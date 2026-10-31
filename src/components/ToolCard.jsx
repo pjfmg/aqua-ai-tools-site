@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   normalizeFuncoes,
   getToolDescription,
   getLocalizedToolAreas,
   getToolName,
   getToolNumber,
+  getToolSlug,
   getToolSite,
   pickLogoUrls,
 } from '../lib/tools.js';
@@ -35,7 +37,7 @@ function shouldOpenExternalInNewTab() {
 }
 
 export default function ToolCard({ tool }) {
-  const { isEn } = useLanguage();
+  const { isEn, path } = useLanguage();
   const { isAuthed, hasProAccess, user } = useAuth();
   const { ratings } = useRatings();
   const { ratingsByToolKey, setRatingLocal } = useMyRatings();
@@ -189,7 +191,9 @@ export default function ToolCard({ tool }) {
       {desc ? (
         <p className="toolCard__desc">{desc}</p>
       ) : (
-        <p className="toolCard__desc toolCard__desc--muted">{isEn ? 'No description.' : 'Sem descrição.'}</p>
+        <p className="toolCard__desc toolCard__desc--muted">
+          {isEn ? 'Editorial description under review.' : 'Descrição editorial em revisão.'}
+        </p>
       )}
 
       <div className="toolCard__bottom">
@@ -198,6 +202,9 @@ export default function ToolCard({ tool }) {
             {isEn ? 'AQUA may receive compensation from this link.' : 'A AQUA pode receber uma compensação por este link.'}
           </p>
         ) : null}
+        <Link className="btn btn--ghost btn--block" to={path(`/ferramentas/${getToolSlug(tool)}`)}>
+          {isEn ? 'Details' : 'Detalhes'}
+        </Link>
         {href ? (
           <a
             className="btn btn--primary btn--block"

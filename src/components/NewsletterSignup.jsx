@@ -5,16 +5,6 @@ import { useConsent } from '../privacy/ConsentContext.jsx';
 
 const STATUS_KEY = 'aqua_newsletter_status_v1';
 const DISMISSED_KEY = 'aqua_newsletter_dismissed_v1';
-const DISMISS_DAYS = 30;
-
-function recentlyDismissed() {
-  const dismissedAt = Number(window.localStorage.getItem(DISMISSED_KEY) || 0);
-  return dismissedAt > Date.now() - DISMISS_DAYS * 24 * 60 * 60 * 1000;
-}
-
-function isSubscribed() {
-  return window.localStorage.getItem(STATUS_KEY) === 'subscribed';
-}
 
 export function openNewsletterSignup() {
   window.dispatchEvent(new CustomEvent('aqua:newsletter-open'));
@@ -22,14 +12,14 @@ export function openNewsletterSignup() {
 
 export default function NewsletterSignup() {
   const { isEn, lang } = useLanguage();
-  const { hasDecision, preferencesOpen } = useConsent();
+  const { preferencesOpen } = useConsent();
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef(null);
   const previousFocus = useRef(null);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [topics, setTopics] = useState(['productivity', 'content-design', 'code-automation']);
+  const [topics, setTopics] = useState([]);
   const [permission, setPermission] = useState(false);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
@@ -43,12 +33,6 @@ export default function NewsletterSignup() {
     window.addEventListener('aqua:newsletter-open', show);
     return () => window.removeEventListener('aqua:newsletter-open', show);
   }, []);
-
-  useEffect(() => {
-    if (!hasDecision || preferencesOpen || isSubscribed() || recentlyDismissed()) return undefined;
-    const timer = window.setTimeout(() => setOpen(true), 8000);
-    return () => window.clearTimeout(timer);
-  }, [hasDecision, preferencesOpen]);
 
   useEffect(() => {
     if (!open) return undefined;

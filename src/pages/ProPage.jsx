@@ -58,15 +58,32 @@ function ComparisonRow({ label, starter, pro }) {
   return (
     <div className="planCompare__row">
       <div className="planCompare__feature">{label}</div>
-      <div className="planCompare__value">{starter}</div>
-      <div className="planCompare__value planCompare__value--pro">{pro}</div>
+      <div className="planCompare__value">
+        <span className="planCompare__planLabel">Starter</span>
+        {starter}
+      </div>
+      <div className="planCompare__value planCompare__value--pro">
+        <span className="planCompare__planLabel">Pro</span>
+        {pro}
+      </div>
     </div>
   );
 }
 
-function PriceCard({ title, price, subtitle, bullets, footer, highlight = false, children }) {
+function ValueCard({ eyebrow, title, body }) {
+  return (
+    <article className="proValueCard">
+      <div className="proValueCard__eyebrow">{eyebrow}</div>
+      <h3>{title}</h3>
+      <p>{body}</p>
+    </article>
+  );
+}
+
+function PriceCard({ title, price, subtitle, bullets, footer, highlight = false, label = '', children }) {
   return (
     <div className={`priceCard ${highlight ? 'priceCard--highlight' : ''}`}>
+      {label ? <div className="priceCard__label">{label}</div> : null}
       <div className="priceCard__title">{title}</div>
       <div className="priceCard__price">{price}</div>
       {subtitle ? <div className="priceCard__subtitle">{subtitle}</div> : null}
@@ -90,18 +107,18 @@ export default function ProPage() {
   return (
     <>
       <Hero
-        title="Pro"
+        title={isEn ? 'Turn discovery into decisions' : 'Transforma descoberta em decisões'}
         subtitle={
           isEn
-            ? 'The subscription unlocks personal directory features and centralizes your history.'
-            : 'A subscrição desbloqueia funcionalidades pessoais do diretório e centraliza o teu histórico.'
+            ? 'Build your shortlist, remember what you explored and keep your personal tool evaluations together.'
+            : 'Cria a tua shortlist, recupera o que exploraste e mantém as tuas avaliações pessoais num só lugar.'
         }
-        badge="Starter vs Pro"
+        badge={isEn ? 'Pro · €19/month' : 'Pro · €19/mês'}
         right={
           <div className="hero__search">
             <SubscribeButton />
-            <Link className="btn btn--ghost" to={path('/contacto')}>
-              {isEn ? 'Contact us' : 'Falar connosco'}
+            <Link className="btn btn--ghost" to={path('/ferramentas')}>
+              {isEn ? 'Explore for free' : 'Explorar gratuitamente'}
             </Link>
           </div>
         }
@@ -118,10 +135,53 @@ export default function ProPage() {
       ) : null}
 
       <Section
-        title={isEn ? 'Plans' : 'Planos'}
-        subtitle={isEn ? 'Starter remains free; Pro adds personal features.' : 'O Starter continua grátis; o Pro adiciona funcionalidades pessoais.'}
+        title={isEn ? 'A workspace for your AI research' : 'Um espaço para a tua pesquisa de IA'}
+        subtitle={
+          isEn
+            ? 'Pro helps frequent users move from browsing to a repeatable decision process.'
+            : 'O Pro ajuda quem pesquisa com frequência a passar da descoberta para um processo de decisão repetível.'
+        }
       >
-        <div className="pricingGrid">
+        <div className="proValueGrid">
+          <ValueCard
+            eyebrow={isEn ? '1 · Shortlist' : '1 · Shortlist'}
+            title={isEn ? 'Keep the strongest candidates' : 'Guarda os candidatos mais fortes'}
+            body={
+              isEn
+                ? 'Save favorites while browsing and return to a focused selection instead of starting over.'
+                : 'Guarda favoritas enquanto exploras e regressa a uma seleção focada, sem recomeçar do zero.'
+            }
+          />
+          <ValueCard
+            eyebrow={isEn ? '2 · Memory' : '2 · Memória'}
+            title={isEn ? 'Pick up where you left off' : 'Retoma onde ficaste'}
+            body={
+              isEn
+                ? 'Your visited history keeps useful tools within reach across research sessions.'
+                : 'O histórico de visitadas mantém as ferramentas úteis ao teu alcance entre sessões de pesquisa.'
+            }
+          />
+          <ValueCard
+            eyebrow={isEn ? '3 · Evaluation' : '3 · Avaliação'}
+            title={isEn ? 'Record your own judgement' : 'Regista o teu próprio critério'}
+            body={
+              isEn
+                ? 'Give tools a personal star rating and review those decisions from one dedicated area.'
+                : 'Atribui uma avaliação pessoal por estrelas e revê essas decisões numa área dedicada.'
+            }
+          />
+        </div>
+      </Section>
+
+      <Section
+        title={isEn ? 'Choose how you use the directory' : 'Escolhe como usas o diretório'}
+        subtitle={
+          isEn
+            ? 'Browsing remains free. Pro adds continuity and a personal decision layer.'
+            : 'Explorar continua gratuito. O Pro acrescenta continuidade e uma camada pessoal de decisão.'
+        }
+      >
+        <div className="pricingGrid pricingGrid--primary">
           <PriceCard
             title="Starter"
             price="€0"
@@ -136,18 +196,47 @@ export default function ProPage() {
 
           <PriceCard
             title={SUBSCRIPTION_PLAN.name}
-            price={SUBSCRIPTION_PLAN.priceLabel}
+            price={isEn ? '€19/month' : SUBSCRIPTION_PLAN.priceLabel}
             subtitle={isEn ? 'Monthly recurring billing' : 'Cobrança mensal recorrente'}
-            bullets={isEn ? ['Save favorites', 'Visited tools history', 'Personal tool ratings', 'Access to Reviews'] : PRO_FEATURES}
-            footer={isEn ? 'Secure checkout via Stripe. Billing management remains suspended until the secure portal is available.' : 'Checkout seguro via Stripe. A gestão da cobrança permanece suspensa até o portal seguro estar disponível.'}
+            bullets={
+              isEn
+                ? ['Build a personal shortlist with favorites', 'Return to tools through visited history', 'Record a personal star rating', 'Review your decisions in one place']
+                : PRO_FEATURES
+            }
+            footer={
+              isEn
+                ? 'For people who compare tools regularly and want to preserve their research.'
+                : 'Para quem compara ferramentas regularmente e quer preservar a sua pesquisa.'
+            }
             highlight
+            label={isEn ? 'For frequent research' : 'Para pesquisa frequente'}
           >
             <SubscribeButton />
           </PriceCard>
+        </div>
 
+        <div className="proTrustStrip" role="note">
+          <strong>{isEn ? 'Clear billing' : 'Cobrança transparente'}</strong>
+          <span>
+            {isEn
+              ? 'Monthly recurring payment processed through Stripe. The self-service billing portal remains suspended until its secure flow is available.'
+              : 'Pagamento mensal recorrente processado pela Stripe. O portal de gestão autónoma permanece suspenso até o fluxo seguro estar disponível.'}
+          </span>
+        </div>
+      </Section>
+
+      <Section
+        title={isEn ? 'Looking for promotion or implementation?' : 'Procuras promoção ou implementação?'}
+        subtitle={
+          isEn
+            ? 'Creator and Business are services for products and teams; they are separate from the personal Pro subscription.'
+            : 'Creator e Business são serviços para produtos e equipas, separados da subscrição pessoal Pro.'
+        }
+      >
+        <div className="pricingGrid pricingGrid--services">
           <PriceCard
             title="Creator"
-            price="€249/mês"
+            price={isEn ? '€249/month' : '€249/mês'}
             subtitle={isEn ? 'For teams that want visibility and editorial support' : 'Para quem quer visibilidade e apoio editorial'}
             bullets={[
               isEn ? 'Directory highlight' : 'Destaque no diretório',
@@ -182,8 +271,12 @@ export default function ProPage() {
       </Section>
 
       <Section
-        title={isEn ? 'What becomes unlocked' : 'O que fica bloqueado'}
-        subtitle={isEn ? 'The areas below require an active subscription.' : 'As áreas abaixo passam a exigir uma subscrição ativa.'}
+        title={isEn ? 'Starter or Pro?' : 'Starter ou Pro?'}
+        subtitle={
+          isEn
+            ? 'Compare exactly what is included before you decide.'
+            : 'Compara exatamente o que está incluído antes de decidires.'
+        }
       >
         <div className="planCompare">
           <div className="planCompare__row planCompare__row--head">
@@ -191,12 +284,23 @@ export default function ProPage() {
             <div className="planCompare__value">Starter</div>
             <div className="planCompare__value planCompare__value--pro">Pro</div>
           </div>
-          <ComparisonRow label={isEn ? 'Favorites' : 'Favoritas'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
-          <ComparisonRow label={isEn ? 'Visited history' : 'Histórico de visitadas'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
-          <ComparisonRow label={isEn ? 'Personal star ratings' : 'Avaliação pessoal por estrela'} starter="-" pro={isEn ? 'Included' : 'Incluído'} />
-          <ComparisonRow label="Reviews" starter="-" pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Favorites' : 'Favoritas'} starter={isEn ? 'Not included' : 'Não incluído'} pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Visited history' : 'Histórico de visitadas'} starter={isEn ? 'Not included' : 'Não incluído'} pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label={isEn ? 'Personal star ratings' : 'Avaliação pessoal por estrela'} starter={isEn ? 'Not included' : 'Não incluído'} pro={isEn ? 'Included' : 'Incluído'} />
+          <ComparisonRow label="Reviews" starter={isEn ? 'Not included' : 'Não incluído'} pro={isEn ? 'Included' : 'Incluído'} />
           <ComparisonRow label={isEn ? 'Search, filters and featured picks' : 'Pesquisa, filtros e destaques'} starter={isEn ? 'Included' : 'Incluído'} pro={isEn ? 'Included' : 'Incluído'} />
           <ComparisonRow label={isEn ? 'Tool submissions' : 'Submissão de ferramentas'} starter={isEn ? 'Included' : 'Incluído'} pro={isEn ? 'Included' : 'Incluído'} />
+        </div>
+        <div className="proFinalCta">
+          <div>
+            <strong>{isEn ? 'Ready to preserve your research?' : 'Queres preservar a tua pesquisa?'}</strong>
+            <span>
+              {isEn
+                ? 'Start free, then activate Pro when favorites, history and evaluations become useful to you.'
+                : 'Começa gratuitamente e ativa o Pro quando favoritas, histórico e avaliações forem úteis para ti.'}
+            </span>
+          </div>
+          <SubscribeButton />
         </div>
       </Section>
     </>

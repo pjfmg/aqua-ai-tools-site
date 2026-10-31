@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../AQUA OS/Contracts/v1/aqua-app-manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "aqua:ai-tools",
+  "slug": "aqua-ai-tools",
+  "name": "AQUA AI Tools",
+  "description": "Catálogo de ferramentas de inteligência artificial do ecossistema AQUA.",
+  "portfolio": "tech",
+  "source": {
+    "path": "Tech/AQUA AI Tools Site"
+  },
+  "lifecycle": "unknown",
+  "recordStatus": "draft",
+  "visibility": "public",
+  "owner": {
+    "team": "AQUA Products"
+  },
+  "platforms": [
+    "web"
+  ],
+  "icon": {
+    "mode": "unavailable"
+  },
+  "launch": {
+    "mode": "unavailable"
+  },
+  "authentication": "optional",
+  "capabilities": {
+    "consumes": [
+      "data-platform",
+      "trust-platform",
+      "observability"
+    ],
+    "provides": []
+  }
+}

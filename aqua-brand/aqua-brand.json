@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "product": "ai-tools",
+  "brandVersion": "2026.10.19-r4",
+  "board": "AQUA-App-Icons-Mature-Named-2026-10-18/ai-tools",
+  "assets": {
+    "lockup": "aqua-brand/lockup.svg",
+    "favicon": "aqua-brand/favicon.svg",
+    "launcherIcon": "aqua-brand/app-icon.png",
+    "signature": "aqua-brand/lockup.svg",
+    "signatureOnDark": "aqua-brand/lockup-white.svg",
+    "tokens": "aqua-brand/tokens.css"
+  }
+}

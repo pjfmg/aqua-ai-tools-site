@@ -14,6 +14,47 @@ function assertContains(value, expected, label) {
 const indexHtml = fs.readFileSync('index.html', 'utf8');
 assertContains(indexHtml, 'google-adsense-account', 'index.html');
 assertContains(indexHtml, 'ca-pub-8295677733502537', 'index.html');
+assertContains(indexHtml, '/manifest.webmanifest', 'installable app manifest');
+assertContains(indexHtml, '/icons/icon-167.png', 'iPad touch icon');
+assertContains(indexHtml, '/apple-touch-icon.png', 'iPhone touch icon');
+assertContains(indexHtml, 'mobile-web-app-capable', 'desktop/mobile web app capability');
+
+const webManifest = JSON.parse(fs.readFileSync('public/manifest.webmanifest', 'utf8'));
+assert.equal(webManifest.name, 'AQUA AI Tools');
+assert.equal(webManifest.short_name, 'AI Tools');
+assert.equal(webManifest.id, '/');
+assert.equal(webManifest.display, 'standalone');
+assert.deepEqual(webManifest.display_override, ['window-controls-overlay', 'standalone']);
+for (const iconPath of [
+  'public/icons/icon-152.png',
+  'public/icons/icon-167.png',
+  'public/icons/icon-180.png',
+  'public/icons/icon-192.png',
+  'public/icons/icon-512.png',
+  'public/aqua-brand/app-icon.png',
+  'public/aqua-brand/lockup-white.svg',
+]) {
+  assert.ok(fs.statSync(iconPath).size > 0, `${iconPath} must exist and be non-empty`);
+}
+
+const brandManifest = JSON.parse(fs.readFileSync('public/aqua-brand/aqua-brand.json', 'utf8'));
+assert.equal(brandManifest.product, 'ai-tools');
+assert.equal(brandManifest.brandVersion, '2026.10.19-r4');
+assert.equal(brandManifest.assets.signature, 'aqua-brand/lockup.svg');
+assert.equal(brandManifest.assets.signatureOnDark, 'aqua-brand/lockup-white.svg');
+assertContains(fs.readFileSync('src/pages/HomePage.jsx', 'utf8'), '/aqua-brand/lockup-white.svg', 'home signature');
+assertContains(fs.readFileSync('src/pages/HomePage.jsx', 'utf8'), '/icons/icon-152.png', 'responsive home app icon');
+
+const mainSource = fs.readFileSync('src/main.jsx', 'utf8');
+const serviceWorkerRegistration = fs.readFileSync('src/pwa/registerServiceWorker.js', 'utf8');
+const serviceWorkerSource = fs.readFileSync('public/sw.js', 'utf8');
+const offlineHtml = fs.readFileSync('public/offline.html', 'utf8');
+assertContains(mainSource, 'registerAquaServiceWorker()', 'service worker bootstrap');
+assertContains(serviceWorkerRegistration, "navigator.serviceWorker.register('/sw.js'", 'service worker registration');
+assertContains(serviceWorkerSource, "const OFFLINE_URL = '/offline.html'", 'offline fallback');
+assertContains(serviceWorkerSource, "url.pathname.startsWith('/v1/')", 'API cache exclusion');
+assertContains(offlineHtml, 'ONDA + AQUA + AI TOOLS', 'offline brand signature');
+assertContains(fs.readFileSync('package.json', 'utf8'), 'pwa:verify:production', 'production PWA verification command');
 
 const adsTxt = fs.readFileSync('public/ads.txt', 'utf8');
 assertContains(adsTxt, 'google.com, pub-8295677733502537, DIRECT', 'ads.txt');

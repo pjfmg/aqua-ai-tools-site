@@ -1,0 +1,597 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-aitools.com",
+  "checkedAt": "2026-07-24T08:12:33.798Z",
+  "recordCount": 4344,
+  "ready": false,
+  "criticalIssueCount": 5,
+  "editorialIssueCount": 13369,
+  "coverage": {
+    "validName": 100,
+    "validWebsite": 100,
+    "descriptionPt": 0,
+    "descriptionEn": 99.9,
+    "functions": 9.9,
+    "pricing": 0,
+    "categories": 92.2,
+    "sourceLogo": 74.9,
+    "verifiedOperationalStatus": 0
+  },
+  "counts": {
+    "missingName": 0,
+    "invalidUrl": 1,
+    "missingDescriptionPt": 4344,
+    "missingDescriptionEn": 4,
+    "thinDescriptionPt": 0,
+    "genericDescriptionPt": 0,
+    "genericDescriptionEn": 0,
+    "missingFunctions": 3912,
+    "missingPrice": 4344,
+    "missingCategories": 337,
+    "missingLogo": 1090,
+    "operationalUnknown": 4344,
+    "duplicateNameGroups": 20,
+    "duplicateWebsiteGroups": 4,
+    "unknownCategoryCount": 0
+  },
+  "unknownCategories": [],
+  "duplicateNames": [
+    {
+      "value": "layer",
+      "count": 3,
+      "records": [
+        {
+          "id": "92cff02d-d5e9-439d-8bad-563e3a14498b",
+          "number": "3941",
+          "name": "Layer"
+        },
+        {
+          "id": "03bd9936-8de5-497f-931f-1054f23e2c86",
+          "number": "3942",
+          "name": "Layer"
+        },
+        {
+          "id": "18acf133-0fea-4766-8a59-192d93974634",
+          "number": "3943",
+          "name": "Layer"
+        }
+      ]
+    },
+    {
+      "value": "bytecap",
+      "count": 2,
+      "records": [
+        {
+          "id": "410b8e75-a7e3-4f94-9b4e-c96bf52216a5",
+          "number": "1163",
+          "name": "ByteCap"
+        },
+        {
+          "id": "b38df17e-54ae-404b-a7ce-e34464f24cca",
+          "number": "1164",
+          "name": "ByteCap"
+        }
+      ]
+    },
+    {
+      "value": "composio",
+      "count": 2,
+      "records": [
+        {
+          "id": "bbea804d-4a2c-4a03-8354-4ada2d5e0675",
+          "number": "1633",
+          "name": "Composio"
+        },
+        {
+          "id": "56f73a1d-ddc5-4ca1-b1c4-6ade8759a3d0",
+          "number": "1634",
+          "name": "Composio"
+        }
+      ]
+    },
+    {
+      "value": "cursor",
+      "count": 2,
+      "records": [
+        {
+          "id": "bdad3501-d6b6-4e8e-bb3d-936e85c2889d",
+          "number": "1813",
+          "name": "Cursor"
+        },
+        {
+          "id": "dd7a31d9-2965-45fd-b718-6ca2c34b9503",
+          "number": "1814",
+          "name": "Cursor"
+        }
+      ]
+    },
+    {
+      "value": "dearflow",
+      "count": 2,
+      "records": [
+        {
+          "id": "f91b4ee2-a42d-4730-a719-9936e7fc599a",
+          "number": "1905",
+          "name": "DearFlow"
+        },
+        {
+          "id": "7a71fe76-6fc0-4a64-8469-4ffbac6a24ce",
+          "number": "1906",
+          "name": "DearFlow"
+        }
+      ]
+    },
+    {
+      "value": "ai palette",
+      "count": 2,
+      "records": [
+        {
+          "id": "45146190-5f23-428a-a5ab-0e9e8669743a",
+          "number": "242",
+          "name": "AI Palette"
+        },
+        {
+          "id": "e4a84880-8c86-439a-89e2-876dcfc5f2ad",
+          "number": "243",
+          "name": "AI Palette"
+        }
+      ]
+    },
+    {
+      "value": "gan ai",
+      "count": 2,
+      "records": [
+        {
+          "id": "14888eaa-e2f9-413c-85df-26cc29895d0f",
+          "number": "2798",
+          "name": "Gan AI"
+        },
+        {
+          "id": "e7dcefc9-104f-4a6f-8a47-bb80159b8a1a",
+          "number": "2799",
+          "name": "Gan AI"
+        }
+      ]
+    },
+    {
+      "value": "gift ideas ai",
+      "count": 2,
+      "records": [
+        {
+          "id": "27c13c74-0b92-40fa-bf09-ab48cf2094ea",
+          "number": "2897",
+          "name": "Gift Ideas AI"
+        },
+        {
+          "id": "fc64265e-9529-48f4-9fb9-06c4a13c7197",
+          "number": "2898",
+          "name": "Gift Ideas AI"
+        }
+      ]
+    },
+    {
+      "value": "helix",
+      "count": 2,
+      "records": [
+        {
+          "id": "70088c92-6282-4ee4-96f5-f8d5e7f07fbb",
+          "number": "3217",
+          "name": "Helix"
+        },
+        {
+          "id": "9020927b-e38c-4838-bcc4-26bcce6e9dfd",
+          "number": "3219",
+          "name": "Helix"
+        }
+      ]
+    },
+    {
+      "value": "laika",
+      "count": 2,
+      "records": [
+        {
+          "id": "e096123a-2303-48e4-abe3-87886a29edd8",
+          "number": "3882",
+          "name": "Laika"
+        },
+        {
+          "id": "989daa6c-a8d2-43ad-a66e-ed383e05bc82",
+          "number": "3883",
+          "name": "Laika"
+        }
+      ]
+    },
+    {
+      "value": "lambda",
+      "count": 2,
+      "records": [
+        {
+          "id": "a1134948-7e12-4bf2-b0d3-d565d1bdd728",
+          "number": "3889",
+          "name": "Lambda"
+        },
+        {
+          "id": "fbe3d9c7-3d5b-45e0-bbd5-15112a8a7a7c",
+          "number": "3890",
+          "name": "Lambda"
+        }
+      ]
+    },
+    {
+      "value": "linkedin post generator",
+      "count": 2,
+      "records": [
+        {
+          "id": "917736d6-d481-4b21-91d1-c3c0a9b643a6",
+          "number": "4083",
+          "name": "LinkedIn Post Generator"
+        },
+        {
+          "id": "874c58d7-0c6b-4ae0-a3a6-d991ebc348c3",
+          "number": "4084",
+          "name": "Linkedin Post Generator"
+        }
+      ]
+    },
+    {
+      "value": "linnk",
+      "count": 2,
+      "records": [
+        {
+          "id": "ceec9883-1faf-4e33-aea3-191a964f087a",
+          "number": "4093",
+          "name": "Linnk"
+        },
+        {
+          "id": "738b7747-b4b3-430e-bb5e-ef24430837b2",
+          "number": "4094",
+          "name": "Linnk"
+        }
+      ]
+    },
+    {
+      "value": "melies",
+      "count": 2,
+      "records": [
+        {
+          "id": "1adcbde9-84d8-4028-945a-c6411473fe13",
+          "number": "4422",
+          "name": "Melies"
+        },
+        {
+          "id": "22a30b5c-da0a-42de-9395-ac84c20176f7",
+          "number": "4423",
+          "name": "Melies"
+        }
+      ]
+    },
+    {
+      "value": "monocle",
+      "count": 2,
+      "records": [
+        {
+          "id": "309b6995-18ce-4248-a8e5-21610b91fef5",
+          "number": "4592",
+          "name": "Monocle"
+        },
+        {
+          "id": "95b45873-85a6-4fe6-a1d1-c9c2a6b14fa2",
+          "number": "4593",
+          "name": "Monocle"
+        }
+      ]
+    },
+    {
+      "value": "perigon",
+      "count": 2,
+      "records": [
+        {
+          "id": "9d43870c-8317-457f-be11-6e9d7c9ac486",
+          "number": "5201",
+          "name": "Perigon"
+        },
+        {
+          "id": "533684d0-c1be-479b-bd5c-f8691e592052",
+          "number": "5202",
+          "name": "Perigon"
+        }
+      ]
+    },
+    {
+      "value": "pod",
+      "count": 2,
+      "records": [
+        {
+          "id": "658464ce-4d9c-4107-81d1-0a7c19ec9bce",
+          "number": "5412",
+          "name": "Pod"
+        },
+        {
+          "id": "ace11546-a28d-4d95-8017-29bc75e3a7e6",
+          "number": "5413",
+          "name": "Pod"
+        }
+      ]
+    },
+    {
+      "value": "reviewgpt",
+      "count": 2,
+      "records": [
+        {
+          "id": "7a31fc29-52e9-4b59-8a7f-b05da6f284c0",
+          "number": "6035",
+          "name": "ReviewGPT"
+        },
+        {
+          "id": "5edee3b6-a83a-4ef6-bc20-c71b5783316c",
+          "number": "6036",
+          "name": "ReviewGPT"
+        }
+      ]
+    },
+    {
+      "value": "artificial printer",
+      "count": 2,
+      "records": [
+        {
+          "id": "b3db22bd-804f-418c-9d6e-edb6ece2a004",
+          "number": "611",
+          "name": "Artificial Printer"
+        },
+        {
+          "id": "92663014-8c0d-46f0-b437-9bdef0b21456",
+          "number": "612",
+          "name": "Artificial Printer"
+        }
+      ]
+    },
+    {
+      "value": "roster",
+      "count": 2,
+      "records": [
+        {
+          "id": "a3d53317-2350-4bce-8c13-90d5d9033b0a",
+          "number": "6125",
+          "name": "Roster"
+        },
+        {
+          "id": "01af3229-eea5-404d-bdff-bd148d5bdd81",
+          "number": "6126",
+          "name": "roster"
+        }
+      ]
+    }
+  ],
+  "duplicateWebsites": [
+    {
+      "value": "bytecap.io/",
+      "count": 2,
+      "records": [
+        {
+          "id": "410b8e75-a7e3-4f94-9b4e-c96bf52216a5",
+          "number": "1163",
+          "name": "ByteCap"
+        },
+        {
+          "id": "b38df17e-54ae-404b-a7ce-e34464f24cca",
+          "number": "1164",
+          "name": "ByteCap"
+        }
+      ]
+    },
+    {
+      "value": "melies.co/",
+      "count": 2,
+      "records": [
+        {
+          "id": "1adcbde9-84d8-4028-945a-c6411473fe13",
+          "number": "4422",
+          "name": "Melies"
+        },
+        {
+          "id": "22a30b5c-da0a-42de-9395-ac84c20176f7",
+          "number": "4423",
+          "name": "Melies"
+        }
+      ]
+    },
+    {
+      "value": "artificialprinter.com/",
+      "count": 2,
+      "records": [
+        {
+          "id": "b3db22bd-804f-418c-9d6e-edb6ece2a004",
+          "number": "611",
+          "name": "Artificial Printer"
+        },
+        {
+          "id": "92663014-8c0d-46f0-b437-9bdef0b21456",
+          "number": "612",
+          "name": "Artificial Printer"
+        }
+      ]
+    },
+    {
+      "value": "talktotables.com/",
+      "count": 2,
+      "records": [
+        {
+          "id": "3f4ec0d3-279d-4686-8c99-3057322cdb28",
+          "number": "7068",
+          "name": "Talktotables"
+        },
+        {
+          "id": "47d3072b-e20c-405c-ab56-d7c78ca03a38",
+          "number": "7069",
+          "name": "Talktotables"
+        }
+      ]
+    }
+  ],
+  "samples": {
+    "missingName": [],
+    "invalidUrl": [
+      {
+        "id": "cf6bbabe-c0d2-4bec-890f-b9b6ee560651",
+        "number": "196",
+        "name": "AI Form Roast"
+      }
+    ],
+    "missingDescriptionPt": [
+      {
+        "id": "bb0729c3-b687-40a9-8633-4aa22157789a",
+        "number": "1",
+        "name": "1Password"
+      },
+      {
+        "id": "a235675b-4f6a-491b-8ae0-5777d3495844",
+        "number": "10",
+        "name": "3D Bluesky Chart"
+      },
+      {
+        "id": "bbab661a-fea8-441f-b3d3-cd16cdccdb5a",
+        "number": "1000",
+        "name": "BODYSIM"
+      },
+      {
+        "id": "917d34ca-f44d-440d-be46-94a572fabd25",
+        "number": "1002",
+        "name": "BoldVoice Accent Oracle"
+      },
+      {
+        "id": "14e338c6-e581-449b-b4a8-dfa16c4849c6",
+        "number": "1003",
+        "name": "Bollywood AI"
+      },
+      {
+        "id": "8aa5dec3-81d6-4671-9682-2e3844ba0daa",
+        "number": "1005",
+        "name": "Bolt"
+      },
+      {
+        "id": "9572c93a-1d3d-4bb7-a581-2b5c76d410aa",
+        "number": "1006",
+        "name": "Bolt.new"
+      },
+      {
+        "id": "83d2b858-00b7-42ed-9f81-f82109d5f101",
+        "number": "1007",
+        "name": "BoltAI"
+      },
+      {
+        "id": "435c348e-f4de-4caa-8782-579e6eda00d5",
+        "number": "1008",
+        "name": "Bonfire Journey"
+      },
+      {
+        "id": "c0dd4e10-cf89-4882-9023-ff5f39280d47",
+        "number": "1009",
+        "name": "Bonitasoft"
+      }
+    ],
+    "missingCategories": [
+      {
+        "id": "dcb73835-a901-4ef2-8e30-c9309736c3a0",
+        "number": "1040",
+        "name": "boring button"
+      },
+      {
+        "id": "e8243f62-5585-450b-ad4e-8463ef89c359",
+        "number": "110",
+        "name": "Adsniper"
+      },
+      {
+        "id": "741d33aa-173b-400a-a1e6-d1c3a299ac7b",
+        "number": "1102",
+        "name": "BrickRadar"
+      },
+      {
+        "id": "ec2e2eea-3d4d-4a0a-b814-9ab6cc981c26",
+        "number": "1125",
+        "name": "Browsly"
+      },
+      {
+        "id": "d9587fd6-07e7-420d-be66-f4a156e64896",
+        "number": "1141",
+        "name": "BuildPC"
+      },
+      {
+        "id": "0f19b23a-8e99-41d7-974d-216700697f47",
+        "number": "1151",
+        "name": "BurnBot"
+      },
+      {
+        "id": "88f3d3e8-b1a8-443c-87ed-4c695e4de293",
+        "number": "1167",
+        "name": "Cadea"
+      },
+      {
+        "id": "af83fb66-af88-4809-8b89-4100716d8387",
+        "number": "117",
+        "name": "Adventure Homestay"
+      },
+      {
+        "id": "8947b2cd-2435-43cc-a95f-7d4b73e11672",
+        "number": "1247",
+        "name": "CashSprout"
+      },
+      {
+        "id": "a97ee27f-6050-460c-af9e-f649aeaf5bdc",
+        "number": "1254",
+        "name": "Catalyst"
+      }
+    ],
+    "operationalUnknown": [
+      {
+        "id": "bb0729c3-b687-40a9-8633-4aa22157789a",
+        "number": "1",
+        "name": "1Password"
+      },
+      {
+        "id": "a235675b-4f6a-491b-8ae0-5777d3495844",
+        "number": "10",
+        "name": "3D Bluesky Chart"
+      },
+      {
+        "id": "bbab661a-fea8-441f-b3d3-cd16cdccdb5a",
+        "number": "1000",
+        "name": "BODYSIM"
+      },
+      {
+        "id": "917d34ca-f44d-440d-be46-94a572fabd25",
+        "number": "1002",
+        "name": "BoldVoice Accent Oracle"
+      },
+      {
+        "id": "14e338c6-e581-449b-b4a8-dfa16c4849c6",
+        "number": "1003",
+        "name": "Bollywood AI"
+      },
+      {
+        "id": "8aa5dec3-81d6-4671-9682-2e3844ba0daa",
+        "number": "1005",
+        "name": "Bolt"
+      },
+      {
+        "id": "9572c93a-1d3d-4bb7-a581-2b5c76d410aa",
+        "number": "1006",
+        "name": "Bolt.new"
+      },
+      {
+        "id": "83d2b858-00b7-42ed-9f81-f82109d5f101",
+        "number": "1007",
+        "name": "BoltAI"
+      },
+      {
+        "id": "435c348e-f4de-4caa-8782-579e6eda00d5",
+        "number": "1008",
+        "name": "Bonfire Journey"
+      },
+      {
+        "id": "c0dd4e10-cf89-4882-9023-ff5f39280d47",
+        "number": "1009",
+        "name": "Bonitasoft"
+      }
+    ]
+  }
+}

@@ -73,10 +73,8 @@ export function ConsentProvider({ children }) {
 
   useEffect(() => {
     bootstrapCmp();
+    return subscribeToTcfEvidence(setTcfEvidence);
   }, []);
-
-  useEffect(() => subscribeToTcfEvidence(setTcfEvidence), []);
-
   const refreshConsent = useCallback(() => {
     setStoredConsent(readConsentState());
   }, []);

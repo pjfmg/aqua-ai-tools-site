@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "target": "https://aqua-aitools.com",
+  "checkedAt": "2026-07-24T01:47:19.936Z",
+  "expectedRelease": "",
+  "observedRelease": "0934f91",
+  "ok": false,
+  "checks": [
+    {
+      "name": "liveness",
+      "ok": true,
+      "status": 200,
+      "traceId": "c77a3ce9-fc83-416b-93cc-014416aa449a",
+      "errors": [],
+      "release": "0934f91"
+    },
+    {
+      "name": "readiness",
+      "ok": false,
+      "status": 503,
+      "traceId": "b9240dff-327f-4182-8a23-33596360445c",
+      "errors": [
+        "expected HTTP 200, received 503",
+        "readiness status is not ready",
+        "configuration is fail",
+        "commerce is fail"
+      ],
+      "dependencies": [
+        {
+          "name": "configuration",
+          "status": "fail"
+        },
+        {
+          "name": "data-platform",
+          "status": "ok",
+          "latencyMs": 577
+        },
+        {
+          "name": "commerce",
+          "status": "fail",
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "name": "catalog",
+      "ok": true,
+      "status": 200,
+      "traceId": "153935c9-2fe6-44e9-b0c5-d98acca03bfa",
+      "errors": [],
+      "recordCount": 1
+    }
+  ]
+}

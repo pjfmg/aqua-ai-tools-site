@@ -1,0 +1,11 @@
+.git/
+.github/
+.wrangler/
+audit/
+docs/
+dist/
+node_modules/
+proxy/
+scripts/
+*.md
+*.DS_Store

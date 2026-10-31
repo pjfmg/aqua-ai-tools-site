@@ -12,10 +12,10 @@ export const STARTER_FEATURES = [
 ];
 
 export const PRO_FEATURES = [
-  'Guardar favoritas',
-  'Histórico de ferramentas visitadas',
-  'Avaliação pessoal de ferramentas',
-  'Acesso à página Reviews',
+  'Criar uma shortlist pessoal com favoritas',
+  'Retomar ferramentas através do histórico',
+  'Registar uma avaliação pessoal por estrelas',
+  'Rever decisões num único lugar',
 ];
 
 export function normalizeSubscription(raw) {
