@@ -29,6 +29,34 @@ export default function ContactPage() {
         badge={isEn ? 'AQUATICUS' : 'AQUATICUS'}
       />
 
+      <section id="faq" aria-labelledby="faq-title" style={{ scrollMarginTop: '6rem' }}>
+        <Section title={isEn ? 'Frequently asked questions' : 'Perguntas frequentes'}>
+          <h2 id="faq-title" className="sr-only">FAQ</h2>
+          <div className="panel">
+            <details style={{ padding: '1rem 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{isEn ? "How do I find a tool?" : "Como encontro uma ferramenta?"}</summary>
+              <p>{isEn ? "Open the directory and search by name. Use the category and price filters to narrow the results." : "Abre o diretório e pesquisa pelo nome. Usa os filtros de área e preço para reduzir os resultados."}</p>
+            </details>
+            <details style={{ padding: '1rem 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{isEn ? "Can I suggest a tool?" : "Posso sugerir uma ferramenta?"}</summary>
+              <p>{isEn ? "Yes. Use the submission page to send the tool details to the team." : "Sim. Usa a página de submissão para enviar os dados da ferramenta à equipa."}</p>
+            </details>
+            <details style={{ padding: '1rem 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{isEn ? "Are tool prices final?" : "Os preços das ferramentas são definitivos?"}</summary>
+              <p>{isEn ? "Check pricing, features and terms on the provider’s website before subscribing. Directory information can change." : "Confirma preços, funcionalidades e condições no site do fornecedor antes de aderir. A informação do diretório pode mudar."}</p>
+            </details>
+            <details style={{ padding: '1rem 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{isEn ? "Does the form send my email automatically?" : "O formulário envia o meu email automaticamente?"}</summary>
+              <p>{isEn ? "No. Open email prepares a message in your email app. Review and send it there." : "Não. Abrir email prepara uma mensagem na tua aplicação de email. Revê-a e envia-a nessa aplicação."}</p>
+            </details>
+            <details style={{ padding: '1rem 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{isEn ? "How do I report a directory error?" : "Como comunico um erro no diretório?"}</summary>
+              <p>{isEn ? "Use the contact below and include the tool, its link and the information to correct. Do not send passwords." : "Usa o contacto abaixo e indica a ferramenta, a ligação e a informação a corrigir. Não envies palavras-passe."}</p>
+            </details>
+          </div>
+        </Section>
+      </section>
+
       <Section
         title={isEn ? 'Send a message' : 'Enviar mensagem'}
         subtitle={isEn ? 'Use the form to prepare an email.' : 'Usa o formulário para preparar um email.'}
@@ -109,3 +137,4 @@ export default function ContactPage() {
     </>
   );
 }
+
