@@ -17,6 +17,7 @@ export default function Footer() {
         </Link>
         <nav className="footer__links" aria-label={isEn ? 'Footer navigation' : 'Navegação de rodapé'}>
           <Link to={path('/sobre')}>{isEn ? 'About' : 'Sobre'}</Link>
+          <a href={`${path('/contacto')}#faq`}>FAQ</a>
           <Link to={path('/contacto')}>{isEn ? 'Contact' : 'Contacto'}</Link>
           <Link to={path('/consultoria')}>{isEn ? 'Consulting' : 'Consultoria'}</Link>
           <Link to={path('/privacidade')}>{isEn ? 'Privacy' : 'Privacidade'}</Link>
@@ -32,3 +33,4 @@ export default function Footer() {
     </footer>
   );
 }
+

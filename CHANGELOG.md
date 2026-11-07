@@ -32,3 +32,8 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 - Baseline do AQUA AI Tools Site submetida à revisão AQUA Foundation.
 
 [Unreleased]: ./docs/releases/0.1.0-review.md
+
+
+## 2026-11-07
+
+- Added keyboard-accessible PT/EN FAQs on Contact, linked from the shared footer.
