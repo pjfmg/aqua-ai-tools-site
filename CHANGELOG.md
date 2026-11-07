@@ -21,6 +21,9 @@ Todas as alterações relevantes deste produto são registadas neste documento. 
 
 ### Security
 
+- Atualizadas as dependências de desenvolvimento para Vite 6.4.5, PostCSS 8.5.32, Nano ID 3.3.20, source-map-js 1.2.2, Browserslist 4.29.5 e baseline-browser-mapping 2.11.35.
+- Removida a exceção expirada de React Router (1124282): a versão instalada 7.18.2 não apresenta esse aviso na auditoria atual. O gate mantém o limiar moderate, sem exceções.
+
 - Portal de billing e publicidade permanecem suspensos até cumprirem os respetivos controlos externos.
 - Tokens, emails e bodies foram excluídos da telemetria operacional.
 - Dependências auditadas sem vulnerabilidades conhecidas no momento da revisão.
