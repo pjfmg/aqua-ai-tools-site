@@ -5,7 +5,7 @@
 .topnav .topnav__logo {
   box-sizing: border-box;
   border-radius: 12px;
-  background: var(--aqua-brand-atlantic);
+  background: transparent;
 }
 
 .footer .footer__inner {
@@ -28,7 +28,7 @@
   height: auto;
   box-sizing: border-box;
   border-radius: 8px;
-  background: var(--aqua-brand-atlantic);
+  background: transparent;
 }
 
 .footer .footer__brand span {
