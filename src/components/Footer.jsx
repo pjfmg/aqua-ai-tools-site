@@ -12,7 +12,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__inner">
         <Link className="footer__brand" to={path('/')} aria-label={isEn ? 'AQUA AI Tools home' : 'Início do AQUA AI Tools'}>
-          <img src="/assets/branding/aqua-ai-tools-inline.svg" alt="" aria-hidden="true" />
+          <img src="/aqua-brand/lockup.svg" alt="" aria-hidden="true" />
           <span>{isEn ? 'A curated directory for discovering AI tools.' : 'Um diretório curado para descobrir ferramentas de IA.'}</span>
         </Link>
         <nav className="footer__links" aria-label={isEn ? 'Footer navigation' : 'Navegação de rodapé'}>

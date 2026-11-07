@@ -28,7 +28,7 @@ export default function TopNav() {
       <div className="topnav__inner">
         <div className="topnav__row">
           <Link className="topnav__brand" to={path('/')}>
-            <img className="topnav__logo" src="/assets/branding/aqua-ai-tools-inline.svg" alt="AQUA AI Tools" />
+            <img className="topnav__logo" src="/aqua-brand/lockup.svg" alt="AQUA AI Tools" />
           </Link>
 
           <div className="topnav__auth">
