@@ -6,6 +6,7 @@ import { MyRatingsProvider } from './ratings/MyRatingsContext.jsx';
 import { RatingsProvider } from './ratings/RatingsContext.jsx';
 import './styles.css';
 import { ConsentProvider } from './privacy/ConsentContext.jsx';
+import { registerAquaServiceWorker } from './pwa/registerServiceWorker.js';
 
 function mountApp() {
   createRoot(document.getElementById('root')).render(
@@ -26,3 +27,5 @@ if (document.documentElement.classList.contains('aqua-entry-active')) {
 } else {
   mountApp();
 }
+
+registerAquaServiceWorker();

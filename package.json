@@ -17,6 +17,7 @@
     "test:privacy": "node scripts/privacy-smoke.mjs",
     "test:operations": "node scripts/operations-smoke.mjs",
     "release:check": "node scripts/release-check.mjs",
+    "pwa:verify:production": "node scripts/pwa-production-check.mjs --base-url https://aqua-aitools.com",
     "check": "npm run test:smoke && npm run test:e2e && npm run build && npm run release:check",
     "test:trust-packages": "node scripts/trust-package-snapshot-smoke.mjs",
     "test:e2e": "playwright test",
