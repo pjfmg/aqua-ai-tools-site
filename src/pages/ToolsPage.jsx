@@ -529,7 +529,7 @@ export default function ToolsPage({ title = 'AQUA AI Tools', mode = 'all', autoF
       {warning ? <p className="note">{warning}</p> : null}
       {loading ? <p className="no-results">{isEn ? 'Loading…' : 'A carregar…'}</p> : null}
       {loadingMore && !loading ? <p className="note">{isEn ? 'Loading more tools…' : 'A carregar mais ferramentas…'}</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{error}{tools.length === 0 ? <a className="btn btn--ghost btn--sm" href={isEn ? '/demo.html?lang=en' : '/demo.html?lang=pt'}>{isEn ? 'Try offline demo' : 'Experimentar demonstração offline'}</a> : null}</p> : null}
 
       <main id="tools-container" className="grid-container grid-container--modern">
         {!loading && visible.length === 0 ? (

@@ -2,7 +2,8 @@
 (() => {
   const script = document.currentScript;
   if (!script) return;
-  const { localeKey, sessionKey, introKey, signature, institutionalLogo, appName } = script.dataset;
+  const { localeKey, sessionKey, introKey, introScope, guestKey, signature, institutionalLogo, appName } = script.dataset;
+  const introStorage = introScope === 'session' ? sessionStorage : localStorage;
   const actions = JSON.parse(script.dataset.entryActions || '[]');
   const read = (storage, key) => {
     try { return storage.getItem(key); } catch { return null; }
@@ -15,7 +16,7 @@
   const storedLocale = read(localStorage, localeKey);
   const hasLocale = Boolean(explicitLocale || storedLocale === 'en' || storedLocale === 'pt-PT');
   const needsSplash = read(sessionStorage, sessionKey) !== 'seen';
-  const needsIntro = Boolean(introKey && read(localStorage, introKey) !== 'seen');
+  const needsIntro = Boolean(introKey && read(introStorage, introKey) !== 'seen');
   if (!needsSplash && hasLocale && !needsIntro) return;
 
   document.documentElement.classList.add('aqua-entry-active');
@@ -41,8 +42,8 @@
       intro.hidden = false;
       intro.querySelector('.aqua-entry-title').textContent = english ? 'Welcome to this app' : 'Bem-vindo a esta app';
       intro.querySelector('.aqua-entry-description').textContent = english
-        ? 'Create a simple account, sign in or try a limited demonstration without an account.'
-        : 'Cria uma conta simples, entra ou experimenta uma demonstração limitada sem conta.';
+        ? 'Explore the real directory without an account. An account identifies you and gives access to Starter; Pro requires an active AI Tools subscription. Signing in does not activate Pro.'
+        : 'Explora o diretório real sem conta. A conta identifica-te e dá acesso ao Starter; o Pro exige uma subscrição AI Tools ativa. Entrar não ativa Pro.';
       const list = intro.querySelector('.aqua-entry-actions');
       list.replaceChildren();
       for (const action of actions) {
@@ -69,7 +70,11 @@
     overlay.addEventListener('click', (event) => {
       const destination = event.target.closest('[data-entry-destination]');
       if (destination) {
-        write(localStorage, introKey, 'seen');
+        write(introStorage, introKey, 'seen');
+        if (guestKey) {
+          if (destination.dataset.entryDestination === 'explore') write(sessionStorage, guestKey, 'active');
+          else { try { sessionStorage.removeItem(guestKey); } catch { /* Private browsing may deny storage. */ } }
+        }
         finish(false);
         return;
       }

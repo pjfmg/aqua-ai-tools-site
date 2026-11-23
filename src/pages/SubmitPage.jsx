@@ -4,10 +4,12 @@ import Section from '../components/Section.jsx';
 import { useTools } from '../hooks/useTools.js';
 import { normalizeArea, normalizeWebsiteUrl } from '../lib/tools.js';
 import { getAccessToken } from '../lib/supabaseAuth.js';
+import { useAuth } from '../auth/auth.jsx';
 import { useLanguage } from '../i18n.jsx';
 
 export default function SubmitPage() {
   const { isEn } = useLanguage();
+  const { guestMode } = useAuth();
   const { tools } = useTools();
 
   const areaOptions = useMemo(() => {
@@ -41,6 +43,11 @@ export default function SubmitPage() {
     }
     if (!siteNormalized) {
       setError(isEn ? 'Enter a valid website (for example: https://example.com).' : 'Indica um site válido (ex: https://exemplo.com).');
+      return;
+    }
+
+    if (guestMode) {
+      setSuccess(isEn ? 'Preview complete. This tool was not submitted or saved.' : 'Pré-visualização concluída. Esta ferramenta não foi enviada nem guardada.');
       return;
     }
 
@@ -93,6 +100,7 @@ export default function SubmitPage() {
         subtitle={isEn ? 'Fill in the essentials. We handle the rest.' : 'Preenche o essencial. Nós tratamos do resto.'}
       >
         <div className="panel">
+          {guestMode ? <p className="note" role="status">{isEn ? 'Preview only: this form never sends a tool during a guest visit.' : 'Pré-visualização: este formulário não envia ferramentas durante a visita sem conta.'}</p> : null}
           <form className="form" onSubmit={onSubmit}>
             <div className="form__grid">
               <div className="field field--span2">

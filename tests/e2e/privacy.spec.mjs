@@ -65,7 +65,7 @@ async function preparePage(page, {
     // first-open presentation. Mark the entry flow as completed so the React
     // app mounts immediately and the consent assertions remain deterministic.
     localStorage.setItem('aqua-ai-tools-entry-locale', 'pt-PT');
-    localStorage.setItem('aqua-ai-tools-intro-seen', 'seen');
+    sessionStorage.setItem('aqua-ai-tools-intro-seen', 'seen');
     sessionStorage.setItem('aqua-ai-tools-splash-seen', 'seen');
 
     window.__aquaTrustDecisionEvents = [];

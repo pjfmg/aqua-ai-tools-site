@@ -121,6 +121,7 @@ export default function ProPage() {
         title={isEn ? 'Plans' : 'Planos'}
         subtitle={isEn ? 'Starter remains free; Pro adds personal features.' : 'O Starter continua grátis; o Pro adiciona funcionalidades pessoais.'}
       >
+        <p className="note">{isEn ? 'Browsing does not require an account. Pro requires an active AI Tools subscription; signing in alone does not activate it.' : 'Explorar não exige conta. O Pro requer uma subscrição AI Tools ativa; entrar na conta, por si só, não o ativa.'}</p>
         <div className="pricingGrid">
           <PriceCard
             title="Starter"
