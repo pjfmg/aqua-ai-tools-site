@@ -4,6 +4,9 @@
   box-sizing: border-box;
 }
 
+.guestModeBanner { padding: 10px 20px; text-align: center; background: #f3f0fa; color: #35264b; font-size: .9rem; line-height: 1.45; }
+.guestModeBanner a { color: #5d3195; font-weight: 700; text-decoration: underline; margin-left: .4rem; }
+
 :root {
   --container: 1280px;
   --pad: 20px;

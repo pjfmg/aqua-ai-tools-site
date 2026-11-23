@@ -64,19 +64,19 @@ export default function SignUpPage() {
     <>
       <Hero
         title={isEn ? 'Create account' : 'Criar conta'}
-        subtitle={isEn ? 'Save preferences and speed up tool discovery.' : 'Guarda as tuas preferências e acelera a descoberta de ferramentas.'}
+        subtitle={isEn ? 'A free account starts on Starter. Pro requires a separate AI Tools subscription.' : 'A conta gratuita começa no Starter. O Pro exige uma subscrição AI Tools separada.'}
         badge="Supabase Auth"
       />
 
-      <Section title={isEn ? 'Sign up' : 'Criar conta'} subtitle={isEn ? 'Your identity is protected by Supabase Auth.' : 'A tua identidade é protegida pelo Supabase Auth.'}>
+      <Section title={isEn ? 'Sign up' : 'Criar conta'} subtitle={isEn ? 'Create an account to manage your AI Tools profile. Starter is free; Pro requires an AI Tools subscription.' : 'Cria uma conta para gerir o teu perfil AI Tools. O Starter é gratuito; o Pro exige uma subscrição AI Tools.'}>
         <div className="authWrap">
           <aside className="authAside">
             <div className="authCard">
-              <div className="authCard__title">{isEn ? 'What you get' : 'O que ganhas'}</div>
+              <div className="authCard__title">{isEn ? 'Account and plan' : 'Conta e plano'}</div>
               <ul className="authCard__list">
-                <li>{isEn ? 'Personalized experience' : 'Experiência personalizada'}</li>
-                <li>{isEn ? 'Fast access to favorites' : 'Acesso rápido a favoritas'}</li>
-                <li>{isEn ? 'Submissions with identity' : 'Submissões com identidade'}</li>
+                <li>{isEn ? 'Free account for your profile' : 'Conta gratuita para o teu perfil'}</li>
+                <li>{isEn ? 'Starter plan without a subscription' : 'Plano Starter sem subscrição'}</li>
+                <li>{isEn ? 'Favorites and history require Pro' : 'Favoritas e histórico exigem Pro'}</li>
               </ul>
               <div className="authCard__hint">
                 {isEn ? 'Already have an account?' : 'Já tens conta?'} <Link to={path('/signin')}>{isEn ? 'Sign in' : 'Entrar'}</Link>

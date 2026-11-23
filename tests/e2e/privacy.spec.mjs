@@ -61,6 +61,13 @@ async function preparePage(page, {
   });
 
   await page.addInitScript((configuration) => {
+    // These tests exercise the mounted product privacy surface, not the
+    // first-open presentation. Mark the entry flow as completed so the React
+    // app mounts immediately and the consent assertions remain deterministic.
+    localStorage.setItem('aqua-ai-tools-entry-locale', 'pt-PT');
+    sessionStorage.setItem('aqua-ai-tools-intro-seen', 'seen');
+    sessionStorage.setItem('aqua-ai-tools-splash-seen', 'seen');
+
     window.__aquaTrustDecisionEvents = [];
     window.addEventListener('aqua:trust-decision', (event) => {
       window.__aquaTrustDecisionEvents.push(event.detail);

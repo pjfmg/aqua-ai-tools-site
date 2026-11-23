@@ -74,18 +74,22 @@ export default function AccountPage() {
   if (!isAuthed) {
     return (
       <>
-        <Hero title={isEn ? 'Account' : 'Conta'} subtitle={isEn ? 'You need to sign in to see this page.' : 'Precisas de entrar para ver esta página.'} badge={isEn ? 'Restricted access' : 'Acesso restrito'} />
-        <Section title={isEn ? 'Sign in' : 'Entrar'} subtitle={isEn ? 'Create a local account or sign in with email.' : 'Cria uma conta (local) ou entra com email.'}>
-          <div className="panel">
-            <div className="form__actions" style={{ justifyContent: 'center' }}>
-              <Link className="btn btn--primary" to={path('/signup')}>
-                {isEn ? 'Create account' : 'Criar conta'}
-              </Link>
-              <Link className="btn btn--ghost" to={path('/signin')}>
-                {isEn ? 'Sign in' : 'Entrar'}
-              </Link>
-            </div>
+        <Hero title={isEn ? 'Account' : 'Conta'} subtitle={isEn ? 'Explore an example profile without loading personal data.' : 'Explora um perfil de exemplo sem carregar dados pessoais.'} badge={isEn ? 'Temporary preview' : 'Pré-visualização temporária'} />
+        <Section title={isEn ? 'Example profile' : 'Perfil de exemplo'} subtitle={isEn ? 'Your real profile and subscription require sign-in.' : 'O teu perfil e subscrição reais exigem entrada na conta.'}>
+          <div className="accountGrid" data-testid="guest-account-preview">
+            <div className="accountCard"><div className="accountAvatar">IA</div><div className="accountName">{isEn ? 'Example visitor' : 'Visitante de exemplo'}</div><div className="accountPlan">Starter · {isEn ? 'example' : 'exemplo'}</div></div>
+            <div className="accountCard"><div className="accountCard__title">{isEn ? 'Subscription' : 'Subscrição'}</div><p className="note">{isEn ? 'No subscription is active in this preview. No private account data is shown.' : 'Nenhuma subscrição está ativa nesta visita. Não são apresentados dados privados.'}</p><Link className="btn btn--ghost" to={path('/pro')}>{isEn ? 'Compare plans' : 'Comparar planos'}</Link></div>
           </div>
+        </Section>
+        <Section title={isEn ? 'Explore account areas' : 'Explorar áreas da conta'}>
+          <div className="accountLinks">
+            <Link className="btn btn--ghost btn--block" to={path('/favoritas')}>{isEn ? 'Favorites preview' : 'Exemplo de favoritas'}</Link>
+            <Link className="btn btn--ghost btn--block" to={path('/visitadas')}>{isEn ? 'Visited preview' : 'Exemplo de visitadas'}</Link>
+            <Link className="btn btn--ghost btn--block" to={path('/reviews')}>{isEn ? 'Reviews preview' : 'Exemplo de avaliações'}</Link>
+            <Link className="btn btn--ghost btn--block" to={path('/submeter')}>{isEn ? 'Try a submission' : 'Experimentar submissão'}</Link>
+          </div>
+          <p className="note">{isEn ? 'Examples are temporary and are not saved or sent.' : 'Os exemplos são temporários e não são guardados nem enviados.'}</p>
+          <Link className="btn btn--primary" to={path('/signin')}>{isEn ? 'Sign in for your account' : 'Entrar para aceder à tua conta'}</Link>
         </Section>
       </>
     );
@@ -120,11 +124,12 @@ export default function AccountPage() {
             <div className="accountAvatar">{getInitials(user?.name || user?.email)}</div>
             <div className="accountName">{user?.name || (isEn ? 'No name' : 'Sem nome')}</div>
             <div className="accountEmail">{user?.email}</div>
-            <div className={`accountPlan ${proActive ? 'is-pro' : ''}`}>{proActive ? (isEn ? 'Pro active' : getSubscriptionLabel(user)) : 'Starter'}</div>
+            <div className={`accountPlan ${proActive ? 'is-pro' : ''}`}>{isEn ? 'AI Tools plan: ' : 'Plano AI Tools: '}{proActive ? (isEn ? 'Pro active' : getSubscriptionLabel(user)) : 'Starter'}</div>
           </div>
 
           <div className="accountCard">
-            <div className="accountCard__title">{isEn ? 'Subscription' : 'Subscrição'}</div>
+            <div className="accountCard__title">{isEn ? 'AI Tools subscription' : 'Subscrição AI Tools'}</div>
+            <p className="note">{isEn ? 'This account identifies you in AI Tools. The AI Tools plan is separate; signing in does not activate Pro.' : 'Esta conta identifica-te no AI Tools. O plano desta app é separado; entrar não ativa o Pro.'}</p>
             <div className="accountMeta">
               <div>
                 <strong>{isEn ? 'Status' : 'Estado'}:</strong> {subscription?.status || (isEn ? 'no subscription' : 'sem subscrição')}

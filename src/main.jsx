@@ -8,16 +8,24 @@ import './styles.css';
 import { ConsentProvider } from './privacy/ConsentContext.jsx';
 import { registerAquaServiceWorker } from './pwa/registerServiceWorker.js';
 
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ConsentProvider>
-      <AuthProvider>
-        <RatingsProvider>
-          <MyRatingsProvider><App /></MyRatingsProvider>
-        </RatingsProvider>
-      </AuthProvider>
-    </ConsentProvider>
-  </React.StrictMode>,
-);
+function mountApp() {
+  createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <ConsentProvider>
+        <AuthProvider>
+          <RatingsProvider>
+            <MyRatingsProvider><App /></MyRatingsProvider>
+          </RatingsProvider>
+        </AuthProvider>
+      </ConsentProvider>
+    </React.StrictMode>,
+  );
+}
+
+if (document.documentElement.classList.contains('aqua-entry-active')) {
+  window.addEventListener('aqua-entry-finished', mountApp, { once: true });
+} else {
+  mountApp();
+}
 
 registerAquaServiceWorker();

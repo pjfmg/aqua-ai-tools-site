@@ -12,7 +12,7 @@ function isValidEmail(email) {
 export default function SignInPage() {
   const navigate = useNavigate();
   const { path, isEn } = useLanguage();
-  const { signIn } = useAuth();
+  const { signIn, enterGuest } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,6 +105,9 @@ export default function SignInPage() {
                   </button>
                   <Link className="btn btn--ghost" to={path('/signup')}>
                     {isEn ? 'Create account' : 'Criar conta'}
+                  </Link>
+                  <Link className="btn btn--ghost" to={path('/ferramentas')} onClick={enterGuest}>
+                    {isEn ? 'Enter without an account' : 'Entrar sem conta'}
                   </Link>
                 </div>
               </form>

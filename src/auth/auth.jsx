@@ -19,13 +19,33 @@ function toAppUser(authUser) {
 }
 
 const AuthContext = createContext(null);
+const GUEST_SESSION_KEY = 'aqua-ai-tools-guest-session';
+
+function readGuestSession() {
+  try { return sessionStorage.getItem(GUEST_SESSION_KEY) === 'active'; }
+  catch { return false; }
+}
+
+function writeGuestSession(active) {
+  try {
+    if (active) sessionStorage.setItem(GUEST_SESSION_KEY, 'active');
+    else sessionStorage.removeItem(GUEST_SESSION_KEY);
+  } catch { /* Storage may be unavailable. */ }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [billingLoaded, setBillingLoaded] = useState(false);
+  const [guestMode, setGuestMode] = useState(readGuestSession);
 
   useEffect(() => {
+    if (guestMode) {
+      setUser(null);
+      setAuthLoaded(true);
+      setBillingLoaded(true);
+      return undefined;
+    }
     let ignore = false;
     try {
       localStorage.removeItem('aqua_auth_user_v1');
@@ -45,7 +65,7 @@ export function AuthProvider({ children }) {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [guestMode]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -81,20 +101,32 @@ export function AuthProvider({ children }) {
     return {
       user,
       authLoaded,
-      isAuthed: Boolean(user),
+      isAuthed: Boolean(user) && !guestMode,
+      guestMode,
+      enterGuest: () => {
+        writeGuestSession(true);
+        setUser(null);
+        setGuestMode(true);
+      },
       billingLoaded,
       hasProAccess: hasProAccess(user),
       signIn: async ({ email, password }) => {
         const session = await signInWithPassword({ email, password });
         const next = toAppUser(session?.user);
         if (!next) throw new Error('A sessão não contém um utilizador válido.');
+        writeGuestSession(false);
+        setGuestMode(false);
         setUser(next);
         return next;
       },
       signUp: async ({ name, email, password }) => {
         const result = await signUpWithPassword({ name, email, password });
         const next = toAppUser(result?.user || result);
-        if (result?.access_token && next) setUser(next);
+        if (result?.access_token && next) {
+          writeGuestSession(false);
+          setGuestMode(false);
+          setUser(next);
+        }
         return { user: next, authenticated: Boolean(result?.access_token && next) };
       },
       setSubscription: (subscription) => {
@@ -108,7 +140,7 @@ export function AuthProvider({ children }) {
         setUser(null);
       },
     };
-  }, [authLoaded, billingLoaded, user]);
+  }, [authLoaded, billingLoaded, guestMode, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
