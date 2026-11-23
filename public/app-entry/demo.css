@@ -1,0 +1,21 @@
+:root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #152025; background: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #fff; }
+main { width: min(900px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 72px; }
+.signature { display: block; width: min(520px, 100%); height: auto; margin-bottom: 58px; }
+.eyebrow { color: #6f3cb7; font-size: .8rem; font-weight: 800; letter-spacing: .12em; }
+h1 { font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.1; margin: 12px 0 18px; }
+.intro { max-width: 650px; line-height: 1.6; }
+.filters, .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 34px 0 24px; }
+button, .actions a { border: 1px solid #a96bfb; border-radius: 12px; padding: 11px 18px; background: #fff; color: #152025; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+button[aria-pressed="true"], .actions a:first-child { background: #a96bfb; color: #152025; }
+button:focus-visible, a:focus-visible { outline: 3px solid #152025; outline-offset: 3px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.cards article { border: 1px solid #e5d9f5; border-radius: 18px; padding: 22px; background: #f9f6fe; }
+.cards article[hidden] { display: none; }
+.cards span { color: #6f3cb7; font-size: .76rem; font-weight: 800; letter-spacing: .08em; }
+.cards h2 { margin: 16px 0 10px; }
+.cards p { line-height: 1.5; }
+.notice { border-left: 4px solid #a96bfb; padding: 10px 16px; margin-top: 28px; background: #f9f6fe; line-height: 1.5; }
+footer { padding: 24px; text-align: center; }
+footer img { width: min(220px, 60vw); height: auto; filter: brightness(0); }

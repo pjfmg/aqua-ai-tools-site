@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { getLanguageSwitchPath, useLanguage } from '../i18n.jsx';
+import { getLanguageSwitchPath, rememberLanguage, useLanguage } from '../i18n.jsx';
 import { useAuth } from '../auth/auth.jsx';
 
 const NAV_ITEMS = [
@@ -32,7 +32,7 @@ export default function TopNav() {
           </Link>
 
           <div className="topnav__auth">
-            <Link className="btn btn--ghost btn--small" to={languagePath}>
+            <Link className="btn btn--ghost btn--small topnav__language" to={languagePath} onClick={() => rememberLanguage(isEn ? 'pt' : 'en')} aria-label={isEn ? 'PT — Mudar idioma para português' : 'EN — Switch language to English'}>
               {isEn ? 'PT' : 'EN'}
             </Link>
             {isAuthed ? (

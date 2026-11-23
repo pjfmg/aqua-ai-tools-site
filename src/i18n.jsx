@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const LanguageContext = createContext({ lang: 'pt', prefix: '', path: (to) => to });
@@ -46,9 +46,21 @@ export function getLanguageSwitchPath(pathname, targetLang) {
   return localizePath(pathname, 'pt');
 }
 
+export function rememberLanguage(lang) {
+  try { localStorage.setItem('aqua-ai-tools-entry-locale', lang === 'en' ? 'en' : 'pt-PT'); }
+  catch { /* Storage can be unavailable in private browsing. */ }
+}
+
 export function LanguageProvider({ children }) {
   const location = useLocation();
   const lang = isEnglishPath(location.pathname) ? 'en' : 'pt';
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('aqua-ai-tools-intro-seen') === 'seen') {
+        rememberLanguage(lang);
+      }
+    } catch { /* Storage can be unavailable in private browsing. */ }
+  }, [lang]);
   const value = useMemo(
     () => ({
       lang,
