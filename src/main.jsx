@@ -6,6 +6,7 @@ import { MyRatingsProvider } from './ratings/MyRatingsContext.jsx';
 import { RatingsProvider } from './ratings/RatingsContext.jsx';
 import './styles.css';
 import { ConsentProvider } from './privacy/ConsentContext.jsx';
+import { registerAquaServiceWorker } from './pwa/registerServiceWorker.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -18,3 +19,5 @@ createRoot(document.getElementById('root')).render(
     </ConsentProvider>
   </React.StrictMode>,
 );
+
+registerAquaServiceWorker();
